@@ -2,13 +2,13 @@
 #property link "https://www.linkedin.com/in/enryea123"
 #property description "Enrico Albano's automated bot for Ahtodo"
 
-#include "src/candles/PatternsDraw.mqh"
+#include "src/patterns/PatternsDraw.mqh"
 #include "src/extremes/ExtremesDraw.mqh"
 #include "src/trendlines/TrendLinesDraw.mqh"
 #include "tst/UnitTestsRunner.mqh"
 
-void DoEverythingTestFunction(){
 
+void OnInit(){
     UnitTestsRunner unitTestsRunner;
     unitTestsRunner.runAllUnitTests();
 
@@ -20,13 +20,6 @@ void DoEverythingTestFunction(){
     patternsDraw.drawAllPatterns();
 }
 
-void OnInit(){
-    DoEverythingTestFunction(); // forse non serve
-}
-
 void OnTick(){
     Print("Ciao");
 }
-
-// manca fare PatternTest e CandleTest ora
-// è ora di fare il setup di git

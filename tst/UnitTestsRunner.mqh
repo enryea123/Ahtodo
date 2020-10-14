@@ -44,6 +44,8 @@ void UnitTestsRunner::runAllUnitTests(){
     trendLinesTest.trendLineNameTest();
     trendLinesTest.trendLineSetupsTest();
 
+    PatternsTest patternsTest;
+    patternsTest.isPatternTest();
 
     int endTime = TimeLocal() - startTime;
     Print("All unit tests run in ", endTime, " seconds. StartTime: ", TimeToStr(startTime));

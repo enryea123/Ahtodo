@@ -14,14 +14,14 @@ class PatternsDraw: public Patterns{
         void drawAllPatterns();
 
     private:
-        const int numberOfCandlesForPatterns_;
+        const int numberOfCandlesForPatternsDraw_;
 
         void drawCandleColouredDot(int, string, color, double);
         void drawPatternRectangle(int, int, color);
 };
 
 PatternsDraw::PatternsDraw():
-    numberOfCandlesForPatterns_(200){
+    numberOfCandlesForPatternsDraw_(200){
 }
 
 PatternsDraw::~PatternsDraw(){}
@@ -65,7 +65,7 @@ void PatternsDraw::drawPatternRectangle(int timeIndex, int patternLength, color 
 }
 
 void PatternsDraw::drawAllPatterns(){
-    const int MaxCandles = IS_DEBUG ? CANDLES_VISIBLE_IN_GRAPH_2X : numberOfCandlesForPatterns_;
+    const int MaxCandles = IS_DEBUG ? CANDLES_VISIBLE_IN_GRAPH_2X : numberOfCandlesForPatternsDraw_;
 
     for(int i = 1; i < MaxCandles; i++){
         if(IS_DEBUG){

@@ -81,7 +81,6 @@ bool Candles::bigBar(int timeIndex){
 bool Candles::isCandleBull(int timeIndex){
     if(iClose(NULL, Period(), timeIndex) > iOpen(NULL, Period(), timeIndex))
         return true;
-
     return false;
 }
 
