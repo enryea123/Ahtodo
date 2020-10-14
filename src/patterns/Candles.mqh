@@ -15,9 +15,8 @@ class Candles{
         bool upPinbar(int);
         bool bigBar(int);
 
-    protected:
+    // protected:
         bool isCandleBull(int);
-        bool isCandleSizeGood(int);
         bool isSupportCandle(int);
 
         double candleBody(int);

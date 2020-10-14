@@ -3,7 +3,6 @@
 #property description "Enrico Albano's automated bot for Ahtodo"
 
 #include "src/patterns/PatternsDraw.mqh"
-#include "src/extremes/ExtremesDraw.mqh"
 #include "src/trendlines/TrendLinesDraw.mqh"
 #include "tst/UnitTestsRunner.mqh"
 
@@ -23,3 +22,5 @@ void OnInit(){
 void OnTick(){
     Print("Ciao");
 }
+
+// Now that (some) Candles props are public (maybe) they can be tested with CandlesTest

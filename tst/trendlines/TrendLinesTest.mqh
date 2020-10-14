@@ -16,16 +16,10 @@ class TrendLinesTest{
         void trendLineSetupsTest();
 
     private:
-        const int trendLineMinExtremesDistance_;
-        const double negativeSlopeVolatility_;
-        const double positiveSlopeVolatility_;
         TrendLines trendLines_;
 };
 
 TrendLinesTest::TrendLinesTest():
-    negativeSlopeVolatility_(NEGATIVE_SLOPE_VOLATILITY),
-    positiveSlopeVolatility_(POSITIVE_SLOPE_VOLATILITY),
-    trendLineMinExtremesDistance_(TRENDLINES_MIN_EXTREMES_DISTANCE),
     trendLines_(){
 }
 
@@ -47,16 +41,16 @@ void TrendLinesTest::isTrendLineGoodForPendingOrderTest(){
     );
 
     const int timeIndex = 1;
-    const int bigTimeIndex = trendLineMinExtremesDistance_ - timeIndex;
+    const int bigTimeIndex = TRENDLINES_MIN_EXTREMES_DISTANCE - timeIndex;
 
     unitTest.assertTrue(
         trendLines_.isTrendLineGoodForPendingOrder(trendLines_.buildTrendLineName(
-            20, trendLineMinExtremesDistance_ + timeIndex, 0, Max), timeIndex)
+            20, TRENDLINES_MIN_EXTREMES_DISTANCE + timeIndex, 0, Max), timeIndex)
     );
 
     unitTest.assertFalse(
         trendLines_.isTrendLineGoodForPendingOrder(trendLines_.buildTrendLineName(
-            20, trendLineMinExtremesDistance_ + timeIndex, 0, Max), bigTimeIndex)
+            20, TRENDLINES_MIN_EXTREMES_DISTANCE + timeIndex, 0, Max), bigTimeIndex)
     );
 }
 
@@ -168,15 +162,15 @@ void TrendLinesTest::trendLineSetupsTest(){
     const double slopeMin = (iExtreme(20, Min) - iExtreme(50, Min)) / (50 - 20);
     const double slopeMax = (iExtreme(20, Max) - iExtreme(50, Max)) / (50 - 20);
 
-    if(slopeMin > 0 && MathAbs(slopeMin) > positiveSlopeVolatility_ * GetMarketVolatility()){
+    if(slopeMin > 0 && MathAbs(slopeMin) > POSITIVE_SLOPE_VOLATILITY * GetMarketVolatility()){
         unitTest.assertFalse(
             trendLines_.areTrendLineSetupsGood(50, 20, Min),
-            "positiveSlopeVolatility_"
+            "POSITIVE_SLOPE_VOLATILITY"
         );
-    }else if(slopeMax < 0 && MathAbs(slopeMax) > negativeSlopeVolatility_ * GetMarketVolatility()){
+    }else if(slopeMax < 0 && MathAbs(slopeMax) > NEGATIVE_SLOPE_VOLATILITY * GetMarketVolatility()){
         unitTest.assertFalse(
             trendLines_.areTrendLineSetupsGood(50, 20, Max),
-            "negativeSlopeVolatility_"
+            "NEGATIVE_SLOPE_VOLATILITY"
         );
     }else{
         Print("trendLineSetupsTest(): excessive slope test skipped..");

@@ -3,6 +3,7 @@
 
 #include "../src/Constants.mqh"
 #include "extremes/ArrowStyleTest.mqh"
+#include "patterns/PatternsTest.mqh"
 #include "pivot/PivotTest.mqh"
 #include "pivot/PivotStyleTest.mqh"
 #include "trendlines/TrendLinesTest.mqh"
