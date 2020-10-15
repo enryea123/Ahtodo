@@ -22,5 +22,3 @@ void OnInit(){
 void OnTick(){
     Print("Ciao");
 }
-
-// Now that (some) Candles props are public (maybe) they can be tested with CandlesTest
