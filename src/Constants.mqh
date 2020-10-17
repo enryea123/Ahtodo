@@ -112,6 +112,28 @@ double iExtreme(int InputTime, Discriminator discriminator){
         return NULL;
 }
 
+/*
+int MathSign(double inputValue){
+    if(inputValue > 0)
+        return 1;
+    else if(inputValue < 0)
+        return -1;
+    else
+        return 0;
+}
+
+string AntiDiscriminator(string Discriminator){
+    return Discriminator == "Min" ? "Max" : "Min";
+}
+
+string GetDiscriminatorFromSign(double inputValue){
+    if(inputValue >= 0)
+        return "Max";
+    else
+        return "Min";
+}
+*/
+
 double Pips(){
     return Pips(Symbol());
 }
@@ -172,6 +194,20 @@ datetime CandleStartTime(string orderSymbol, int period, int timeIndex){
     return iTime(orderSymbol, period, timeIndex);
 }
 
+
+int MarketOpenHour(){
+    if(Period() == PERIOD_H4)
+        return MARKET_OPEN_HOUR_H4;
+
+    return MARKET_OPEN_HOUR;
+}
+
+int MarketCloseHour(){
+    if(Period() == PERIOD_H4)
+        return MARKET_CLOSE_HOUR_H4;
+
+    return MARKET_CLOSE_HOUR;
+}
 
 /*
 datetime CandleStartTime(string orderSymbol, PivotPeriod pivotPeriod, int timeIndex){

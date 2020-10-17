@@ -17,7 +17,7 @@ class ArrowStyle{
 
         color getArrowColor(bool);
         int getArrowSize(bool);
-        double getArrowDrawShift(Discriminator, bool);
+        double getArrowAnchor(Discriminator);
         string buildArrowName(int, Discriminator, bool);
         string getArrowObjectType(Discriminator);
 };
@@ -44,12 +44,13 @@ int ArrowStyle::getArrowSize(bool isValidExtreme){
     return 1;
 }
 
-double ArrowStyle::getArrowDrawShift(Discriminator discriminator, bool isValidExtreme){
-    double arrowDrawShift = discriminator == Min ? 1.0 : 1.0005;
-    if(isValidExtreme)
-        arrowDrawShift *= arrowDrawShift;
+double ArrowStyle::getArrowAnchor(Discriminator discriminator){
+    if(discriminator == Max)
+        return ANCHOR_BOTTOM;
+    if(discriminator == Min)
+        return ANCHOR_TOP;
 
-    return arrowDrawShift;
+    return NULL;
 }
 
 string ArrowStyle::getArrowObjectType(Discriminator discriminator){
@@ -79,9 +80,10 @@ void ArrowStyle::drawExtremeArrow(int timeIndex, Discriminator discriminator, bo
         getArrowObjectType(discriminator),
         0,
         Time[timeIndex],
-        iExtreme(timeIndex, discriminator) * getArrowDrawShift(discriminator, isValidExtreme)
+        iExtreme(timeIndex, discriminator)
     );
-    
+
+    ObjectSet(arrowName, OBJPROP_ANCHOR, getArrowAnchor(discriminator));
     ObjectSet(arrowName, OBJPROP_COLOR, getArrowColor(isValidExtreme));
     ObjectSet(arrowName, OBJPROP_WIDTH, getArrowSize(isValidExtreme));
 }

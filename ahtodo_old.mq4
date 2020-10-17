@@ -1,150 +1,3 @@
-#property copyright "2020 Enrico Albano"
-#property link "https://www.linkedin.com/in/enryea123"
-#property description "Enrico Albano's automated bot for ahtodo"
-
-#define MY_SCRIPT_ID 2044000
-#define MY_SCRIPT_ID_030 2044030
-#define MY_SCRIPT_ID_060 2044060
-#define MY_SCRIPT_ID_240 2044240
-
-#define MARKET_OPEN_HOUR 10
-#define MARKET_CLOSE_HOUR 18
-#define MARKET_OPEN_HOUR_H4 2
-#define MARKET_CLOSE_HOUR_H4 22
-#define MARKET_CLOSE_HOUR_PENDING 17
-#define MARKET_OPEN_DAY 1
-#define MARKET_CLOSE_DAY 5
-
-bool SelectedOrder;
-int PreviousOrderTicket;
-
-int OrderCandlesDuration = 6;
-int SmallestAllowedExtremeIndex = 4;
-int TotalCandles = 940;
-
-bool IsDebug = false;
-bool PositionSplit = true;
-
-input double PercentRisk = 1.0;
-double BaseTakeProfitFactor = 3.0;
-
-
-
-//------------------------------------------------------------------------------------------------//
-// Patterns
-//------------------------------------------------------------------------------------------------//
-
-
-
-
-double iExtreme(int InputTime, string Discriminator){
-    if(Discriminator == "Min")
-        return iLow(NULL, Period(), InputTime);
-    else if(Discriminator == "Max")
-        return iHigh(NULL, Period(), InputTime);
-    else
-        return NULL;
-}
-
-int MathSign(double InputValue){
-    if(InputValue > 0)
-        return 1;
-    else if(InputValue < 0)
-        return -1;
-    else
-        return 0;
-}
-
-string AntiDiscriminator(string Discriminator){
-    return Discriminator == "Min" ? "Max" : "Min";
-}
-
-string GetDiscriminatorFromSign(double InputValue){
-    if(InputValue >= 0)
-        return "Max";
-    else
-        return "Min";
-}
-
-
-
-//------------------------------------------------------------------------------------------------//
-// Drawing functions
-//------------------------------------------------------------------------------------------------//
-
-
-
-void DrawOpenMarketLines(){
-    for(int day = 0; day < 40; day++){
-
-        datetime ThisDayStart = StrToTime(StringConcatenate(Year(), ".", Month(), ".", Day(),
-            " ", MarketOpenHour(), ":00")) - 86400 * day;
-
-        datetime ThisDayEnd = StrToTime(StringConcatenate(Year(), ".", Month(), ".", Day(),
-            " ", MarketCloseHour() - 1, ":30")) - 86400 * day;
-
-        if(TimeDayOfWeek(ThisDayStart) >= (MARKET_CLOSE_DAY)
-        || TimeDayOfWeek(ThisDayStart) < MARKET_OPEN_DAY)
-            continue;
-
-        string MarketOpenLineName = StringConcatenate("MarketOpenLine-", day);
-
-        ObjectCreate(
-            MarketOpenLineName,
-            OBJ_TREND,
-            0,
-            ThisDayStart,
-            MathMin(iLow(NULL, PERIOD_MN1, 0), iLow(NULL, PERIOD_MN1, 1)) - 10 * Pips(),
-            ThisDayEnd,
-            MathMin(iLow(NULL, PERIOD_MN1, 0), iLow(NULL, PERIOD_MN1, 1)) - 10 * Pips());
-
-        ObjectSet(MarketOpenLineName, OBJPROP_RAY_RIGHT, false);
-        ObjectSet(MarketOpenLineName, OBJPROP_COLOR, clrMediumSeaGreen);
-        ObjectSet(MarketOpenLineName, OBJPROP_WIDTH, 4);
-        ObjectSet(MarketOpenLineName, OBJPROP_BACK, true);
-    }
-}
-
-void DrawEverything(){
-    string LastDrawingTimeSignal = StringConcatenate("LastDrawingTime-", Time[1]);
-
-    if(ObjectFind(LastDrawingTimeSignal) >= 0){
-        return;
-    }
-
-    for(int i = ObjectsTotal() - 1; i >= 0; i--){
-        ObjectDelete(ObjectName(i));
-    }
-
-    ObjectCreate(
-        LastDrawingTimeSignal,
-        OBJ_ARROW_UP,
-        0,
-        Time[1],
-        iExtreme(1, "Min") * 0.999);
-
-    ObjectSet(LastDrawingTimeSignal, OBJPROP_COLOR, clrForestGreen);
-    ObjectSet(LastDrawingTimeSignal, OBJPROP_ARROWCODE, 233);
-    ObjectSet(LastDrawingTimeSignal, OBJPROP_WIDTH, 4);
-
-    int ValidMinimumsIndexes[];
-    int ValidMaximumsIndexes[];
-
-    FindExtremes(ValidMinimumsIndexes, "Min");
-    FindExtremes(ValidMaximumsIndexes, "Max");
-
-    DrawTrendLines(ValidMinimumsIndexes, "Min");
-    DrawTrendLines(ValidMaximumsIndexes, "Max");
-
-    DrawAllMicropatterns();
-
-    DrawAllPivots();
-
-    if(IsDebug)
-        DrawOpenMarketLines();
-
-    Print("Updated drawings at Time: ", TimeToStr(TimeCurrent()));
-}
 
 
 //------------------------------------------------------------------------------------------------//
@@ -219,26 +72,7 @@ bool IsUnknownMagicNumber(int MagicNumber){
     return false;
 }
 
-int MarketOpenHour(){
-    if(Period() == PERIOD_H4)
-        return MARKET_OPEN_HOUR_H4;
 
-    return MARKET_OPEN_HOUR;
-}
-
-int MarketCloseHour(){
-    if(Period() == PERIOD_H4)
-        return MARKET_CLOSE_HOUR_H4;
-
-    return MARKET_CLOSE_HOUR;
-}
-
-void HardSleep(int Seconds){
-    datetime TimeWaiting = TimeCurrent() + Seconds;
-
-    while(TimeCurrent() < TimeWaiting)
-        continue;
-}
 
 datetime GetTimeAtMidnight(){
     return (TimeCurrent() - (TimeCurrent() % (PERIOD_D1 * 60)));
@@ -281,6 +115,8 @@ bool AreSymbolsCorrelated(string SymbolOne, string SymbolTwo){
     if((StringContains(SymbolOne, "GBP") && StringContains(SymbolTwo, "GBP"))
     || (StringContains(SymbolOne, "EUR") && StringContains(SymbolTwo, "EUR")))
         return true;
+
+    // missing improvement from last ahtodo, check all comments
 
     return false;
 }
@@ -1116,28 +952,7 @@ bool IsMinorBankHoliday(){
     return false;
 }
 
-void SetChartDefaultColors(){
-    ChartSetInteger(0, CHART_COLOR_BACKGROUND, clrWhite);
-    ChartSetInteger(0, CHART_COLOR_GRID, clrSilver);
-    ChartSetInteger(0, CHART_COLOR_FOREGROUND, clrBlack);
-    ChartSetInteger(0, CHART_MODE, CHART_CANDLES);
-    ChartSetInteger(0, CHART_SCALE, 5);
-    ChartSetInteger(0, CHART_COLOR_CHART_UP, clrBlack);
-    ChartSetInteger(0, CHART_COLOR_CHART_DOWN, clrBlack);
-    ChartSetInteger(0, CHART_COLOR_CANDLE_BULL, clrWhite);
-    ChartSetInteger(0, CHART_COLOR_CANDLE_BEAR, clrBlack);
-    ChartSetInteger(0, CHART_COLOR_CHART_LINE, clrBlack);
-}
 
-void SetChartMarketOpenedColors(){
-    ChartSetInteger(0, CHART_COLOR_BACKGROUND, clrWhite);
-    ChartSetInteger(0, CHART_COLOR_GRID, clrSilver);
-}
-
-void SetChartMarketClosedColors(){
-    ChartSetInteger(0, CHART_COLOR_BACKGROUND, clrSilver);
-    ChartSetInteger(0, CHART_COLOR_GRID, clrWhite);
-}
 
 void OnInit(){
     SetChartDefaultColors();
@@ -1225,13 +1040,7 @@ void OnTick(){
 //------------------------------------------------------------------------------------------------//
 
 
-void OnDeinit(const int reason){
-    SetChartDefaultColors();
 
-    for(int i = ObjectsTotal() - 1; i >= 0; i--){
-        ObjectDelete(ObjectName(i));
-    }
-}
 
 
 //------------------------------------------------------------------------------------------------//
