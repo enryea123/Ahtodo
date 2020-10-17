@@ -1,12 +1,12 @@
 #property copyright "2020 Enrico Albano"
 #property link "https://www.linkedin.com/in/enryea123"
 
-#include "../Constants.mqh"
-#include "../extremes/ExtremesDraw.mqh"
-#include "TrendLines.mqh"
+#include "../../Constants.mqh"
+#include "../extreme/ExtremesDraw.mqh"
+#include "TrendLine.mqh"
 
 
-class TrendLinesDraw: public TrendLines{
+class TrendLinesDraw{
     public:
         TrendLinesDraw();
         ~TrendLinesDraw();
@@ -14,6 +14,7 @@ class TrendLinesDraw: public TrendLines{
         void drawTrendLines();
 
     private:
+        TrendLine trendLine_;
         const color trendLineColor_;
         const color badTrendLineColor_;
         const int numberOfBeams_;
@@ -26,6 +27,7 @@ class TrendLinesDraw: public TrendLines{
 };
 
 TrendLinesDraw::TrendLinesDraw():
+    trendLine_(),
     trendLineColor_(clrYellow),
     badTrendLineColor_(clrMistyRose),
     numberOfBeams_(2),
@@ -48,13 +50,13 @@ Discriminator discriminator){
         iExtreme(indexJ, discriminator) - beamSize_ * beam / numberOfBeams_
     );
 
-    if(isExistingTrendLineBad(trendLineName, discriminator)){
+    if(trendLine_.isExistingTrendLineBad(trendLineName, discriminator)){
         ObjectDelete(trendLineName);
         return;
     }
 
-    const int trendLineWidth = !isBadTrendLineFromName(trendLineName) ? trendLineWidth_ : badTrendLineWidth_;
-    const color trendLineColor = !isBadTrendLineFromName(trendLineName) ? trendLineColor_ : badTrendLineColor_;
+    const int trendLineWidth = !trendLine_.isBadTrendLineFromName(trendLineName) ? trendLineWidth_ : badTrendLineWidth_;
+    const color trendLineColor = !trendLine_.isBadTrendLineFromName(trendLineName) ? trendLineColor_ : badTrendLineColor_;
 
     ObjectSet(trendLineName, OBJPROP_WIDTH, trendLineWidth);
     ObjectSet(trendLineName, OBJPROP_COLOR, trendLineColor);
@@ -67,14 +69,14 @@ void TrendLinesDraw::drawDiscriminatedTrendLines(int & indexes[], Discriminator 
         for(int j = i + 1; j < ArraySize(indexes); j++){
             for(int beam = -numberOfBeams_; beam <= numberOfBeams_; beam++){
 
-                if(areTrendLineSetupsGood(indexes[i], indexes[j], discriminator)){
-                    const string trendLineName = buildTrendLineName(indexes[i], indexes[j], beam, discriminator);
+                if(trendLine_.areTrendLineSetupsGood(indexes[i], indexes[j], discriminator)){
+                    const string trendLineName = trendLine_.buildTrendLineName(indexes[i], indexes[j], beam, discriminator);
 
                     drawSingleTrendLine(trendLineName, indexes[i], indexes[j], beam, discriminator);
                 }
 
-                if(IS_DEBUG && !areTrendLineSetupsGood(indexes[i], indexes[j], discriminator)){
-                    const string badTrendLineName = buildBadTrendLineName(
+                if(IS_DEBUG && !trendLine_.areTrendLineSetupsGood(indexes[i], indexes[j], discriminator)){
+                    const string badTrendLineName = trendLine_.buildBadTrendLineName(
                         indexes[i], indexes[j], beam, discriminator);
 
                     drawSingleTrendLine(badTrendLineName, indexes[i], indexes[j], beam, discriminator);

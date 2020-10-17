@@ -1,20 +1,19 @@
 #property copyright "2020 Enrico Albano"
 #property link "https://www.linkedin.com/in/enryea123"
 
-#include "../Constants.mqh"
-#include "Candles.mqh"
+#include "../../Constants.mqh"
+#include "Candle.mqh"
 
 
-class Patterns: public Candles{
+class Pattern: public Candle{
     public:
-        Patterns();
-        ~Patterns();
+        Pattern();
+        ~Pattern();
 
         bool isBuyPattern(int);
         bool isSellPattern(int);
         bool isAntiPattern(int);
 
-    protected:
         bool buyPattern1(int);
         bool buyPattern2(int);
         bool buyPattern3(int);
@@ -22,7 +21,7 @@ class Patterns: public Candles{
         bool sellPattern2(int);
         bool sellPattern3(int);
         bool sellBuyPattern4(int);
-        bool antiPattern(int);
+        bool antiPattern1(int);
 
         bool isPatternSizeGood(int);
 
@@ -30,13 +29,13 @@ class Patterns: public Candles{
         const int antiPatternMinSizeSumPips_;
 };
 
-Patterns::Patterns():
+Pattern::Pattern():
     antiPatternMinSizeSumPips_(50){
 }
 
-Patterns::~Patterns(){}
+Pattern::~Pattern(){}
 
-bool Patterns::sellPattern1(int timeIndex){
+bool Pattern::sellPattern1(int timeIndex){
     // Low doji followed by big bull bar
 
     if(!bigBar(timeIndex))
@@ -67,7 +66,7 @@ bool Patterns::sellPattern1(int timeIndex){
 }
 
 
-bool Patterns::buyPattern1(int timeIndex){
+bool Pattern::buyPattern1(int timeIndex){
     // High doji followed by big bear bar
 
     if(!bigBar(timeIndex))
@@ -97,7 +96,7 @@ bool Patterns::buyPattern1(int timeIndex){
     return true;
 }
 
-bool Patterns::sellPattern2(int timeIndex){
+bool Pattern::sellPattern2(int timeIndex){
     // Down pinbar
 
     if(!downPinbar(timeIndex))
@@ -106,7 +105,7 @@ bool Patterns::sellPattern2(int timeIndex){
     return true;
 }
 
-bool Patterns::buyPattern2(int timeIndex){
+bool Pattern::buyPattern2(int timeIndex){
     // Up pinbar
 
     if(!upPinbar(timeIndex))
@@ -115,7 +114,7 @@ bool Patterns::buyPattern2(int timeIndex){
     return true;
 }
 
-bool Patterns::sellPattern3(int timeIndex){
+bool Pattern::sellPattern3(int timeIndex){
     // High doji followed by big bear bar and then big bull bar
 
     if(!bigBar(timeIndex + 1))
@@ -168,7 +167,7 @@ bool Patterns::sellPattern3(int timeIndex){
     return true;
 }
 
-bool Patterns::buyPattern3(int timeIndex){
+bool Pattern::buyPattern3(int timeIndex){
     // Low doji followed by big bull bar and then big bear bar
 
     if(!bigBar(timeIndex + 1))
@@ -221,7 +220,7 @@ bool Patterns::buyPattern3(int timeIndex){
     return true;
 }
 
-bool Patterns::sellBuyPattern4(int timeIndex){
+bool Pattern::sellBuyPattern4(int timeIndex){
     // slimDoji, only for H4
 
     if(!slimDoji(timeIndex))
@@ -233,7 +232,7 @@ bool Patterns::sellBuyPattern4(int timeIndex){
     return true;
 }
 
-bool Patterns::antiPattern(int timeIndex){
+bool Pattern::antiPattern1(int timeIndex){
     // 3 dojis or discording pinbars in a row
 
     if((doji(timeIndex) && doji(timeIndex + 1) && doji(timeIndex + 2))
@@ -255,7 +254,7 @@ bool Patterns::antiPattern(int timeIndex){
     return false;
 }
 
-bool Patterns::isBuyPattern(int timeIndex){
+bool Pattern::isBuyPattern(int timeIndex){
     if(isPatternSizeGood(timeIndex)
     && (buyPattern1(timeIndex) || buyPattern2(timeIndex)
     || buyPattern3(timeIndex) || sellBuyPattern4(timeIndex)))
@@ -264,7 +263,7 @@ bool Patterns::isBuyPattern(int timeIndex){
     return false;
 }
 
-bool Patterns::isSellPattern(int timeIndex){
+bool Pattern::isSellPattern(int timeIndex){
     if(isPatternSizeGood(timeIndex)
     && (sellPattern1(timeIndex) || sellPattern2(timeIndex)
     || sellPattern3(timeIndex) || sellBuyPattern4(timeIndex)))
@@ -273,14 +272,14 @@ bool Patterns::isSellPattern(int timeIndex){
     return false;
 }
 
-bool Patterns::isAntiPattern(int timeIndex){
-    if(antiPattern(timeIndex) || antiPattern(timeIndex + 1) || antiPattern(timeIndex + 2))
+bool Pattern::isAntiPattern(int timeIndex){
+    if(antiPattern1(timeIndex) || antiPattern1(timeIndex + 1) || antiPattern1(timeIndex + 2))
         return true;
 
     return false;
 }
 
-bool Patterns::isPatternSizeGood(int timeIndex){
+bool Pattern::isPatternSizeGood(int timeIndex){
     if(candleSize(timeIndex) >= PATTERN_MINIMUM_SIZE_PIPS * PeriodMultiplicationFactor() * Pips()
     && candleSize(timeIndex) <= PATTERN_MAXIMUM_SIZE_PIPS * PeriodMultiplicationFactor() * Pips())
         return true;

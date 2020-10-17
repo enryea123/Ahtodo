@@ -1,10 +1,10 @@
 #property copyright "2020 Enrico Albano"
 #property link "https://www.linkedin.com/in/enryea123"
 
-#include "../Constants.mqh"
-#include "../patterns/PatternsDraw.mqh"
-#include "../pivot/PivotDraw.mqh"
-#include "../trendlines/TrendLinesDraw.mqh"
+#include "../../Constants.mqh"
+#include "../pattern/PatternsDraw.mqh"
+#include "../pivot/PivotsDraw.mqh"
+#include "../trendline/TrendLinesDraw.mqh"
 
 
 class Drawer{
@@ -91,8 +91,8 @@ void Drawer::drawEverything(){
     PatternsDraw patternsDraw;
     patternsDraw.drawAllPatterns();
 
-    PivotDraw pivotDraw;
-    pivotDraw.drawAllPivots();
+    PivotsDraw pivotsDraw;
+    pivotsDraw.drawAllPivots();
 
     if(IS_DEBUG){
         drawOpenMarketLines();

@@ -1,13 +1,13 @@
 #property copyright "2020 Enrico Albano"
 #property link "https://www.linkedin.com/in/enryea123"
 
-#include "../Constants.mqh"
+#include "../../Constants.mqh"
 
 
-class Candles{
+class Candle{
     public:
-        Candles();
-        ~Candles();
+        Candle();
+        ~Candle();
 
         bool doji(int);
         bool slimDoji(int);
@@ -28,11 +28,11 @@ class Candles{
         double candleBodyMax(int);
 };
 
-Candles::Candles(){}
+Candle::Candle(){}
 
-Candles::~Candles(){}
+Candle::~Candle(){}
 
-bool Candles::doji(int timeIndex){
+bool Candle::doji(int timeIndex){
     if(candleBody(timeIndex) < 3 * ErrorPips()
     && candleUpShadow(timeIndex) < candleDownShadow(timeIndex) * 9 / 4
     && candleDownShadow(timeIndex) < candleUpShadow(timeIndex) * 9 / 4
@@ -42,14 +42,14 @@ bool Candles::doji(int timeIndex){
     return false;
 }
 
-bool Candles::slimDoji(int timeIndex){
+bool Candle::slimDoji(int timeIndex){
     if(doji(timeIndex) && candleBody(timeIndex) < 2 * ErrorPips())
         return true;
     return false;
 }
 
 
-bool Candles::downPinbar(int timeIndex){
+bool Candle::downPinbar(int timeIndex){
     if(candleDownShadow(timeIndex) > candleBody(timeIndex) * 4 / 3
     && candleUpShadow(timeIndex) < candleDownShadow(timeIndex) * 3 / 4
     && candleDownShadow(timeIndex) > (candleBody(timeIndex) + candleUpShadow(timeIndex)) * 3 / 4){
@@ -58,7 +58,7 @@ bool Candles::downPinbar(int timeIndex){
     return false;
 }
 
-bool Candles::upPinbar(int timeIndex){
+bool Candle::upPinbar(int timeIndex){
     if(candleUpShadow(timeIndex) > candleBody(timeIndex) * 4 / 3
     && candleDownShadow(timeIndex) < candleUpShadow(timeIndex) * 3 / 4
     && candleUpShadow(timeIndex) > (candleBody(timeIndex) + candleDownShadow(timeIndex)) * 3 / 4){
@@ -67,7 +67,7 @@ bool Candles::upPinbar(int timeIndex){
     return false;
 }
 
-bool Candles::bigBar(int timeIndex){
+bool Candle::bigBar(int timeIndex){
     if(candleBody(timeIndex) > 3 * ErrorPips()
     && candleDownShadow(timeIndex) < candleBody(timeIndex) * 3 / 4
     && candleUpShadow(timeIndex) < candleBody(timeIndex) * 3 / 4
@@ -77,44 +77,44 @@ bool Candles::bigBar(int timeIndex){
     return false;
 }
 
-bool Candles::isCandleBull(int timeIndex){
+bool Candle::isCandleBull(int timeIndex){
     if(iClose(NULL, Period(), timeIndex) > iOpen(NULL, Period(), timeIndex))
         return true;
     return false;
 }
 
-bool Candles::isSupportCandle(int timeIndex){
-    if(doji(timeIndex) || upPinbar(timeIndex) || downPinbar(timeIndex))
+bool Candle::isSupportCandle(int timeIndex){
+    if(doji(timeIndex) || slimDoji(timeIndex) || upPinbar(timeIndex) || downPinbar(timeIndex))
         return true;
     return false;
 }
 
-double Candles::candleBody(int timeIndex){
+double Candle::candleBody(int timeIndex){
     return MathAbs(iOpen(NULL, Period(), timeIndex) - iClose(NULL, Period(), timeIndex));
 }
 
-double Candles::candleSize(int timeIndex){
+double Candle::candleSize(int timeIndex){
     return MathAbs(iHigh(NULL, Period(), timeIndex) - iLow(NULL, Period(), timeIndex));
 }
 
-double Candles::candleUpShadow(int timeIndex){
+double Candle::candleUpShadow(int timeIndex){
     return MathAbs(iHigh(NULL, Period(), timeIndex) - MathMax(iOpen(NULL, Period(), timeIndex),
         iClose(NULL, Period(), timeIndex)));
 }
 
-double Candles::candleDownShadow(int timeIndex){
+double Candle::candleDownShadow(int timeIndex){
     return MathAbs(iLow(NULL, Period(), timeIndex) - MathMin(iOpen(NULL, Period(), timeIndex),
         iClose(NULL, Period(), timeIndex)));
 }
 
-double Candles::candleBodyMidPoint(int timeIndex){
+double Candle::candleBodyMidPoint(int timeIndex){
     return MathAbs(iOpen(NULL, Period(), timeIndex) + iClose(NULL, Period(), timeIndex)) / 2;
 }
 
-double Candles::candleBodyMin(int timeIndex){
+double Candle::candleBodyMin(int timeIndex){
     return MathMin(iOpen(NULL, Period(), timeIndex), iClose(NULL, Period(), timeIndex));
 }
 
-double Candles::candleBodyMax(int timeIndex){
+double Candle::candleBodyMax(int timeIndex){
     return MathMax(iOpen(NULL, Period(), timeIndex), iClose(NULL, Period(), timeIndex));
 }

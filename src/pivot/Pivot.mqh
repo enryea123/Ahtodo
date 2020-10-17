@@ -1,7 +1,7 @@
 #property copyright "2020 Enrico Albano"
 #property link "https://www.linkedin.com/in/enryea123"
 
-#include "../Constants.mqh"
+#include "../../Constants.mqh"
 
 enum PivotPeriod{
     D1 = PERIOD_D1,
@@ -17,6 +17,7 @@ enum PivotRS{
     S2,
     S3,
 };
+
 
 class Pivot{
     public:
@@ -40,6 +41,9 @@ double Pivot::getPivot(string orderSymbol, PivotPeriod pivotPeriod, int timeInde
     double pivot = (iHigh(orderSymbol, pivotPeriod, timeIndex + 1)
        + iLow(orderSymbol, pivotPeriod, timeIndex + 1)
        + iClose(orderSymbol, pivotPeriod, timeIndex + 1)) / 3;
+
+    if(pivot == 0)
+        return ThrowException(0, "getPivot == 0");
 
     return pivot;
 }

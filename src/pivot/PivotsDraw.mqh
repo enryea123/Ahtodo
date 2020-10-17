@@ -1,19 +1,21 @@
 #property copyright "2020 Enrico Albano"
 #property link "https://www.linkedin.com/in/enryea123"
 
-#include "../Constants.mqh"
+#include "../../Constants.mqh"
 #include "Pivot.mqh"
 #include "PivotStyle.mqh"
 
 
-class PivotDraw: public Pivot{
+class PivotsDraw{
     public:
-        PivotDraw();
-        ~PivotDraw();
+        PivotsDraw();
+        ~PivotsDraw();
 
         void drawAllPivots();
 
     private:
+        Pivot pivot_;
+
         const int maxCandlesPivotLinesDraw_;
         const int pivotLabelFontSize_;
         const int pivotRSLineLength_;
@@ -28,21 +30,22 @@ class PivotDraw: public Pivot{
         void drawPivotRS(PivotPeriod, PivotRS);
 };
 
-PivotDraw::PivotDraw():
+PivotsDraw::PivotsDraw():
+    pivot_(),
     maxCandlesPivotLinesDraw_(100),
     pivotLabelFontSize_(8),
     pivotRSLineLength_(6),
     currentSymbol_(Symbol()){
 }
 
-PivotDraw::~PivotDraw(){}
+PivotsDraw::~PivotsDraw(){}
 
-int PivotDraw::getMaxTimeIndex(int pivotPeriodFactor){
+int PivotsDraw::getMaxTimeIndex(int pivotPeriodFactor){
     const int maxCandles = IS_DEBUG ? CANDLES_VISIBLE_IN_GRAPH_2X : maxCandlesPivotLinesDraw_;
     return MathRound(1 + maxCandles * Period() / PERIOD_D1 / pivotPeriodFactor) + 1;
 }
 
-void PivotDraw::drawPivotLabel(string pivotLabelName, string pivotLabelText, color pivotColor, double x){
+void PivotsDraw::drawPivotLabel(string pivotLabelName, string pivotLabelText, color pivotColor, double x){
     ObjectCreate(pivotLabelName, OBJ_TEXT, 0, Time[0], x);
 
     ObjectSetString(0, pivotLabelName, OBJPROP_TEXT, pivotLabelText);
@@ -50,7 +53,7 @@ void PivotDraw::drawPivotLabel(string pivotLabelName, string pivotLabelText, col
     ObjectSet(pivotLabelName, OBJPROP_FONTSIZE, pivotLabelFontSize_);
 }
 
-void PivotDraw::drawPivotLine(string lineName, color lineColor, datetime t1, datetime t2, double x1, double x2){
+void PivotsDraw::drawPivotLine(string lineName, color lineColor, datetime t1, datetime t2, double x1, double x2){
     ObjectCreate(lineName, OBJ_TREND, 0, t1, x1, t2, x2);
 
     ObjectSet(lineName, OBJPROP_RAY_RIGHT, false);
@@ -58,14 +61,14 @@ void PivotDraw::drawPivotLine(string lineName, color lineColor, datetime t1, dat
     ObjectSet(lineName, OBJPROP_BACK, true);
 }
 
-void PivotDraw::drawPivot(PivotPeriod pivotPeriod){
+void PivotsDraw::drawPivot(PivotPeriod pivotPeriod){
     PivotStyle pivotStyle(pivotPeriod);
 
     drawPivotLabel(
         pivotStyle.pivotLabelName(),
         pivotStyle.pivotLabelText(),
         pivotStyle.pivotColor(),
-        getPivot(currentSymbol_, pivotPeriod, 0)
+        pivot_.getPivot(currentSymbol_, pivotPeriod, 0)
     );
 
     for(int timeIndex = 0; timeIndex < getMaxTimeIndex(pivotStyle.pivotPeriodFactor()); timeIndex++){
@@ -74,8 +77,8 @@ void PivotDraw::drawPivot(PivotPeriod pivotPeriod){
             pivotStyle.pivotColor(),
             CandleStartTime(currentSymbol_, pivotPeriod, timeIndex - 1),
             CandleStartTime(currentSymbol_, pivotPeriod, timeIndex),
-            getPivot(currentSymbol_, pivotPeriod, timeIndex),
-            getPivot(currentSymbol_, pivotPeriod, timeIndex)
+            pivot_.getPivot(currentSymbol_, pivotPeriod, timeIndex),
+            pivot_.getPivot(currentSymbol_, pivotPeriod, timeIndex)
         );
 
         drawPivotLine(
@@ -83,24 +86,24 @@ void PivotDraw::drawPivot(PivotPeriod pivotPeriod){
             pivotStyle.pivotColor(),
             CandleStartTime(currentSymbol_, pivotPeriod, timeIndex),
             CandleStartTime(currentSymbol_, pivotPeriod, timeIndex),
-            getPivot(currentSymbol_, pivotPeriod, timeIndex),
-            getPivot(currentSymbol_, pivotPeriod, timeIndex + 1)
+            pivot_.getPivot(currentSymbol_, pivotPeriod, timeIndex),
+            pivot_.getPivot(currentSymbol_, pivotPeriod, timeIndex + 1)
         );
     }
 }
 
-void PivotDraw::drawPivotRS(PivotRS pivotRS){
+void PivotsDraw::drawPivotRS(PivotRS pivotRS){
     drawPivotRS(D1, pivotRS);
 }
 
-void PivotDraw::drawPivotRS(PivotPeriod pivotPeriod, PivotRS pivotRS){
+void PivotsDraw::drawPivotRS(PivotPeriod pivotPeriod, PivotRS pivotRS){
     PivotStyle pivotStyle(pivotPeriod);
 
     drawPivotLabel(
         pivotStyle.pivotRSLabelName(pivotRS),
         EnumToString(pivotRS),
         pivotStyle.pivotRSLabelColor(pivotRS),
-        getPivotRS(currentSymbol_, pivotPeriod, pivotRS)
+        pivot_.getPivotRS(currentSymbol_, pivotPeriod, pivotRS)
     );
 
     drawPivotLine(
@@ -108,12 +111,12 @@ void PivotDraw::drawPivotRS(PivotPeriod pivotPeriod, PivotRS pivotRS){
         pivotStyle.pivotRSLabelColor(pivotRS),
         Time[0],
         Time[pivotRSLineLength_],
-        getPivotRS(currentSymbol_, pivotPeriod, pivotRS),
-        getPivotRS(currentSymbol_, pivotPeriod, pivotRS)
+        pivot_.getPivotRS(currentSymbol_, pivotPeriod, pivotRS),
+        pivot_.getPivotRS(currentSymbol_, pivotPeriod, pivotRS)
     );
 }
 
-void PivotDraw::drawAllPivots(){
+void PivotsDraw::drawAllPivots(){
     drawPivot(D1);
     drawPivot(W1);
     drawPivot(MN1);
@@ -126,5 +129,5 @@ void PivotDraw::drawAllPivots(){
     drawPivotRS(S3);
 
     if(IS_DEBUG)
-        Print("getPivot(", currentSymbol_, ", D1, 0): ", getPivot(currentSymbol_, D1, 0));
+        Print("PivotsDraw: pivot_.getPivot(", currentSymbol_, ", D1, 0): ", pivot_.getPivot(currentSymbol_, D1, 0));
 }

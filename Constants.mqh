@@ -19,14 +19,14 @@ int PreviousOrderTicket;
 
 int OrderCandlesDuration = 6;
 
-const int TRENDLINES_MIN_EXTREMES_DISTANCE = 3;
-// forse alla fine si possono mettere TUTTE le costanti qui
+// mettere TUTTE le costanti qui
 
 const int PATTERN_MINIMUM_SIZE_PIPS = 7;
 const int PATTERN_MAXIMUM_SIZE_PIPS = 22;
 
-const double NEGATIVE_SLOPE_VOLATILITY = 0.0038; // aggiungere trendline al nome per capire meglio
-const double POSITIVE_SLOPE_VOLATILITY = 0.0024;
+const int TRENDLINE_MIN_EXTREMES_DISTANCE = 3;
+const double TRENDLINE_NEGATIVE_SLOPE_VOLATILITY = 0.0038;
+const double TRENDLINE_POSITIVE_SLOPE_VOLATILITY = 0.0024;
 
 
 const int CANDLES_VISIBLE_IN_GRAPH_2X = 940;
@@ -60,7 +60,8 @@ enum Discriminator{
 };
 
 bool IsAllowedSymbol(string symbol){
-    if(symbol == EnumToString(EURJPY)
+    if(symbol == NULL
+    || symbol == EnumToString(EURJPY)
     || symbol == EnumToString(EURUSD)
     || symbol == EnumToString(GBPCHF)
     || symbol == EnumToString(GBPJPY)
@@ -80,6 +81,7 @@ bool IsAllowedTestSymbol(string symbol){
     || symbol == EnumToString(EURNZD)
     || symbol == EnumToString(NZDUSD)
     || symbol == EnumToString(USDCAD)
+    || symbol == EnumToString(USDCHF)
     || symbol == EnumToString(USDJPY))
         return true;
 
@@ -100,6 +102,7 @@ enum AllowedTestSymbol{
     EURNZD,
     NZDUSD,
     USDCAD,
+    USDCHF,
     USDJPY,
 };
 

@@ -1,13 +1,13 @@
 #property copyright "2020 Enrico Albano"
 #property link "https://www.linkedin.com/in/enryea123"
 
-#include "../Constants.mqh"
+#include "../../Constants.mqh"
 
 
-class TrendLines{
+class TrendLine{
     public:
-        TrendLines();
-        ~TrendLines();
+        TrendLine();
+        ~TrendLine();
 
         bool areTrendLineSetupsGood(int, int, Discriminator);
         bool isExistingTrendLineBad(string, Discriminator);
@@ -41,14 +41,14 @@ class TrendLines{
         double getMaxTrendLineSlope(double);
 };
 
-TrendLines::TrendLines():
+TrendLine::TrendLine():
     trendLineMinCandlesLength_(10),
-    trendLineMinExtremesDistance_(TRENDLINES_MIN_EXTREMES_DISTANCE),
+    trendLineMinExtremesDistance_(TRENDLINE_MIN_EXTREMES_DISTANCE),
     trendLineNameFirstIndexPosition_(1),
     trendLineNameSecondIndexPosition_(2),
 
-    negativeSlopeVolatility_(NEGATIVE_SLOPE_VOLATILITY),
-    positiveSlopeVolatility_(POSITIVE_SLOPE_VOLATILITY),
+    negativeSlopeVolatility_(TRENDLINE_NEGATIVE_SLOPE_VOLATILITY),
+    positiveSlopeVolatility_(TRENDLINE_POSITIVE_SLOPE_VOLATILITY),
     pipsFromPriceTrendLineThreshold_(PATTERN_MINIMUM_SIZE_PIPS + PATTERN_MAXIMUM_SIZE_PIPS),
     trendLineBalanceRatioThreshold_(0.92),
 
@@ -61,9 +61,9 @@ TrendLines::TrendLines():
     trendLineNameSeparator_("_"){
 }
 
-TrendLines::~TrendLines(){}
+TrendLine::~TrendLine(){}
 
-bool TrendLines::areTrendLineSetupsGood(int indexI, int indexJ, Discriminator discriminator){
+bool TrendLine::areTrendLineSetupsGood(int indexI, int indexJ, Discriminator discriminator){
     if(indexI < indexJ)
         return ThrowException(false, "areTrendLineSetupsGood: indexI < indexJ");
 
@@ -95,7 +95,7 @@ bool TrendLines::areTrendLineSetupsGood(int indexI, int indexJ, Discriminator di
     return true;
 }
 
-bool TrendLines::isExistingTrendLineBad(string trendLineName, Discriminator discriminator){
+bool TrendLine::isExistingTrendLineBad(string trendLineName, Discriminator discriminator){
     // Broken TrendLine
     for(int k = 0; k < getTrendLineMaxIndex(trendLineName); k++){
         if(discriminator == Min && ObjectGetValueByShift(trendLineName, k)
@@ -124,14 +124,14 @@ bool TrendLines::isExistingTrendLineBad(string trendLineName, Discriminator disc
     return false;
 }
 
-bool TrendLines::isBadTrendLineFromName(string trendLineName){
+bool TrendLine::isBadTrendLineFromName(string trendLineName){
     if(StringContains(trendLineName, trendLineNamePrefix_)
     && StringContains(trendLineName, badTrendLineNameSuffix_))
         return true;
     return false;
 }
 
-bool TrendLines::isTrendLineGoodForPendingOrder(string trendLineName, int timeIndex){
+bool TrendLine::isTrendLineGoodForPendingOrder(string trendLineName, int timeIndex){
     if(!StringContains(trendLineName, trendLineNamePrefix_)
     || StringContains(trendLineName, badTrendLineNameSuffix_))
         return false;
@@ -143,7 +143,7 @@ bool TrendLines::isTrendLineGoodForPendingOrder(string trendLineName, int timeIn
     return true;
 }
 
-int TrendLines::getTrendLineIndex(string trendLineName, string indexDisambiguator){
+int TrendLine::getTrendLineIndex(string trendLineName, string indexDisambiguator){
     if(!StringContains(trendLineName, trendLineNamePrefix_))
         return -1;
 
@@ -169,20 +169,20 @@ int TrendLines::getTrendLineIndex(string trendLineName, string indexDisambiguato
     return StrToInteger(splittedTrendLineName[1]);
 }
 
-int TrendLines::getTrendLineMaxIndex(string trendLineName){
+int TrendLine::getTrendLineMaxIndex(string trendLineName){
     return getTrendLineIndex(trendLineName, trendLineNameFirstIndexIdentifier_);
 }
 
-int TrendLines::getTrendLineMinIndex(string trendLineName){
+int TrendLine::getTrendLineMinIndex(string trendLineName){
     return getTrendLineIndex(trendLineName, trendLineNameSecondIndexIdentifier_);
 }
 
-double TrendLines::getMaxTrendLineSlope(double trendLineSlope){
+double TrendLine::getMaxTrendLineSlope(double trendLineSlope){
     const double maxVolatilityPercentage = trendLineSlope > 0 ? positiveSlopeVolatility_ : negativeSlopeVolatility_;
     return MathAbs(maxVolatilityPercentage * GetMarketVolatility());
 }
 
-string TrendLines::buildTrendLineName(int indexI, int indexJ, int beam, Discriminator discriminator){
+string TrendLine::buildTrendLineName(int indexI, int indexJ, int beam, Discriminator discriminator){
     return StringConcatenate(trendLineNamePrefix_,
         trendLineNameSeparator_, trendLineNameFirstIndexIdentifier_, indexI,
         trendLineNameSeparator_, trendLineNameSecondIndexIdentifier_, indexJ,
@@ -190,7 +190,7 @@ string TrendLines::buildTrendLineName(int indexI, int indexJ, int beam, Discrimi
         trendLineNameSeparator_, EnumToString(discriminator));
 }
 
-string TrendLines::buildBadTrendLineName(int indexI, int indexJ, int beam, Discriminator discriminator){
+string TrendLine::buildBadTrendLineName(int indexI, int indexJ, int beam, Discriminator discriminator){
     return StringConcatenate(buildTrendLineName(indexI, indexJ, beam, discriminator),
         trendLineNameSeparator_, badTrendLineNameSuffix_);
 }

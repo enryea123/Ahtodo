@@ -2,27 +2,27 @@
 #property link "https://www.linkedin.com/in/enryea123"
 
 #include "../UnitTest.mqh"
-#include "../../src/patterns/Patterns.mqh"
+#include "../../src/pattern/Pattern.mqh"
 
 
-class PatternsTest{
+class PatternTest{
     public:
-        PatternsTest();
-        ~PatternsTest();
+        PatternTest();
+        ~PatternTest();
 
         void isPatternTest();
 
     private:
-        Patterns patterns_;
+        Pattern pattern_;
 };
 
-PatternsTest::PatternsTest():
-    patterns_(){
+PatternTest::PatternTest():
+    pattern_(){
 }
 
-PatternsTest::~PatternsTest(){}
+PatternTest::~PatternTest(){}
 
-void PatternsTest::isPatternTest(){
+void PatternTest::isPatternTest(){
     UnitTest unitTest("isPatternTest");
 
     const int maxIndex = 100;
@@ -40,44 +40,44 @@ void PatternsTest::isPatternTest(){
 
         const double thisCandleSize = MathAbs(iExtreme(i, Max) - iExtreme(i, Min));
 
-        if(!isUpPinbarTested && patterns_.upPinbar(i)
+        if(!isUpPinbarTested && pattern_.upPinbar(i)
         && thisCandleSize < PATTERN_MAXIMUM_SIZE_PIPS * PeriodMultiplicationFactor() * Pips()
         && thisCandleSize > PATTERN_MINIMUM_SIZE_PIPS * PeriodMultiplicationFactor() * Pips()){
             unitTest.assertTrue(
-                patterns_.isBuyPattern(i),
+                pattern_.isBuyPattern(i),
                 "isUpPinbarTested"
             );
             checkedAssertions++;
             isUpPinbarTested = true;
         }
 
-        if(!isDownPinbarTested && patterns_.downPinbar(i)
+        if(!isDownPinbarTested && pattern_.downPinbar(i)
         && thisCandleSize < PATTERN_MAXIMUM_SIZE_PIPS * PeriodMultiplicationFactor() * Pips()
         && thisCandleSize > PATTERN_MINIMUM_SIZE_PIPS * PeriodMultiplicationFactor() * Pips()){
             unitTest.assertTrue(
-                patterns_.isSellPattern(i),
+                pattern_.isSellPattern(i),
                 "isDownPinbarTested"
             );
             checkedAssertions++;
             isDownPinbarTested = true;
         }
 
-        if(!isNotUpPinbarTested && patterns_.upPinbar(i)
+        if(!isNotUpPinbarTested && pattern_.upPinbar(i)
         && (thisCandleSize > PATTERN_MAXIMUM_SIZE_PIPS * PeriodMultiplicationFactor() * Pips()
         || thisCandleSize < PATTERN_MINIMUM_SIZE_PIPS * PeriodMultiplicationFactor() * Pips())){
             unitTest.assertFalse(
-                patterns_.isBuyPattern(i),
+                pattern_.isBuyPattern(i),
                 "isNotUpPinbarTested"
             );
             checkedAssertions++;
             isNotUpPinbarTested = true;
         }
 
-        if(!isNotDownPinbarTested && patterns_.downPinbar(i)
+        if(!isNotDownPinbarTested && pattern_.downPinbar(i)
         && (thisCandleSize > PATTERN_MAXIMUM_SIZE_PIPS * PeriodMultiplicationFactor() * Pips()
         || thisCandleSize < PATTERN_MINIMUM_SIZE_PIPS * PeriodMultiplicationFactor() * Pips())){
             unitTest.assertFalse(
-                patterns_.isSellPattern(i),
+                pattern_.isSellPattern(i),
                 "isNotDownPinbarTested"
             );
             checkedAssertions++;

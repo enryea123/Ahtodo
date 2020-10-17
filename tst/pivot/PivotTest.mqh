@@ -30,19 +30,19 @@ void PivotTest::getPivotHappyPathTest(){
     UnitTest unitTest("getPivotHappyPathTest");
 
     unitTest.assertTrue(
-        pivot_.getPivot("EURUSD", D1, 0) > 0
+        pivot_.getPivot(NULL, D1, 0) > 0
     );
 
     unitTest.assertTrue(
-        pivot_.getPivot("EURUSD", D1, 0) < 2 * iHigh("EURUSD", D1, 0)
+        pivot_.getPivot(NULL, D1, 0) < 2 * iHigh(NULL, D1, 0)
     );
 
     unitTest.assertTrue(
-        pivot_.getPivot("EURJPY", D1, 0) > 0
+        pivot_.getPivot(NULL, W1, 0) > 0
     );
 
     unitTest.assertTrue(
-        pivot_.getPivot("EURJPY", D1, 0) < 2 * iHigh("EURJPY", D1, 0)
+        pivot_.getPivot(NULL, W1, 0) < 2 * iHigh(NULL, W1, 0)
     );
 }
 
@@ -51,7 +51,7 @@ void PivotTest::getPivotNegativeTimeIndexTest(){
 
     unitTest.assertEquals(
         -1,
-        pivot_.getPivot("EURUSD", D1, -5)
+        pivot_.getPivot(NULL, D1, -5)
     );
 }
 
@@ -68,27 +68,15 @@ void PivotTest::getPivotRSHappyPathTest(){
     UnitTest unitTest("getPivotRSHappyPathTest");
 
     unitTest.assertTrue(
-        pivot_.getPivotRS("EURUSD", D1, R1) > 0
+        pivot_.getPivotRS(NULL, D1, R1) > 0
     );
 
     unitTest.assertTrue(
-        pivot_.getPivotRS("EURUSD", D1, R1) < 2 * iHigh("EURUSD", D1, 0)
+        pivot_.getPivotRS(NULL, D1, R1) < 2 * iHigh(NULL, D1, 0)
     );
 
     unitTest.assertNotNull(
-        pivot_.getPivotRS("EURUSD", D1, R1)
-    );
-
-    unitTest.assertTrue(
-        pivot_.getPivotRS("EURJPY", D1, R1) > 0
-    );
-
-    unitTest.assertTrue(
-        pivot_.getPivotRS("EURJPY", D1, R1) < 2 * iHigh("EURJPY", D1, 0)
-    );
-
-    unitTest.assertNotNull(
-        pivot_.getPivotRS("EURJPY", D1, R1)
+        pivot_.getPivotRS(NULL, D1, R1)
     );
 }
 

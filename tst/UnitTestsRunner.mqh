@@ -1,12 +1,12 @@
 #property copyright "2020 Enrico Albano"
 #property link "https://www.linkedin.com/in/enryea123"
 
-#include "../src/Constants.mqh"
-#include "extremes/ArrowStyleTest.mqh"
-#include "patterns/PatternsTest.mqh"
+#include "../Constants.mqh"
+#include "extreme/ArrowStyleTest.mqh"
+#include "pattern/PatternTest.mqh"
 #include "pivot/PivotTest.mqh"
 #include "pivot/PivotStyleTest.mqh"
-#include "trendlines/TrendLinesTest.mqh"
+#include "trendline/TrendLineTest.mqh"
 
 
 class UnitTestsRunner{
@@ -39,14 +39,14 @@ void UnitTestsRunner::runAllUnitTests(){
     pivotStyleTest.pivotRSLabelColorTest();
     pivotStyleTest.pivotRSLabelNameTest();
 
-    TrendLinesTest trendLinesTest;
-    trendLinesTest.isTrendLineGoodForPendingOrderTest();
-    trendLinesTest.getTrendLineIndexesTest();
-    trendLinesTest.trendLineNameTest();
-    trendLinesTest.trendLineSetupsTest();
+    TrendLineTest trendLineTest;
+    trendLineTest.isTrendLineGoodForPendingOrderTest();
+    trendLineTest.getTrendLineIndexesTest();
+    trendLineTest.trendLineNameTest();
+    trendLineTest.trendLineSetupsTest();
 
-    PatternsTest patternsTest;
-    patternsTest.isPatternTest();
+    PatternTest patternTest;
+    patternTest.isPatternTest();
 
     int endTime = TimeLocal() - startTime;
     Print("All unit tests run in ", endTime, " seconds. StartTime: ", TimeToStr(startTime));
