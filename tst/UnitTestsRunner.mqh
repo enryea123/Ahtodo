@@ -3,6 +3,7 @@
 
 #include "../Constants.mqh"
 #include "extreme/ArrowStyleTest.mqh"
+#include "holiday/HolidayTest.mqh"
 #include "pattern/PatternTest.mqh"
 #include "pivot/PivotTest.mqh"
 #include "pivot/PivotStyleTest.mqh"
@@ -26,6 +27,10 @@ void UnitTestsRunner::runAllUnitTests(){
 
     ArrowStyleTest arrowStyleTest;
     arrowStyleTest.drawExtremeArrowTest();
+
+    HolidayTest holidayTest;
+    holidayTest.isMajorBankHolidayTest();
+    holidayTest.isMinorBankHolidayTest();
 
     PivotTest pivotTest;
     pivotTest.getPivotHappyPathTest();

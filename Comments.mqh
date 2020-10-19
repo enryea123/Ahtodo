@@ -79,3 +79,6 @@
 
 
 // si potrebbero avere anche dei runtime test, ad esempio uno che controlla ogni tanto la pendenza di tutte le rette? boh forse non ha senso
+
+
+// potrebbe essere drawer a settare i colori del mercato, sia nel costruttore che a ogni tick a seconda della situazione di mercato

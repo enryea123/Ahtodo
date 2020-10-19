@@ -9,7 +9,6 @@ class UnitTest{
         UnitTest(string);
         ~UnitTest();
 
-    //protected:
         void assertEquals(color, color, string);
         void assertEquals(int, int, string);
         void assertEquals(string, string, string);
@@ -23,9 +22,8 @@ class UnitTest{
         void getTestResult();
 
     private:
-        int passedAssertions_;
-        int totalAssertions_;
-
+        uint passedAssertions_;
+        uint totalAssertions_;
         string testName_;
 
         void setSuccess(string);
@@ -111,7 +109,7 @@ void UnitTest::assertFalse(bool condition, string message = NULL){
 }
 
 void UnitTest::getTestResult(){
-    if(passedAssertions_ > 0 && passedAssertions_ == totalAssertions_)
+    if(passedAssertions_ == totalAssertions_)
         Print("Test ", testName_, ": PASSED");
     else
         ThrowFatalException(StringConcatenate("Test ", testName_, ": FAILED"));
