@@ -32,15 +32,15 @@ Pivot::Pivot(){}
 
 Pivot::~Pivot(){}
 
-double Pivot::getPivot(string orderSymbol, PivotPeriod pivotPeriod, int timeIndex){
-    if(!IsAllowedSymbol(orderSymbol))
+double Pivot::getPivot(string symbol, PivotPeriod pivotPeriod, int timeIndex){
+    if(!IsAllowedSymbol(symbol))
         return ThrowException(-1, "getPivot, unallowed symbol");
     if(timeIndex < 0)
         return ThrowException(-1, "getPivot, timeIndex < 0");
 
-    double pivot = (iHigh(orderSymbol, pivotPeriod, timeIndex + 1)
-       + iLow(orderSymbol, pivotPeriod, timeIndex + 1)
-       + iClose(orderSymbol, pivotPeriod, timeIndex + 1)) / 3;
+    const double pivot = (iCandle(I_high, symbol, pivotPeriod, timeIndex + 1)
+       + iCandle(I_low, symbol, pivotPeriod, timeIndex + 1)
+       + iCandle(I_close, symbol, pivotPeriod, timeIndex + 1)) / 3;
 
     if(pivot == 0)
         return ThrowException(0, "getPivot == 0");
@@ -48,39 +48,39 @@ double Pivot::getPivot(string orderSymbol, PivotPeriod pivotPeriod, int timeInde
     return pivot;
 }
 
-double Pivot::getPivotRS(string orderSymbol, PivotPeriod pivotPeriod, PivotRS pivotRS){
-    if(!IsAllowedSymbol(orderSymbol))
+double Pivot::getPivotRS(string symbol, PivotPeriod pivotPeriod, PivotRS pivotRS){
+    if(!IsAllowedSymbol(symbol))
         return ThrowException(-1, "getPivotRS, unallowed symbol");
 
     const int timeIndex = 0;
 
     if(pivotRS == R1)
-        return (2 * getPivot(orderSymbol, pivotPeriod, timeIndex)
-            - iLow(orderSymbol, pivotPeriod, timeIndex + 1));
+        return (2 * getPivot(symbol, pivotPeriod, timeIndex)
+            - iCandle(I_low, symbol, pivotPeriod, timeIndex + 1));
 
     if(pivotRS == R2)
-        return (getPivot(orderSymbol, pivotPeriod, timeIndex)
-            + iHigh(orderSymbol, pivotPeriod, timeIndex + 1)
-            - iLow(orderSymbol, pivotPeriod, timeIndex + 1));
+        return (getPivot(symbol, pivotPeriod, timeIndex)
+            + iCandle(I_high, symbol, pivotPeriod, timeIndex + 1)
+            - iCandle(I_low, symbol, pivotPeriod, timeIndex + 1));
 
     if(pivotRS == R3)
-        return (2 * getPivot(orderSymbol, pivotPeriod, timeIndex)
-            + iHigh(orderSymbol, pivotPeriod, timeIndex + 1)
-            - 2 * iLow(orderSymbol, pivotPeriod, timeIndex + 1));
+        return (2 * getPivot(symbol, pivotPeriod, timeIndex)
+            + iCandle(I_high, symbol, pivotPeriod, timeIndex + 1)
+            - 2 * iCandle(I_low, symbol, pivotPeriod, timeIndex + 1));
 
     if(pivotRS == S1)
-        return (2 * getPivot(orderSymbol, pivotPeriod, timeIndex)
-            - iHigh(orderSymbol, pivotPeriod, timeIndex + 1));
+        return (2 * getPivot(symbol, pivotPeriod, timeIndex)
+            - iCandle(I_high, symbol, pivotPeriod, timeIndex + 1));
 
     if(pivotRS == S2)
-        return (getPivot(orderSymbol, pivotPeriod, timeIndex)
-            - iHigh(orderSymbol, pivotPeriod, timeIndex + 1)
-            + iLow(orderSymbol, pivotPeriod, timeIndex + 1));
+        return (getPivot(symbol, pivotPeriod, timeIndex)
+            - iCandle(I_high, symbol, pivotPeriod, timeIndex + 1)
+            + iCandle(I_low, symbol, pivotPeriod, timeIndex + 1));
 
     if(pivotRS == S3)
-        return (2 * getPivot(orderSymbol, pivotPeriod, timeIndex)
-            + iLow(orderSymbol, pivotPeriod, timeIndex + 1)
-            - 2 * iHigh(orderSymbol, pivotPeriod, timeIndex + 1));
+        return (2 * getPivot(symbol, pivotPeriod, timeIndex)
+            + iCandle(I_low, symbol, pivotPeriod, timeIndex + 1)
+            - 2 * iCandle(I_high, symbol, pivotPeriod, timeIndex + 1));
 
-    return NULL;
+    return ThrowException(-1, "getPivotRS: could not get value");;
 }

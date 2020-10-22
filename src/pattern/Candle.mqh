@@ -78,7 +78,7 @@ bool Candle::bigBar(int timeIndex){
 }
 
 bool Candle::isCandleBull(int timeIndex){
-    if(iClose(NULL, Period(), timeIndex) > iOpen(NULL, Period(), timeIndex))
+    if(iCandle(I_close, timeIndex) > iCandle(I_open, timeIndex))
         return true;
     return false;
 }
@@ -90,31 +90,31 @@ bool Candle::isSupportCandle(int timeIndex){
 }
 
 double Candle::candleBody(int timeIndex){
-    return MathAbs(iOpen(NULL, Period(), timeIndex) - iClose(NULL, Period(), timeIndex));
+    return MathAbs(iCandle(I_open, timeIndex) - iCandle(I_close, timeIndex));
 }
 
 double Candle::candleSize(int timeIndex){
-    return MathAbs(iHigh(NULL, Period(), timeIndex) - iLow(NULL, Period(), timeIndex));
+    return MathAbs(iCandle(I_high, timeIndex) - iCandle(I_low, timeIndex));
 }
 
 double Candle::candleUpShadow(int timeIndex){
-    return MathAbs(iHigh(NULL, Period(), timeIndex) - MathMax(iOpen(NULL, Period(), timeIndex),
-        iClose(NULL, Period(), timeIndex)));
+    return MathAbs(iCandle(I_high, timeIndex) - MathMax(iCandle(I_open, timeIndex),
+        iCandle(I_close, timeIndex)));
 }
 
 double Candle::candleDownShadow(int timeIndex){
-    return MathAbs(iLow(NULL, Period(), timeIndex) - MathMin(iOpen(NULL, Period(), timeIndex),
-        iClose(NULL, Period(), timeIndex)));
+    return MathAbs(iCandle(I_low, timeIndex) - MathMin(iCandle(I_open, timeIndex),
+        iCandle(I_close, timeIndex)));
 }
 
 double Candle::candleBodyMidPoint(int timeIndex){
-    return MathAbs(iOpen(NULL, Period(), timeIndex) + iClose(NULL, Period(), timeIndex)) / 2;
+    return MathAbs(iCandle(I_open, timeIndex) + iCandle(I_close, timeIndex)) / 2;
 }
 
 double Candle::candleBodyMin(int timeIndex){
-    return MathMin(iOpen(NULL, Period(), timeIndex), iClose(NULL, Period(), timeIndex));
+    return MathMin(iCandle(I_open, timeIndex), iCandle(I_close, timeIndex));
 }
 
 double Candle::candleBodyMax(int timeIndex){
-    return MathMax(iOpen(NULL, Period(), timeIndex), iClose(NULL, Period(), timeIndex));
+    return MathMax(iCandle(I_open, timeIndex), iCandle(I_close, timeIndex));
 }

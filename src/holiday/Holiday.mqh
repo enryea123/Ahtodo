@@ -15,14 +15,10 @@ class Holiday{
         bool isMinorBankHoliday(datetime);
 
     private:
-        const int maxYearKnownEaster_;
-        const int minYearKnownEaster_;
         int easterDayOfYear(int);
 };
 
-Holiday::Holiday():
-    maxYearKnownEaster_(2026),
-    minYearKnownEaster_(2020){
+Holiday::Holiday(){
 }
 
 Holiday::~Holiday(){}
@@ -43,7 +39,7 @@ int Holiday::easterDayOfYear(int year){
     if(year == 2026)
         return 95;
 
-    return ThrowException(-1, StringConcatenate("Current Year's (", year, ") Easter day not known"));
+    return -1;
 }
 
 bool Holiday::isMajorBankHoliday(){
@@ -57,8 +53,8 @@ bool Holiday::isMajorBankHoliday(datetime inputDate){
     const int dayOfWeek = TimeDayOfWeek(inputDate);
     const int dayOfYear = TimeDayOfYear(inputDate);
 
-    if(year > maxYearKnownEaster_ || year < minYearKnownEaster_)
-        return ThrowException(false, StringConcatenate("Easter day of ", year, " not known"));
+    if(easterDayOfYear(year) < 0)
+        return ThrowException(false, StringConcatenate("Easter day of year ", year, " not known"));
 
     if(month == 1){
         // Christmas Holidays Season

@@ -19,7 +19,6 @@ class PivotsDraw{
         const int maxCandlesPivotLinesDraw_;
         const int pivotLabelFontSize_;
         const int pivotRSLineLength_;
-        const string currentSymbol_;
 
         int getMaxTimeIndex(int);
         void drawPivotLabel(string, string, color, double);
@@ -34,15 +33,14 @@ PivotsDraw::PivotsDraw():
     pivot_(),
     maxCandlesPivotLinesDraw_(100),
     pivotLabelFontSize_(8),
-    pivotRSLineLength_(6),
-    currentSymbol_(Symbol()){
+    pivotRSLineLength_(6){
 }
 
 PivotsDraw::~PivotsDraw(){}
 
 int PivotsDraw::getMaxTimeIndex(int pivotPeriodFactor){
     const int maxCandles = IS_DEBUG ? CANDLES_VISIBLE_IN_GRAPH_2X : maxCandlesPivotLinesDraw_;
-    return MathRound(1 + maxCandles * Period() / PERIOD_D1 / pivotPeriodFactor) + 1;
+    return MathRound(1 + maxCandles * CURRENT_PERIOD / PERIOD_D1 / pivotPeriodFactor) + 1;
 }
 
 void PivotsDraw::drawPivotLabel(string pivotLabelName, string pivotLabelText, color pivotColor, double x){
@@ -68,26 +66,26 @@ void PivotsDraw::drawPivot(PivotPeriod pivotPeriod){
         pivotStyle.pivotLabelName(),
         pivotStyle.pivotLabelText(),
         pivotStyle.pivotColor(),
-        pivot_.getPivot(currentSymbol_, pivotPeriod, 0)
+        pivot_.getPivot(CURRENT_SYMBOL, pivotPeriod, 0)
     );
 
     for(int timeIndex = 0; timeIndex < getMaxTimeIndex(pivotStyle.pivotPeriodFactor()); timeIndex++){
         drawPivotLine(
             pivotStyle.horizontalPivotLineName(timeIndex),
             pivotStyle.pivotColor(),
-            CandleStartTime(currentSymbol_, pivotPeriod, timeIndex - 1),
-            CandleStartTime(currentSymbol_, pivotPeriod, timeIndex),
-            pivot_.getPivot(currentSymbol_, pivotPeriod, timeIndex),
-            pivot_.getPivot(currentSymbol_, pivotPeriod, timeIndex)
+            iCandle(I_time, CURRENT_SYMBOL, pivotPeriod, timeIndex - 1),
+            iCandle(I_time, CURRENT_SYMBOL, pivotPeriod, timeIndex),
+            pivot_.getPivot(CURRENT_SYMBOL, pivotPeriod, timeIndex),
+            pivot_.getPivot(CURRENT_SYMBOL, pivotPeriod, timeIndex)
         );
 
         drawPivotLine(
             pivotStyle.verticalPivotLineName(timeIndex),
             pivotStyle.pivotColor(),
-            CandleStartTime(currentSymbol_, pivotPeriod, timeIndex),
-            CandleStartTime(currentSymbol_, pivotPeriod, timeIndex),
-            pivot_.getPivot(currentSymbol_, pivotPeriod, timeIndex),
-            pivot_.getPivot(currentSymbol_, pivotPeriod, timeIndex + 1)
+            iCandle(I_time, CURRENT_SYMBOL, pivotPeriod, timeIndex),
+            iCandle(I_time, CURRENT_SYMBOL, pivotPeriod, timeIndex),
+            pivot_.getPivot(CURRENT_SYMBOL, pivotPeriod, timeIndex),
+            pivot_.getPivot(CURRENT_SYMBOL, pivotPeriod, timeIndex + 1)
         );
     }
 }
@@ -103,7 +101,7 @@ void PivotsDraw::drawPivotRS(PivotPeriod pivotPeriod, PivotRS pivotRS){
         pivotStyle.pivotRSLabelName(pivotRS),
         EnumToString(pivotRS),
         pivotStyle.pivotRSLabelColor(pivotRS),
-        pivot_.getPivotRS(currentSymbol_, pivotPeriod, pivotRS)
+        pivot_.getPivotRS(CURRENT_SYMBOL, pivotPeriod, pivotRS)
     );
 
     drawPivotLine(
@@ -111,8 +109,8 @@ void PivotsDraw::drawPivotRS(PivotPeriod pivotPeriod, PivotRS pivotRS){
         pivotStyle.pivotRSLabelColor(pivotRS),
         Time[0],
         Time[pivotRSLineLength_],
-        pivot_.getPivotRS(currentSymbol_, pivotPeriod, pivotRS),
-        pivot_.getPivotRS(currentSymbol_, pivotPeriod, pivotRS)
+        pivot_.getPivotRS(CURRENT_SYMBOL, pivotPeriod, pivotRS),
+        pivot_.getPivotRS(CURRENT_SYMBOL, pivotPeriod, pivotRS)
     );
 }
 
@@ -129,5 +127,5 @@ void PivotsDraw::drawAllPivots(){
     drawPivotRS(S3);
 
     if(IS_DEBUG)
-        Print("PivotsDraw: pivot_.getPivot(", currentSymbol_, ", D1, 0): ", pivot_.getPivot(currentSymbol_, D1, 0));
+        Print("PivotsDraw: pivot_.getPivot(", CURRENT_SYMBOL, ", D1, 0): ", pivot_.getPivot(CURRENT_SYMBOL, D1, 0));
 }

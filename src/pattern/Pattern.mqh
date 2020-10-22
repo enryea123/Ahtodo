@@ -226,7 +226,7 @@ bool Pattern::sellBuyPattern4(int timeIndex){
     if(!slimDoji(timeIndex))
         return false;
 
-    if(Period() != PERIOD_H4)
+    if(CURRENT_PERIOD != PERIOD_H4)
         return false;
 
     return true;

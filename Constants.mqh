@@ -19,6 +19,9 @@ int PreviousOrderTicket;
 
 int OrderCandlesDuration = 6;
 
+const int CURRENT_PERIOD = Period();
+const string CURRENT_SYMBOL = Symbol();
+
 // mettere TUTTE le costanti qui
 
 const int PATTERN_MINIMUM_SIZE_PIPS = 7;
@@ -75,7 +78,7 @@ bool IsAllowedSymbol(string symbol){
 }
 
 bool IsAllowedTestSymbol(string symbol){
-    // New cross being tested
+    // New symbols being tested
     if(symbol == EnumToString(AUDUSD)
     || symbol == EnumToString(EURGBP)
     || symbol == EnumToString(EURNZD)
@@ -106,13 +109,65 @@ enum AllowedTestSymbol{
     USDJPY,
 };
 
-double iExtreme(int InputTime, Discriminator discriminator){
+double iExtreme(int timeIndex, Discriminator discriminator){
+    if(discriminator == Max)
+        return iCandle(I_high, timeIndex);
     if(discriminator == Min)
-        return iLow(NULL, Period(), InputTime);
-    else if(discriminator == Max)
-        return iHigh(NULL, Period(), InputTime);
-    else
-        return NULL;
+        return iCandle(I_low, timeIndex);
+
+    return ThrowException(-1, "iExtreme: could not get value");
+}
+
+enum CandleSeriesType{
+    I_high,
+    I_low,
+    I_open,
+    I_close,
+    I_time
+};
+
+double iCandle(CandleSeriesType candleSeriesType, int timeIndex){
+    return iCandle(candleSeriesType, CURRENT_SYMBOL, CURRENT_PERIOD, timeIndex);
+}
+
+double iCandle(CandleSeriesType candleSeriesType, string symbol, int period, int timeIndex){
+    const int maxAttempts = 10;
+    double value = 0;
+
+    if(timeIndex < 0){
+        if(candleSeriesType == I_time)
+            return TimeCurrent();
+
+        ThrowException(-1, "iCandle: timeIndex < 0");
+    }
+
+    for(int i = 0; i < maxAttempts; i++){
+        ResetLastError();
+        RefreshRates();
+
+        if(candleSeriesType == I_high)
+            value = iHigh(symbol, period, timeIndex);
+        if(candleSeriesType == I_low)
+            value = iLow(symbol, period, timeIndex);
+        if(candleSeriesType == I_open)
+            value = iOpen(symbol, period, timeIndex);
+        if(candleSeriesType == I_close)
+            value = iClose(symbol, period, timeIndex);
+        if(candleSeriesType == I_time)
+            value = iTime(symbol, period, timeIndex);
+
+        if(GetLastError() == 0 && value != 0)
+            break;
+
+        Print("iCandle GetLastError(): ", GetLastError());
+        value = 0;
+        Sleep(1000);
+    }
+
+    if(value == 0)
+        return ThrowException(-1, "iCandle: could not get market data");
+
+    return value;
 }
 
 /*
@@ -137,12 +192,8 @@ string GetDiscriminatorFromSign(double inputValue){
 }
 */
 
-double Pips(){
-    return Pips(Symbol());
-}
-
-double Pips(string OrderSymbol){
-    return 10 * MarketInfo(OrderSymbol, MODE_TICKSIZE);
+double Pips(string symbol = NULL){
+    return 10 * MarketInfo(symbol, MODE_TICKSIZE);
 }
 
 double ErrorPips(){
@@ -150,7 +201,7 @@ double ErrorPips(){
 }
 
 int PeriodMultiplicationFactor(){
-    if(Period() == PERIOD_H4)
+    if(CURRENT_PERIOD == PERIOD_H4)
         return 2;
     return 1;
 }
@@ -160,16 +211,12 @@ double GetMarketVolatility(){
     double MarketMax = -10000, MarketMin = 10000;
 
     for(int i = 0; i < CandlesForVolatility; i++){
-        MarketMax = MathMax(MarketMax, iHigh(NULL, Period(), i));
-        MarketMin = MathMin(MarketMin, iLow(NULL, Period(), i));
+        MarketMax = MathMax(MarketMax, iCandle(I_high, i));
+        MarketMin = MathMin(MarketMin, iCandle(I_low, i));
     }
 
     double Volatility = MathAbs(MarketMax - MarketMin);
     return Volatility;
-}
-
-double CandleMidPoint(int TimeIndex){
-    return MathAbs(iHigh(NULL, Period(), TimeIndex) + iLow(NULL, Period(), TimeIndex)) / 2;
 }
 
 bool ThrowException(bool returnValue, string message){
@@ -189,41 +236,16 @@ int ThrowFatalException(string message){
     return -1;
 }
 
-
-datetime CandleStartTime(string orderSymbol, int period, int timeIndex){
-    if(timeIndex < 0)
-        return TimeCurrent();
-
-    return iTime(orderSymbol, period, timeIndex);
-}
-
-
 int MarketOpenHour(){
-    if(Period() == PERIOD_H4)
+    if(CURRENT_PERIOD == PERIOD_H4)
         return MARKET_OPEN_HOUR_H4;
 
     return MARKET_OPEN_HOUR;
 }
 
 int MarketCloseHour(){
-    if(Period() == PERIOD_H4)
+    if(CURRENT_PERIOD == PERIOD_H4)
         return MARKET_CLOSE_HOUR_H4;
 
     return MARKET_CLOSE_HOUR;
 }
-
-/*
-datetime CandleStartTime(string orderSymbol, PivotPeriod pivotPeriod, int timeIndex){
-    if(timeIndex < 0)
-        return TimeCurrent();
-
-    return iTime(orderSymbol, pivotPeriod, timeIndex);
-}
-
-datetime CandleStartTime(string orderSymbol, BotPeriod botPeriod, int timeIndex){
-    if(timeIndex < 0)
-        return TimeCurrent();
-
-    return iTime(orderSymbol, botPeriod, timeIndex);
-}
-*/

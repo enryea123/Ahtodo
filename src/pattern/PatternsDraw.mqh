@@ -59,9 +59,9 @@ void PatternsDraw::drawPatternRectangle(int timeIndex, int patternLength, color 
         OBJ_RECTANGLE,
         0,
         Time[timeIndex + patternLength],
-        iLow(NULL, Period(), timeIndex),
+        iCandle(I_low, timeIndex),
         Time[timeIndex],
-        iHigh(NULL, Period(), timeIndex)
+        iCandle(I_high, timeIndex)
     );
 
     ObjectSet(patternName, OBJPROP_COLOR, patternColor);

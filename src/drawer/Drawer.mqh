@@ -70,9 +70,9 @@ void Drawer::drawOpenMarketLines(){
             OBJ_TREND,
             0,
             ThisDayStart,
-            MathMin(iLow(NULL, PERIOD_MN1, 0), iLow(NULL, PERIOD_MN1, 1)) - 10 * Pips(),
+            MathMin(iCandle(I_low, CURRENT_SYMBOL, PERIOD_MN1, 0), iCandle(I_low, CURRENT_SYMBOL, PERIOD_MN1, 1)) - 10 * Pips(),
             ThisDayEnd,
-            MathMin(iLow(NULL, PERIOD_MN1, 0), iLow(NULL, PERIOD_MN1, 1)) - 10 * Pips());
+            MathMin(iCandle(I_low, CURRENT_SYMBOL, PERIOD_MN1, 0), iCandle(I_low, CURRENT_SYMBOL, PERIOD_MN1, 1)) - 10 * Pips());
 
         ObjectSet(MarketOpenLineName, OBJPROP_RAY_RIGHT, false);
         ObjectSet(MarketOpenLineName, OBJPROP_COLOR, clrMediumSeaGreen);
