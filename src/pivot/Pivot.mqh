@@ -2,6 +2,7 @@
 #property link "https://www.linkedin.com/in/enryea123"
 
 #include "../../Constants.mqh"
+#include "../market/Market.mqh"
 
 enum PivotPeriod{
     D1 = PERIOD_D1,
@@ -26,15 +27,20 @@ class Pivot{
 
         double getPivot(string, PivotPeriod, int);
         double getPivotRS(string, PivotPeriod, PivotRS);
+
+    private:
+        Market market_;
 };
 
-Pivot::Pivot(){}
+Pivot::Pivot():
+    market_(){
+}
 
 Pivot::~Pivot(){}
 
 double Pivot::getPivot(string symbol, PivotPeriod pivotPeriod, int timeIndex){
-    if(!IsAllowedSymbol(symbol))
-        return ThrowException(-1, "getPivot, unallowed symbol");
+    if(!market_.isAllowedSymbol(symbol))
+        return ThrowException(-1, "getPivot, unauthorized symbol");
     if(timeIndex < 0)
         return ThrowException(-1, "getPivot, timeIndex < 0");
 
@@ -49,8 +55,8 @@ double Pivot::getPivot(string symbol, PivotPeriod pivotPeriod, int timeIndex){
 }
 
 double Pivot::getPivotRS(string symbol, PivotPeriod pivotPeriod, PivotRS pivotRS){
-    if(!IsAllowedSymbol(symbol))
-        return ThrowException(-1, "getPivotRS, unallowed symbol");
+    if(!market_.isAllowedSymbol(symbol))
+        return ThrowException(-1, "getPivotRS, unauthorized symbol");
 
     const int timeIndex = 0;
 

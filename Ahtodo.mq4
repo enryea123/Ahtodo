@@ -3,12 +3,20 @@
 #property description "Enrico Albano's automated bot for Ahtodo"
 
 #include "src/drawer/Drawer.mqh"
+#include "src/market/Market.mqh"
 #include "tst/UnitTestsRunner.mqh"
 
 
 void OnInit(){
+    Sleep(1000);
+
     UnitTestsRunner unitTestsRunner;
     unitTestsRunner.runAllUnitTests();
+
+    // Market opening stuff, check Ahtodo_mono for info
+
+    Market market;
+    market.startUpMarketValidation();
 
     Drawer drawer;
     drawer.setChartDefaultColors();
@@ -17,6 +25,8 @@ void OnInit(){
 }
 
 void OnTick(){
+    Sleep(1000);
+
     Drawer drawer;
     drawer.drawEverything();
 

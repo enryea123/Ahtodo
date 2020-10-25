@@ -4,6 +4,7 @@
 #include "../Constants.mqh"
 #include "extreme/ArrowStyleTest.mqh"
 #include "holiday/HolidayTest.mqh"
+#include "market/MarketTest.mqh"
 #include "pattern/PatternTest.mqh"
 #include "pivot/PivotTest.mqh"
 #include "pivot/PivotStyleTest.mqh"
@@ -31,6 +32,14 @@ void UnitTestsRunner::runAllUnitTests(){
     HolidayTest holidayTest;
     holidayTest.isMajorBankHolidayTest();
     holidayTest.isMinorBankHolidayTest();
+
+    MarketTest marketTest;
+    marketTest.isAllowedAccountNumberTest();
+    marketTest.isAllowedExecutionDateTest();
+    marketTest.isAllowedPeriodTest();
+    marketTest.isAllowedSymbolTest();
+    marketTest.isAllowedSymbolPeriodComboTest();
+    marketTest.isDemoTradingTest();
 
     PivotTest pivotTest;
     pivotTest.getPivotHappyPathTest();

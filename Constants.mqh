@@ -23,6 +23,7 @@ const int CURRENT_PERIOD = Period();
 const string CURRENT_SYMBOL = Symbol();
 
 // mettere TUTTE le costanti qui
+// forse rinominare il file a Config.mqh o Variables.Mqh
 
 const int PATTERN_MINIMUM_SIZE_PIPS = 7;
 const int PATTERN_MAXIMUM_SIZE_PIPS = 22;
@@ -31,6 +32,7 @@ const int TRENDLINE_MIN_EXTREMES_DISTANCE = 3;
 const double TRENDLINE_NEGATIVE_SLOPE_VOLATILITY = 0.0038;
 const double TRENDLINE_POSITIVE_SLOPE_VOLATILITY = 0.0024;
 
+const datetime BOT_EXPIRATION_DATE = (datetime) "2021-06-30";
 
 const int CANDLES_VISIBLE_IN_GRAPH_2X = 940;
 const bool IS_DEBUG = false;
@@ -50,64 +52,30 @@ bool StringContains(string inputString, string inputSubString){
     return false;
 }
 
+// questo potrebbe andare in Market dopo, cosi come iCandle e iExtreme (o magari quest'ultimo va in extremes o trendlines)
+bool SymbolExists(string symbol){
+    ResetLastError();
+    MarketInfo(symbol, MODE_TICKSIZE);
+
+    if(GetLastError() != 4106) // Unknown symbol error
+        return true;
+
+    return ThrowException(false, StringConcatenate("SymbolExists, uknown symbol: ", symbol));
+}
+
+/*
 enum BotPeriod{
     M30 = PERIOD_M30,
     H1 = PERIOD_H1,
     H4 = PERIOD_H4,
 };
-
+*/
 
 enum Discriminator{
    Max = 1,
    Min = -1,
 };
 
-bool IsAllowedSymbol(string symbol){
-    if(symbol == NULL
-    || symbol == EnumToString(EURJPY)
-    || symbol == EnumToString(EURUSD)
-    || symbol == EnumToString(GBPCHF)
-    || symbol == EnumToString(GBPJPY)
-    || symbol == EnumToString(GBPUSD))
-        return true;
-
-    if(IsDemo() && IsAllowedTestSymbol(symbol))
-        return true;
-
-    return false;
-}
-
-bool IsAllowedTestSymbol(string symbol){
-    // New symbols being tested
-    if(symbol == EnumToString(AUDUSD)
-    || symbol == EnumToString(EURGBP)
-    || symbol == EnumToString(EURNZD)
-    || symbol == EnumToString(NZDUSD)
-    || symbol == EnumToString(USDCAD)
-    || symbol == EnumToString(USDCHF)
-    || symbol == EnumToString(USDJPY))
-        return true;
-
-    return false;
-}
-
-enum AllowedSymbol{
-    EURJPY,
-    EURUSD,
-    GBPCHF,
-    GBPJPY,
-    GBPUSD,
-};
-
-enum AllowedTestSymbol{
-    AUDUSD,
-    EURGBP,
-    EURNZD,
-    NZDUSD,
-    USDCAD,
-    USDCHF,
-    USDJPY,
-};
 
 double iExtreme(int timeIndex, Discriminator discriminator){
     if(discriminator == Max)
@@ -130,20 +98,24 @@ double iCandle(CandleSeriesType candleSeriesType, int timeIndex){
     return iCandle(candleSeriesType, CURRENT_SYMBOL, CURRENT_PERIOD, timeIndex);
 }
 
-double iCandle(CandleSeriesType candleSeriesType, string symbol, int period, int timeIndex){
-    const int maxAttempts = 10;
-    double value = 0;
+double iCandle(CandleSeriesType candleSeriesType, string symbol, int period, int timeIndex){ // servono unit tests su iCandle
+    if(!SymbolExists(symbol))
+        return ThrowException(-1, "iCandle: unknown symbol");
 
     if(timeIndex < 0){
         if(candleSeriesType == I_time)
             return TimeCurrent();
 
-        ThrowException(-1, "iCandle: timeIndex < 0");
+        return ThrowException(-1, "iCandle: timeIndex < 0");
     }
+
+    const int maxAttempts = 20;
 
     for(int i = 0; i < maxAttempts; i++){
         ResetLastError();
         RefreshRates();
+
+        double value = 0;
 
         if(candleSeriesType == I_high)
             value = iHigh(symbol, period, timeIndex);
@@ -156,18 +128,19 @@ double iCandle(CandleSeriesType candleSeriesType, string symbol, int period, int
         if(candleSeriesType == I_time)
             value = iTime(symbol, period, timeIndex);
 
-        if(GetLastError() == 0 && value != 0)
-            break;
+        int lastError = GetLastError();
 
-        Print("iCandle GetLastError(): ", GetLastError());
-        value = 0;
-        Sleep(1000);
+        if(lastError == 0 && value != 0)
+            return value;
+
+        if(IS_DEBUG || lastError != 4066)
+            Print("iCandle: candleSeriesType == ", EnumToString(candleSeriesType),
+            ", lastError == ", lastError, ", value == ", value);
+
+        Sleep(500);
     }
 
-    if(value == 0)
-        return ThrowException(-1, "iCandle: could not get market data");
-
-    return value;
+    return ThrowException(-1, "iCandle: could not get market data");
 }
 
 /*
@@ -193,7 +166,7 @@ string GetDiscriminatorFromSign(double inputValue){
 */
 
 double Pips(string symbol = NULL){
-    return 10 * MarketInfo(symbol, MODE_TICKSIZE);
+    return 10 * MarketInfo(symbol, MODE_TICKSIZE); // serve unittest, non è pensabile altrimenti. ad esempio cambio broker a diverse digit (oppure niente classe ma comunque test)
 }
 
 double ErrorPips(){
@@ -229,10 +202,14 @@ int ThrowException(int returnValue, string message){
     return returnValue;
 }
 
-int ThrowFatalException(string message){
-    Print("ThrowFatalException invoked with message: ", message);
-    ExpertRemove();
+void ThrowException(string message){
+    Print("ThrowException invoked with message: ", message);
+}
 
+int ThrowFatalException(string message){
+    Alert("ThrowFatalException invoked with message: ", message);
+
+    ExpertRemove();
     return -1;
 }
 

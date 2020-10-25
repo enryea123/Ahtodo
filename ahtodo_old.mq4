@@ -454,7 +454,7 @@ void PutPendingOrder(int StartIndexForOrder){
             if(GetLastError() == 132 || GetLastError() == 136){
                 Print("Got error 132 or 136 while putting pending order, "
                     "sleeping before retrying");
-                HardSleep(10);
+                Sleep(10);
             }else{
                 break;
             }
@@ -697,7 +697,7 @@ void DeleteCorrelatedPendingOrders(){
     SelectedOrder = OrderSelect(PreviousOrderTicket, SELECT_BY_TICKET);
 }
 
-void DeletePendingOrdersThisSymbolThisCURRENT_PERIOD{
+void DeletePendingOrdersThisSymbolThisPeriod(){
     PreviousOrderTicket = OrderTicket();
     for(int order = OrdersTotal() - 1; order >= 0; order--){
         if(!OrderSelect(order, SELECT_BY_POS, MODE_TRADES))
@@ -736,65 +736,10 @@ void CloseAllPositions(){
 // Bot Execution
 //------------------------------------------------------------------------------------------------//
 
-bool AllowedSymbolsAndPeriods(){
-    if(CURRENT_PERIOD != PERIOD_M30 && CURRENT_PERIOD != PERIOD_H1 && CURRENT_PERIOD != PERIOD_H4){
-        Print("Timeframe not allowed for this EA");
-        return false;
-    }
-
-    if(CURRENT_SYMBOL != "GBPUSD" && CURRENT_SYMBOL != "EURUSD"
-    && CURRENT_SYMBOL != "GBPCHF" && CURRENT_SYMBOL != "USDCHF"
-    && CURRENT_SYMBOL != "EURJPY" && CURRENT_SYMBOL != "GBPJPY"
-    && CURRENT_SYMBOL != "AUDUSD" && CURRENT_SYMBOL != "USDJPY"
-    && CURRENT_SYMBOL != "USDCAD" && CURRENT_SYMBOL != "EURGBP"
-    && CURRENT_SYMBOL != "EURNZD" && CURRENT_SYMBOL != "NZDUSD"){
-        Print("Symbol not allowed for this EA");
-        return false;
-    }
-
-    if((CURRENT_SYMBOL == "EURJPY" || CURRENT_SYMBOL == "GBPJPY") && CURRENT_PERIOD != PERIOD_H4){
-        Print("Timeframe not allowed for this Symbol");
-        return false;
-    }
-
-    return true;
-}
 
 
 
 
-
-
-
-void OnInit(){
-    SetChartDefaultColors();
-
-    // Don't allow trading from unauthorized accounts
-    if(AccountNumber() != 2100183900
-    && AccountNumber() != 2100220672
-    && AccountNumber() != 2100219063
-    && AccountNumber() != 2100175255 // Euge
-    && AccountNumber() != 2100225710){
-        ExpertRemove();
-        return;
-    }
-
-    if(Year() > 2021){
-        ExpertRemove();
-        return;
-    }
-
-    if(!AllowedSymbolsAndPeriods()){
-        ExpertRemove();
-        return;
-    }
-
-    DrawEverything();
-
-    if(DayOfWeek() >= MARKET_CLOSE_DAY
-    || DayOfWeek() < MARKET_OPEN_DAY)
-        SetChartMarketClosedColors();
-}
 
 void OnTick(){
     //HardSleep(2);
@@ -833,7 +778,7 @@ void OnTick(){
 
     if(!AreThereOpenOrders()){
         if(Hour() >= MARKET_CLOSE_HOUR_PENDING){
-            DeletePendingOrdersThisSymbolThisCURRENT_PERIOD;
+            DeletePendingOrdersThisSymbolThisPeriod();
             return;
         }
 
