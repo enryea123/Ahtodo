@@ -7,7 +7,7 @@
 #include "tst/UnitTestsRunner.mqh"
 
 
-void OnInit(){
+void OnInit() {
     Sleep(1000);
 
     UnitTestsRunner unitTestsRunner;
@@ -24,7 +24,7 @@ void OnInit(){
 
 }
 
-void OnTick(){
+void OnTick() {
     Sleep(1000);
 
     Drawer drawer;
@@ -33,7 +33,7 @@ void OnTick(){
     Print("Ciao");
 }
 
-void OnDeinit(const int reason){
+void OnDeinit(const int reason) {
     Drawer drawer;
     drawer.setChartMarketOpenColors();
 

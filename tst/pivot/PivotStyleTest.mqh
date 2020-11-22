@@ -5,7 +5,7 @@
 #include "../../src/pivot/PivotStyle.mqh"
 
 
-class PivotStyleTest{
+class PivotStyleTest {
     public:
         PivotStyleTest();
         ~PivotStyleTest();
@@ -21,12 +21,12 @@ class PivotStyleTest{
 
 PivotStyleTest::PivotStyleTest():
     pivotStyleD1_(D1),
-    pivotStyleW1_(W1){
+    pivotStyleW1_(W1) {
 }
 
-PivotStyleTest::~PivotStyleTest(){}
+PivotStyleTest::~PivotStyleTest() {}
 
-void PivotStyleTest::pivotStyleBaseTest(){
+void PivotStyleTest::pivotStyleBaseTest() {
     UnitTest unitTest("pivotStyleBaseTest");
 
     unitTest.assertEquals(
@@ -50,7 +50,7 @@ void PivotStyleTest::pivotStyleBaseTest(){
     );
 }
 
-void PivotStyleTest::pivotRSLabelColorTest(){
+void PivotStyleTest::pivotRSLabelColorTest() {
     UnitTest unitTest("pivotRSLabelColorTest");
 
     unitTest.assertEquals(
@@ -64,7 +64,7 @@ void PivotStyleTest::pivotRSLabelColorTest(){
     );
 }
 
-void PivotStyleTest::pivotRSLabelNameTest(){
+void PivotStyleTest::pivotRSLabelNameTest() {
     UnitTest unitTest("pivotRSLabelNameTest");
 
     unitTest.assertEquals(

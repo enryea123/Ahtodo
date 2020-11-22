@@ -6,7 +6,7 @@
 #include "PivotStyle.mqh"
 
 
-class PivotsDraw{
+class PivotsDraw {
     public:
         PivotsDraw();
         ~PivotsDraw();
@@ -33,17 +33,17 @@ PivotsDraw::PivotsDraw():
     pivot_(),
     maxCandlesPivotLinesDraw_(100),
     pivotLabelFontSize_(8),
-    pivotRSLineLength_(6){
+    pivotRSLineLength_(6) {
 }
 
-PivotsDraw::~PivotsDraw(){}
+PivotsDraw::~PivotsDraw() {}
 
-int PivotsDraw::getMaxTimeIndex(int pivotPeriodFactor){
+int PivotsDraw::getMaxTimeIndex(int pivotPeriodFactor) {
     const int maxCandles = IS_DEBUG ? CANDLES_VISIBLE_IN_GRAPH_2X : maxCandlesPivotLinesDraw_;
     return MathRound(1 + maxCandles * CURRENT_PERIOD / PERIOD_D1 / pivotPeriodFactor) + 1;
 }
 
-void PivotsDraw::drawPivotLabel(string pivotLabelName, string pivotLabelText, color pivotColor, double x){
+void PivotsDraw::drawPivotLabel(string pivotLabelName, string pivotLabelText, color pivotColor, double x) {
     ObjectCreate(pivotLabelName, OBJ_TEXT, 0, Time[0], x);
 
     ObjectSetString(0, pivotLabelName, OBJPROP_TEXT, pivotLabelText);
@@ -51,7 +51,7 @@ void PivotsDraw::drawPivotLabel(string pivotLabelName, string pivotLabelText, co
     ObjectSet(pivotLabelName, OBJPROP_FONTSIZE, pivotLabelFontSize_);
 }
 
-void PivotsDraw::drawPivotLine(string lineName, color lineColor, datetime t1, datetime t2, double x1, double x2){
+void PivotsDraw::drawPivotLine(string lineName, color lineColor, datetime t1, datetime t2, double x1, double x2) {
     ObjectCreate(lineName, OBJ_TREND, 0, t1, x1, t2, x2);
 
     ObjectSet(lineName, OBJPROP_RAY_RIGHT, false);
@@ -59,7 +59,7 @@ void PivotsDraw::drawPivotLine(string lineName, color lineColor, datetime t1, da
     ObjectSet(lineName, OBJPROP_BACK, true);
 }
 
-void PivotsDraw::drawPivot(PivotPeriod pivotPeriod){
+void PivotsDraw::drawPivot(PivotPeriod pivotPeriod) {
     PivotStyle pivotStyle(pivotPeriod);
 
     drawPivotLabel(
@@ -69,7 +69,7 @@ void PivotsDraw::drawPivot(PivotPeriod pivotPeriod){
         pivot_.getPivot(CURRENT_SYMBOL, pivotPeriod, 0)
     );
 
-    for(int timeIndex = 0; timeIndex < getMaxTimeIndex(pivotStyle.pivotPeriodFactor()); timeIndex++){
+    for (int timeIndex = 0; timeIndex < getMaxTimeIndex(pivotStyle.pivotPeriodFactor()); timeIndex++) {
         drawPivotLine(
             pivotStyle.horizontalPivotLineName(timeIndex),
             pivotStyle.pivotColor(),
@@ -90,11 +90,11 @@ void PivotsDraw::drawPivot(PivotPeriod pivotPeriod){
     }
 }
 
-void PivotsDraw::drawPivotRS(PivotRS pivotRS){
+void PivotsDraw::drawPivotRS(PivotRS pivotRS) {
     drawPivotRS(D1, pivotRS);
 }
 
-void PivotsDraw::drawPivotRS(PivotPeriod pivotPeriod, PivotRS pivotRS){
+void PivotsDraw::drawPivotRS(PivotPeriod pivotPeriod, PivotRS pivotRS) {
     PivotStyle pivotStyle(pivotPeriod);
 
     drawPivotLabel(
@@ -114,7 +114,7 @@ void PivotsDraw::drawPivotRS(PivotPeriod pivotPeriod, PivotRS pivotRS){
     );
 }
 
-void PivotsDraw::drawAllPivots(){
+void PivotsDraw::drawAllPivots() {
     drawPivot(D1);
     drawPivot(W1);
     drawPivot(MN1);
@@ -126,6 +126,7 @@ void PivotsDraw::drawAllPivots(){
     drawPivotRS(S2);
     drawPivotRS(S3);
 
-    if(IS_DEBUG)
+    if (IS_DEBUG) {
         Print("PivotsDraw: pivot_.getPivot(", CURRENT_SYMBOL, ", D1, 0): ", pivot_.getPivot(CURRENT_SYMBOL, D1, 0));
+    }
 }

@@ -5,7 +5,7 @@
 #include "../../src/market/Market.mqh"
 
 
-class MarketTest{
+class MarketTest {
     public:
         MarketTest();
         ~MarketTest();
@@ -22,12 +22,12 @@ class MarketTest{
 };
 
 MarketTest::MarketTest():
-    market_(){
+    market_() {
 }
 
-MarketTest::~MarketTest(){}
+MarketTest::~MarketTest() {}
 
-void MarketTest::isAllowedAccountNumberTest(){
+void MarketTest::isAllowedAccountNumberTest() {
     UnitTest unitTest("isAllowedAccountNumberTest");
 
     unitTest.assertTrue(
@@ -39,7 +39,7 @@ void MarketTest::isAllowedAccountNumberTest(){
     );
 }
 
-void MarketTest::isAllowedExecutionDateTest(){
+void MarketTest::isAllowedExecutionDateTest() {
     UnitTest unitTest("isAllowedExecutionDateTest");
 
     unitTest.assertTrue(
@@ -51,7 +51,7 @@ void MarketTest::isAllowedExecutionDateTest(){
     );
 }
 
-void MarketTest::isAllowedPeriodTest(){
+void MarketTest::isAllowedPeriodTest() {
     UnitTest unitTest("isAllowedPeriodTest");
 
     unitTest.assertTrue(
@@ -67,7 +67,7 @@ void MarketTest::isAllowedPeriodTest(){
     );
 }
 
-void MarketTest::isAllowedSymbolTest(){
+void MarketTest::isAllowedSymbolTest() {
     UnitTest unitTest("isAllowedSymbolTest");
 
     unitTest.assertTrue(
@@ -78,7 +78,7 @@ void MarketTest::isAllowedSymbolTest(){
         market_.isAllowedSymbol("GBPUSD")
     );
 
-    if(market_.isDemoTrading()){
+    if (market_.isDemoTrading()) {
         unitTest.assertTrue(
             market_.isAllowedSymbol("EURNOK")
         );
@@ -97,7 +97,7 @@ void MarketTest::isAllowedSymbolTest(){
     );
 }
 
-void MarketTest::isAllowedSymbolPeriodComboTest(){
+void MarketTest::isAllowedSymbolPeriodComboTest() {
     UnitTest unitTest("isAllowedSymbolPeriodComboTest");
 
     market_.forceIsLiveAccount();
@@ -121,7 +121,7 @@ void MarketTest::isAllowedSymbolPeriodComboTest(){
     market_.resetAccountTypeOverride();
 }
 
-void MarketTest::isDemoTradingTest(){
+void MarketTest::isDemoTradingTest() {
     UnitTest unitTest("isDemoTradingTest");
 
     unitTest.assertTrue(

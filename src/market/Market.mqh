@@ -6,12 +6,14 @@
 const int ALLOWED_DEMO_ACCOUNT_NUMBERS [] = {
     2100219063, // Enrico
     2100220672, // Enrico
-    2100225710 // Eugenio
+    2100225710, // Eugenio
+    2100222405 // Tanya
 };
 
 const int ALLOWED_LIVE_ACCOUNT_NUMBERS [] = {
     2100183900, // Enrico
-    2100175255 // Eugenio
+    2100175255, // Eugenio
+    2100186686 // Tanya
 };
 
 const int ALLOWED_PERIODS [] = {
@@ -33,12 +35,13 @@ const string RESTRICTED_SYMBOL_FAMILIES_H4 [] = {
 };
 
 
-class Market{
+class Market {
     public:
         Market();
         ~Market();
 
 // variabili sopra da spostare nel file comune? Vedro dopo
+// classe molto lunga. va splittata? decidi dopo che sarà finita, mancano varie funzioni
 // alcune protected?, probabilmente posso mettere il default degli argomenti con parametri private
         bool isAllowedAccountNumber(int);
         bool isAllowedExecutionDate(datetime);
@@ -60,99 +63,110 @@ class Market{
 
 Market::Market():
     forceIsLiveAccount_(false),
-    accountNumber_(AccountNumber()){
+    accountNumber_(AccountNumber()) {
 }
 
-Market::~Market(){}
+Market::~Market() {}
 
-bool Market::isAllowedAccountNumber(int accountNumber){
-    for(int i = 0; i < ArraySize(ALLOWED_DEMO_ACCOUNT_NUMBERS); i++){
-        if(accountNumber == ALLOWED_DEMO_ACCOUNT_NUMBERS[i])
+bool Market::isAllowedAccountNumber(int accountNumber) {
+    for (int i = 0; i < ArraySize(ALLOWED_DEMO_ACCOUNT_NUMBERS); i++) {
+        if (accountNumber == ALLOWED_DEMO_ACCOUNT_NUMBERS[i]) {
             return true;
+        }
     }
 
-    for(int j = 0; j < ArraySize(ALLOWED_LIVE_ACCOUNT_NUMBERS); j++){
-        if(accountNumber == ALLOWED_LIVE_ACCOUNT_NUMBERS[j])
+    for (int j = 0; j < ArraySize(ALLOWED_LIVE_ACCOUNT_NUMBERS); j++) {
+        if (accountNumber == ALLOWED_LIVE_ACCOUNT_NUMBERS[j]) {
             return true;
+        }
     }
 
     return ThrowException(false, StringConcatenate("isAllowedAccountNumber, ",
         "unauthorized accountNumber: ", accountNumber));
 }
 
-bool Market::isAllowedExecutionDate(datetime executionDate){
-    if(executionDate < BOT_EXPIRATION_DATE)
+bool Market::isAllowedExecutionDate(datetime executionDate) {
+    if (executionDate < BOT_EXPIRATION_DATE) {
         return true;
+    }
 
     return ThrowException(false, StringConcatenate("isAllowedExecutionDate, "
         "unauthorized executionDate: ", executionDate));
 }
 
-bool Market::isAllowedPeriod(int period){
-    for(int i = 0; i < ArraySize(ALLOWED_PERIODS); i++){
-        if(period == ALLOWED_PERIODS[i])
+bool Market::isAllowedPeriod(int period) {
+    for (int i = 0; i < ArraySize(ALLOWED_PERIODS); i++) {
+        if (period == ALLOWED_PERIODS[i]) {
             return true;
+        }
     }
 
     return ThrowException(false, StringConcatenate("isAllowedPeriod, unauthorized period: ", period));
 }
 
-bool Market::isAllowedSymbol(string symbol){
-    if(isDemoTrading() && SymbolExists(symbol))
+bool Market::isAllowedSymbol(string symbol) {
+    if (isDemoTrading() && SymbolExists(symbol)) {
         return true;
+    }
 
-    for(int i = 0; i < ArraySize(ALLOWED_SYMBOLS); i++){
-        if(symbol == ALLOWED_SYMBOLS[i])
+    for (int i = 0; i < ArraySize(ALLOWED_SYMBOLS); i++) {
+        if (symbol == ALLOWED_SYMBOLS[i]) {
             return true;
+        }
     }
 
     return ThrowException(false, StringConcatenate("isAllowedSymbol, unauthorized symbol: ", symbol));
 }
 
-bool Market::isAllowedSymbolPeriodCombo(string symbol, int period){
-    if(isDemoTrading())
+bool Market::isAllowedSymbolPeriodCombo(string symbol, int period) {
+    if (isDemoTrading()) {
         return true;
+    }
 
-    for(int i = 0; i < ArraySize(RESTRICTED_SYMBOL_FAMILIES_H4); i++){
-        if(StringContains(symbol, RESTRICTED_SYMBOL_FAMILIES_H4[i]) && period != PERIOD_H4)
+    for (int i = 0; i < ArraySize(RESTRICTED_SYMBOL_FAMILIES_H4); i++) {
+        if (StringContains(symbol, RESTRICTED_SYMBOL_FAMILIES_H4[i]) && period != PERIOD_H4) {
             return ThrowException(false, StringConcatenate("isAllowedSymbolPeriodCombo, unauthorized symbol ",
                 symbol, " and period ", period, " combination"));
+        }
     }
 
     return true;
 }
 
-bool Market::isDemoTrading(){
+bool Market::isDemoTrading() {
     return isDemoTrading(accountNumber_);
 }
 
-bool Market::isDemoTrading(int accountNumber){
-    if(forceIsLiveAccount_)
+bool Market::isDemoTrading(int accountNumber) {
+    if (forceIsLiveAccount_) {
         return false;
+    }
 
-    for(int i = 0; i < ArraySize(ALLOWED_DEMO_ACCOUNT_NUMBERS); i++){
-        if(accountNumber == ALLOWED_DEMO_ACCOUNT_NUMBERS[i])
+    for (int i = 0; i < ArraySize(ALLOWED_DEMO_ACCOUNT_NUMBERS); i++) {
+        if (accountNumber == ALLOWED_DEMO_ACCOUNT_NUMBERS[i]) {
             return true;
+        }
     }
 
     return false;
 }
 
-void Market::forceIsLiveAccount(){
+void Market::forceIsLiveAccount() {
     forceIsLiveAccount_ = true;
 }
 
-void Market::resetAccountTypeOverride(){
+void Market::resetAccountTypeOverride() {
     forceIsLiveAccount_ = false;
 }
 
-void Market::startUpMarketValidation(){
-    if(isAllowedAccountNumber(accountNumber_)
-    && isAllowedExecutionDate(TimeCurrent()) // controllo ad ogni tick. variabile startUpTime_?
-    && isAllowedPeriod(CURRENT_PERIOD)
-    && isAllowedSymbol(CURRENT_SYMBOL)
-    && isAllowedSymbolPeriodCombo(CURRENT_SYMBOL, CURRENT_PERIOD))
+void Market::startUpMarketValidation() { // controllo ad ogni tick. variabile startUpTime_?
+    if (isAllowedAccountNumber(accountNumber_) &&
+        isAllowedExecutionDate(TimeCurrent()) &&
+        isAllowedPeriod(CURRENT_PERIOD) &&
+        isAllowedSymbol(CURRENT_SYMBOL) &&
+        isAllowedSymbolPeriodCombo(CURRENT_SYMBOL, CURRENT_PERIOD)) {
         return;
+    }
 
     ThrowFatalException("startUpMarketValidation failed");
 }
@@ -162,9 +176,10 @@ void Market::startUpMarketValidation(){
 // Print("isDemoTrading() && SymbolExists(symbol): ", isDemoTrading(), " && ", SymbolExists(symbol));
 
 
-void Market::tickMarketValidation(){ // ci sono vari livelli di questo, ma non deve fare fatal exception probabilmente
-    if(???)
+void Market::tickMarketValidation() { // ci sono vari livelli di questo, ma non deve fare fatal exception probabilmente
+    if (???) {
         return;
+    }
 
 // isAllowedExecutionDate serve
 
@@ -173,14 +188,18 @@ void Market::tickMarketValidation(){ // ci sono vari livelli di questo, ma non d
 
 // nuova funzione isMarketOpened, e poi isMarketOpenedFirstBar (che cancola direttamente se si possono fare ordini a -6)
 
-    if(DayOfWeek() >= MARKET_CLOSE_DAY
-    || DayOfWeek() < MARKET_OPEN_DAY)
+// sicuramente nuova classe markettime (magari poi ereditata da questa? o magari no perche frutta -/-> fragola).
+
+// magari usare timelocal per apertura mercato, che non dipende dalla timezone. Ah pero pericoloso in caso di cambi del computer.
+// meglio timecurrent allora (no perche è l'orario di metatrader, non del broker). o timelocal in altra timezone
+    if (DayOfWeek() >= MARKET_CLOSE_DAY || DayOfWeek() < MARKET_OPEN_DAY) {
         SetChartMarketClosedColors();
+    }
 
-bool Market::isMarketOpened(day, hour, minute?){
-    if(year < 2022)
+bool Market::isMarketOpened(day, hour, minute?) {
+    if (year < 2022) {
         return true;
-
+    }
 }
 
 */

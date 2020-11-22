@@ -82,3 +82,27 @@
 
 
 // potrebbe essere drawer a settare i colori del mercato, sia nel costruttore che a ogni tick a seconda della situazione di mercato
+
+// controlla tutti gli usi di timelocal, timecurrent, timegmt. pericoloso usare quello sbagliato. A volte serve timecurrent (data ordine).
+// per apertura mercato usa timeGMT piu lo shift
+
+// chiudere la sofferenza e se un trade è negativo e senza breakeven dopo 1 ora (o 30 min) chiuderlo?
+// Magari se non ha preso il be dopo mezzora chiuderlo in ogni caso (a meno che non sia positivo e allora mettere sl a 0)
+
+// fare 1 trade al giorno per cross? Solo se il prcedente è TP o SL? o solo SL? in generale, tanto quando entra 1 l'altro viene tolto, quindi non si puo prendere il movimento inverso
+
+// arrotondare size modulation ad 1 cifra (no 0.99)
+
+// dopo che la pending hour è passata metti il grafico grigio se non ci sono ordini aperti
+
+// mettere alert a losslimiter e altre cose in cui è utile
+
+// sistemare breakeven per farli esattamente a zero? Commissione?
+
+// mettere tutti gli spazi giusti tra if/for e mettere tutte le graffe. Non permettere operatori senza graffe!!
+
+// alert in unittest (senza farli fallire) se TimeLocal != TimeItaly
+
+// fare JDOCS?
+
+// stampare tutti i log con stringa DEBUG invece che non stamparli? o non stamparli ma aggiungere comunque DEBUG

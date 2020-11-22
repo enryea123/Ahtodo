@@ -4,7 +4,7 @@
 #include "../../Constants.mqh"
 
 
-class TrendLine{
+class TrendLine {
     public:
         TrendLine();
         ~TrendLine();
@@ -58,98 +58,117 @@ TrendLine::TrendLine():
     trendLineNameBeamIdentifier_("b"),
     trendLineNameFirstIndexIdentifier_("i"),
     trendLineNameSecondIndexIdentifier_("j"),
-    trendLineNameSeparator_("_"){
+    trendLineNameSeparator_("_") {
 }
 
-TrendLine::~TrendLine(){}
+TrendLine::~TrendLine() {}
 
-bool TrendLine::areTrendLineSetupsGood(int indexI, int indexJ, Discriminator discriminator){
-    if(indexI < indexJ)
+bool TrendLine::areTrendLineSetupsGood(int indexI, int indexJ, Discriminator discriminator) {
+    if (indexI < indexJ) {
         return ThrowException(false, "areTrendLineSetupsGood: indexI < indexJ");
+    }
 
-    if(indexI < 1 || indexJ < 1)
+    if (indexI < 1 || indexJ < 1) {
         return ThrowException(false, "areTrendLineSetupsGood: indexI < 1 || indexJ < 1");
+    }
 
-    if(indexI < trendLineMinCandlesLength_ && indexJ < trendLineMinCandlesLength_)
+    if (indexI < trendLineMinCandlesLength_ && indexJ < trendLineMinCandlesLength_) {
         return false;
+    }
 
-    if(MathAbs(indexI - indexJ) < trendLineMinExtremesDistance_)
+    if (MathAbs(indexI - indexJ) < trendLineMinExtremesDistance_) {
         return false;
+    }
 
     const double trendLineBalanceRatio = MathAbs(indexI - indexJ) / (double) indexI;
 
-    if(trendLineBalanceRatio > trendLineBalanceRatioThreshold_
-    || trendLineBalanceRatio < 1 - trendLineBalanceRatioThreshold_)
+    if (trendLineBalanceRatio > trendLineBalanceRatioThreshold_ ||
+        trendLineBalanceRatio < 1 - trendLineBalanceRatioThreshold_) {
         return false;
+    }
 
-    if((iExtreme(indexI, discriminator) > iExtreme(indexJ, discriminator) && discriminator == Min)
-    || (iExtreme(indexI, discriminator) < iExtreme(indexJ, discriminator) && discriminator == Max))
+    if ((iExtreme(indexI, discriminator) > iExtreme(indexJ, discriminator) && discriminator == Min) ||
+        (iExtreme(indexI, discriminator) < iExtreme(indexJ, discriminator) && discriminator == Max)) {
         return false;
+    }
 
     const double trendLineSlope = (iExtreme(indexJ, discriminator)
         - iExtreme(indexI, discriminator)) / (indexI - indexJ);
 
-    if(MathAbs(trendLineSlope) > getMaxTrendLineSlope(trendLineSlope))
+    if (MathAbs(trendLineSlope) > getMaxTrendLineSlope(trendLineSlope)) {
         return false;
+    }
 
     return true;
 }
 
-bool TrendLine::isExistingTrendLineBad(string trendLineName, Discriminator discriminator){
+bool TrendLine::isExistingTrendLineBad(string trendLineName, Discriminator discriminator) {
     // Broken TrendLine
-    for(int k = 0; k < getTrendLineMaxIndex(trendLineName); k++){
-        if(discriminator == Min && ObjectGetValueByShift(trendLineName, k)
-        > iExtreme(k, discriminator) + ErrorPips())
+    for (int k = 0; k < getTrendLineMaxIndex(trendLineName); k++) {
+        if (ObjectGetValueByShift(trendLineName, k) > iExtreme(k, discriminator) + ErrorPips() &&
+            discriminator == Min) {
             return true;
-        if(discriminator == Max && ObjectGetValueByShift(trendLineName, k)
-        < iExtreme(k, discriminator) - ErrorPips())
+        }
+        if (ObjectGetValueByShift(trendLineName, k) < iExtreme(k, discriminator) - ErrorPips() &&
+            discriminator == Max) {
             return true;
+        }
     }
 
     const double trendLineSlope = ObjectGetValueByShift(trendLineName, 1) - ObjectGetValueByShift(trendLineName, 2);
 
     // TrendLine with opposite or excessive inclination
-    if(discriminator == Min && trendLineSlope < 0)
+    if (discriminator == Min && trendLineSlope < 0) {
         return true;
-    if(discriminator == Max && trendLineSlope > 0)
+    }
+    if (discriminator == Max && trendLineSlope > 0) {
         return true;
-    if(MathAbs(trendLineSlope) > getMaxTrendLineSlope(trendLineSlope) && !isBadTrendLineFromName(trendLineName))
+    }
+    if (MathAbs(trendLineSlope) > getMaxTrendLineSlope(trendLineSlope) && !isBadTrendLineFromName(trendLineName)) {
         return true;
+    }
 
     // TrendLine far from current price
-    if(!IS_DEBUG && MathAbs(ObjectGetValueByShift(trendLineName, 1) - iCandle(I_close, 1))
-    > pipsFromPriceTrendLineThreshold_ * PeriodMultiplicationFactor() * Pips())
+    if (!IS_DEBUG && MathAbs(ObjectGetValueByShift(trendLineName, 1) - iCandle(I_close, 1)) >
+        pipsFromPriceTrendLineThreshold_ * PeriodMultiplicationFactor() * Pips()) {
         return true;
+    }
 
     return false;
 }
 
-bool TrendLine::isBadTrendLineFromName(string trendLineName){
-    if(StringContains(trendLineName, trendLineNamePrefix_)
-    && StringContains(trendLineName, badTrendLineNameSuffix_))
+bool TrendLine::isBadTrendLineFromName(string trendLineName) {
+    if (StringContains(trendLineName, trendLineNamePrefix_) &&
+        StringContains(trendLineName, badTrendLineNameSuffix_)) {
         return true;
+    }
+
     return false;
 }
 
-bool TrendLine::isTrendLineGoodForPendingOrder(string trendLineName, int timeIndex){
-    if(!StringContains(trendLineName, trendLineNamePrefix_)
-    || StringContains(trendLineName, badTrendLineNameSuffix_))
+bool TrendLine::isTrendLineGoodForPendingOrder(string trendLineName, int timeIndex) {
+    if (!StringContains(trendLineName, trendLineNamePrefix_) ||
+        StringContains(trendLineName, badTrendLineNameSuffix_)) {
         return false;
+    }
 
     // Needed for orders set in the past
-    if(getTrendLineMinIndex(trendLineName) < timeIndex + trendLineMinExtremesDistance_)
+    if (getTrendLineMinIndex(trendLineName) < timeIndex + trendLineMinExtremesDistance_) {
         return false;
+    }
 
     return true;
 }
 
-int TrendLine::getTrendLineIndex(string trendLineName, string indexDisambiguator){
-    if(!StringContains(trendLineName, trendLineNamePrefix_))
+int TrendLine::getTrendLineIndex(string trendLineName, string indexDisambiguator) {
+    if (!StringContains(trendLineName, trendLineNamePrefix_)) {
         return -1;
+    }
 
-    if(indexDisambiguator != trendLineNameFirstIndexIdentifier_
-    && indexDisambiguator != trendLineNameSecondIndexIdentifier_)
+    if (indexDisambiguator != trendLineNameFirstIndexIdentifier_ &&
+        indexDisambiguator != trendLineNameSecondIndexIdentifier_) {
         return -1;
+    }
 
     const int positionInName = indexDisambiguator == trendLineNameFirstIndexIdentifier_ ?
         trendLineNameFirstIndexPosition_ : trendLineNameSecondIndexPosition_;
@@ -157,32 +176,34 @@ int TrendLine::getTrendLineIndex(string trendLineName, string indexDisambiguator
     string splittedTrendLineName[];
     StringSplit(trendLineName, StringGetCharacter(trendLineNameSeparator_, 0), splittedTrendLineName);
 
-    if(ArraySize(splittedTrendLineName) <= positionInName)
+    if (ArraySize(splittedTrendLineName) <= positionInName) {
         return -1;
+    }
 
     StringSplit(splittedTrendLineName[positionInName], StringGetCharacter(indexDisambiguator, 0),
         splittedTrendLineName);
 
-    if(ArraySize(splittedTrendLineName) < 2)
+    if (ArraySize(splittedTrendLineName) < 2) {
         return -1;
+    }
 
     return StrToInteger(splittedTrendLineName[1]);
 }
 
-int TrendLine::getTrendLineMaxIndex(string trendLineName){
+int TrendLine::getTrendLineMaxIndex(string trendLineName) {
     return getTrendLineIndex(trendLineName, trendLineNameFirstIndexIdentifier_);
 }
 
-int TrendLine::getTrendLineMinIndex(string trendLineName){
+int TrendLine::getTrendLineMinIndex(string trendLineName) {
     return getTrendLineIndex(trendLineName, trendLineNameSecondIndexIdentifier_);
 }
 
-double TrendLine::getMaxTrendLineSlope(double trendLineSlope){
+double TrendLine::getMaxTrendLineSlope(double trendLineSlope) {
     const double maxVolatilityPercentage = trendLineSlope > 0 ? positiveSlopeVolatility_ : negativeSlopeVolatility_;
     return MathAbs(maxVolatilityPercentage * GetMarketVolatility());
 }
 
-string TrendLine::buildTrendLineName(int indexI, int indexJ, int beam, Discriminator discriminator){
+string TrendLine::buildTrendLineName(int indexI, int indexJ, int beam, Discriminator discriminator) {
     return StringConcatenate(trendLineNamePrefix_,
         trendLineNameSeparator_, trendLineNameFirstIndexIdentifier_, indexI,
         trendLineNameSeparator_, trendLineNameSecondIndexIdentifier_, indexJ,
@@ -190,7 +211,7 @@ string TrendLine::buildTrendLineName(int indexI, int indexJ, int beam, Discrimin
         trendLineNameSeparator_, EnumToString(discriminator));
 }
 
-string TrendLine::buildBadTrendLineName(int indexI, int indexJ, int beam, Discriminator discriminator){
+string TrendLine::buildBadTrendLineName(int indexI, int indexJ, int beam, Discriminator discriminator) {
     return StringConcatenate(buildTrendLineName(indexI, indexJ, beam, discriminator),
         trendLineNameSeparator_, badTrendLineNameSuffix_);
 }

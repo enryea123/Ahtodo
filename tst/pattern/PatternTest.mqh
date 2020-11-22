@@ -5,7 +5,7 @@
 #include "../../src/pattern/Pattern.mqh"
 
 
-class PatternTest{
+class PatternTest {
     public:
         PatternTest();
         ~PatternTest();
@@ -17,12 +17,12 @@ class PatternTest{
 };
 
 PatternTest::PatternTest():
-    pattern_(){
+    pattern_() {
 }
 
-PatternTest::~PatternTest(){}
+PatternTest::~PatternTest() {}
 
-void PatternTest::isPatternTest(){
+void PatternTest::isPatternTest() {
     UnitTest unitTest("isPatternTest");
 
     const int maxIndex = 100;
@@ -34,15 +34,16 @@ void PatternTest::isPatternTest(){
     bool isNotUpPinbarTested = false;
     bool isNotDownPinbarTested = false;
 
-    for(int i = 0; i < maxIndex; i++){
-        if(checkedAssertions == totalAssertions)
+    for (int i = 0; i < maxIndex; i++) {
+        if (checkedAssertions == totalAssertions) {
             break;
+        }
 
         const double thisCandleSize = MathAbs(iExtreme(i, Max) - iExtreme(i, Min));
 
-        if(!isUpPinbarTested && pattern_.upPinbar(i)
-        && thisCandleSize < PATTERN_MAXIMUM_SIZE_PIPS * PeriodMultiplicationFactor() * Pips()
-        && thisCandleSize > PATTERN_MINIMUM_SIZE_PIPS * PeriodMultiplicationFactor() * Pips()){
+        if (!isUpPinbarTested && pattern_.upPinbar(i) &&
+            thisCandleSize < PATTERN_MAXIMUM_SIZE_PIPS * PeriodMultiplicationFactor() * Pips() &&
+            thisCandleSize > PATTERN_MINIMUM_SIZE_PIPS * PeriodMultiplicationFactor() * Pips()) {
             unitTest.assertTrue(
                 pattern_.isBuyPattern(i),
                 "isUpPinbarTested"
@@ -51,9 +52,9 @@ void PatternTest::isPatternTest(){
             isUpPinbarTested = true;
         }
 
-        if(!isDownPinbarTested && pattern_.downPinbar(i)
-        && thisCandleSize < PATTERN_MAXIMUM_SIZE_PIPS * PeriodMultiplicationFactor() * Pips()
-        && thisCandleSize > PATTERN_MINIMUM_SIZE_PIPS * PeriodMultiplicationFactor() * Pips()){
+        if (!isDownPinbarTested && pattern_.downPinbar(i) &&
+            thisCandleSize < PATTERN_MAXIMUM_SIZE_PIPS * PeriodMultiplicationFactor() * Pips() &&
+            thisCandleSize > PATTERN_MINIMUM_SIZE_PIPS * PeriodMultiplicationFactor() * Pips()) {
             unitTest.assertTrue(
                 pattern_.isSellPattern(i),
                 "isDownPinbarTested"
@@ -62,9 +63,9 @@ void PatternTest::isPatternTest(){
             isDownPinbarTested = true;
         }
 
-        if(!isNotUpPinbarTested && pattern_.upPinbar(i)
-        && (thisCandleSize > PATTERN_MAXIMUM_SIZE_PIPS * PeriodMultiplicationFactor() * Pips()
-        || thisCandleSize < PATTERN_MINIMUM_SIZE_PIPS * PeriodMultiplicationFactor() * Pips())){
+        if (!isNotUpPinbarTested && pattern_.upPinbar(i) &&
+            (thisCandleSize > PATTERN_MAXIMUM_SIZE_PIPS * PeriodMultiplicationFactor() * Pips() ||
+            thisCandleSize < PATTERN_MINIMUM_SIZE_PIPS * PeriodMultiplicationFactor() * Pips())) {
             unitTest.assertFalse(
                 pattern_.isBuyPattern(i),
                 "isNotUpPinbarTested"
@@ -73,9 +74,9 @@ void PatternTest::isPatternTest(){
             isNotUpPinbarTested = true;
         }
 
-        if(!isNotDownPinbarTested && pattern_.downPinbar(i)
-        && (thisCandleSize > PATTERN_MAXIMUM_SIZE_PIPS * PeriodMultiplicationFactor() * Pips()
-        || thisCandleSize < PATTERN_MINIMUM_SIZE_PIPS * PeriodMultiplicationFactor() * Pips())){
+        if (!isNotDownPinbarTested && pattern_.downPinbar(i) &&
+            (thisCandleSize > PATTERN_MAXIMUM_SIZE_PIPS * PeriodMultiplicationFactor() * Pips() ||
+            thisCandleSize < PATTERN_MINIMUM_SIZE_PIPS * PeriodMultiplicationFactor() * Pips())) {
             unitTest.assertFalse(
                 pattern_.isSellPattern(i),
                 "isNotDownPinbarTested"
@@ -84,8 +85,9 @@ void PatternTest::isPatternTest(){
             isNotDownPinbarTested = true;
         }
 
-        if(i == maxIndex - 1 && checkedAssertions < totalAssertions)
+        if (i == maxIndex - 1 && checkedAssertions < totalAssertions) {
             Print("isBuyPatternTest: ", checkedAssertions, " out of ",
                 totalAssertions, " assertions checked, some skipped..");
+        }
     }
 }

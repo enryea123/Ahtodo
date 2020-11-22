@@ -4,9 +4,9 @@
 #include "../../Constants.mqh"
 
 
-class ArrowStyle{
+class ArrowStyle {
     public:
-        ArrowStyle() ;
+        ArrowStyle();
         ~ArrowStyle();
 
         void drawExtremeArrow(int, Discriminator, bool);
@@ -26,54 +26,61 @@ class ArrowStyle{
 ArrowStyle::ArrowStyle():
     arrowNamePrefix_("Arrow"),
     validArrowNameSuffix_("Valid"),
-    arrowNameSeparator_("_"){
+    arrowNameSeparator_("_") {
 }
 
 ArrowStyle::~ArrowStyle() {}
 
-color ArrowStyle::getArrowColor(bool isValidExtreme){
-    if(isValidExtreme)
+color ArrowStyle::getArrowColor(bool isValidExtreme) {
+    if (isValidExtreme) {
         return clrOrange;
+    }
 
     return clrRed;
 }
 
-int ArrowStyle::getArrowSize(bool isValidExtreme){
-    if(isValidExtreme)
+int ArrowStyle::getArrowSize(bool isValidExtreme) {
+    if (isValidExtreme) {
         return 5;
+    }
 
     return 1;
 }
 
-double ArrowStyle::getArrowAnchor(Discriminator discriminator){
-    if(discriminator == Max)
+double ArrowStyle::getArrowAnchor(Discriminator discriminator) {
+    if (discriminator == Max) {
         return ANCHOR_BOTTOM;
-    if(discriminator == Min)
+    }
+    if (discriminator == Min) {
         return ANCHOR_TOP;
+    }
 
     return NULL;
 }
 
-string ArrowStyle::getArrowObjectType(Discriminator discriminator){
-    if(discriminator == Max)
+string ArrowStyle::getArrowObjectType(Discriminator discriminator) {
+    if (discriminator == Max) {
         return OBJ_ARROW_DOWN;
-    if(discriminator == Min)
+    }
+    if (discriminator == Min) {
         return OBJ_ARROW_UP;
+    }
 
     return NULL;
 }
 
-string ArrowStyle::buildArrowName(int timeIndex, Discriminator discriminator, bool isValidExtreme){
+string ArrowStyle::buildArrowName(int timeIndex, Discriminator discriminator, bool isValidExtreme) {
     string arrowName = StringConcatenate(arrowNamePrefix_, arrowNameSeparator_,
         timeIndex, arrowNameSeparator_, EnumToString(discriminator));
 
-    if(isValidExtreme)
+    if (isValidExtreme) {
         arrowName = StringConcatenate(arrowName, arrowNameSeparator_, validArrowNameSuffix_);
+    }
 
     return arrowName;
 }
 
-void ArrowStyle::drawExtremeArrow(int timeIndex, Discriminator discriminator, bool isValidExtreme){
+void ArrowStyle::drawExtremeArrow(int timeIndex, Discriminator discriminator, bool isValidExtreme) {
     string arrowName = buildArrowName(timeIndex, discriminator, isValidExtreme);
     
     ObjectCreate(

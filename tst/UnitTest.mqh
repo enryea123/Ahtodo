@@ -4,7 +4,7 @@
 #include "../Constants.mqh"
 
 
-class UnitTest{
+class UnitTest {
     public:
         UnitTest(string);
         ~UnitTest();
@@ -35,82 +35,91 @@ class UnitTest{
 UnitTest::UnitTest(string testName):
     testName_(testName),
     passedAssertions_(0),
-    totalAssertions_(0){
+    totalAssertions_(0) {
 }
 
-UnitTest::~UnitTest(){
+UnitTest::~UnitTest() {
     getTestResult();
 }
 
-void UnitTest::setSuccess(string message = NULL){
+void UnitTest::setSuccess(string message = NULL) {
     passedAssertions_++;
     totalAssertions_++;
 
-    if(IS_DEBUG && message != NULL && message != "")
+    if (IS_DEBUG && message != NULL && message != "") {
         Print("Assertion succeeded: ", message);
+    }
 }
 
-void UnitTest::setFailure(string message = NULL){
+void UnitTest::setFailure(string message = NULL) {
     totalAssertions_++;
     Print("Assertion failed");
 
-    if(message != NULL && message != "")
+    if (message != NULL && message != "") {
         Print("Assertion failure message: ", message);
+    }
 }
 
-void UnitTest::setFailure(int expected, int actual, string message = NULL){
+void UnitTest::setFailure(int expected, int actual, string message = NULL) {
     setFailure(message);
     Print("Expected <", expected, "> Actual <", actual, ">");
 }
 
-void UnitTest::setFailure(string expected, string actual, string message = NULL){
+void UnitTest::setFailure(string expected, string actual, string message = NULL) {
     setFailure(message);
     Print("Expected <", expected, "> Actual <", actual, ">");
 }
 
-void UnitTest::assertEquals(color expected, color actual, string message = NULL){
-    if(expected == actual)
+void UnitTest::assertEquals(color expected, color actual, string message = NULL) {
+    if (expected == actual) {
         setSuccess(message);
-    else
+    } else {
         setFailure(message);
+    }
 }
 
-void UnitTest::assertEquals(int expected, int actual, string message = NULL){
-    if(expected == actual)
+void UnitTest::assertEquals(int expected, int actual, string message = NULL) {
+    if (expected == actual) {
         setSuccess(message);
-    else
+    } else {
         setFailure(expected, actual, message);
+    }
 }
 
-void UnitTest::assertEquals(string expected, string actual, string message = NULL){
-    if(expected == actual)
+void UnitTest::assertEquals(string expected, string actual, string message = NULL) {
+    if (expected == actual) {
         setSuccess(message);
-    else
+    } else {
         setFailure(expected, actual, message);
+    }
 }
 
-void UnitTest::assertNotNull(double value, string message = NULL){
-    if(value == NULL)
+void UnitTest::assertNotNull(double value, string message = NULL) {
+    if (value == NULL) {
         setFailure(message);
+    }
 }
 
-void UnitTest::assertTrue(bool condition, string message = NULL){
-    if(condition)
+void UnitTest::assertTrue(bool condition, string message = NULL) {
+    if (condition) {
         setSuccess(message);
-    else
+    } else {
         setFailure(message);
+    }
 }
 
-void UnitTest::assertFalse(bool condition, string message = NULL){
-    if(condition)
+void UnitTest::assertFalse(bool condition, string message = NULL) {
+    if (condition) {
         setFailure(message);
-    else
+    } else {
         setSuccess(message);
+    }
 }
 
-void UnitTest::getTestResult(){
-    if(passedAssertions_ == totalAssertions_)
+void UnitTest::getTestResult() {
+    if (passedAssertions_ == totalAssertions_) {
         Print("Test ", testName_, ": PASSED");
-    else
+    } else {
         ThrowFatalException(StringConcatenate("Test ", testName_, ": FAILED"));
+    }
 }

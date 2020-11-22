@@ -5,7 +5,7 @@
 #include "../../src/trendline/TrendLine.mqh"
 
 
-class TrendLineTest{
+class TrendLineTest {
     public:
         TrendLineTest();
         ~TrendLineTest();
@@ -20,12 +20,12 @@ class TrendLineTest{
 };
 
 TrendLineTest::TrendLineTest():
-    trendLine_(){
+    trendLine_() {
 }
 
-TrendLineTest::~TrendLineTest(){}
+TrendLineTest::~TrendLineTest() {}
 
-void TrendLineTest::isTrendLineGoodForPendingOrderTest(){
+void TrendLineTest::isTrendLineGoodForPendingOrderTest() {
     UnitTest unitTest("isTrendLineGoodForPendingOrderTest");
 
     unitTest.assertTrue(
@@ -54,7 +54,7 @@ void TrendLineTest::isTrendLineGoodForPendingOrderTest(){
     );
 }
 
-void TrendLineTest::getTrendLineIndexesTest(){
+void TrendLineTest::getTrendLineIndexesTest() {
     UnitTest unitTest("getTrendLineIndexesTest");
 
     unitTest.assertEquals(
@@ -100,7 +100,7 @@ void TrendLineTest::getTrendLineIndexesTest(){
     );
 }
 
-void TrendLineTest::trendLineNameTest(){
+void TrendLineTest::trendLineNameTest() {
     UnitTest unitTest("trendLineNameTest");
 
     unitTest.assertEquals(
@@ -122,7 +122,7 @@ void TrendLineTest::trendLineNameTest(){
     );
 }
 
-void TrendLineTest::trendLineSetupsTest(){
+void TrendLineTest::trendLineSetupsTest() {
     UnitTest unitTest("trendLineSetupsTest");
 
     unitTest.assertFalse(
@@ -145,34 +145,34 @@ void TrendLineTest::trendLineSetupsTest(){
         trendLine_.areTrendLineSetupsGood(100, 98, Max)
     );
 
-    if(iExtreme(50, Min) > iExtreme(20, Min)){
+    if (iExtreme(50, Min) > iExtreme(20, Min)) {
         unitTest.assertFalse(
             trendLine_.areTrendLineSetupsGood(50, 20, Min),
             "Incorrect slope test - Min"
         );
-    }else if(iExtreme(50, Max) < iExtreme(20, Max)){
+    }else if (iExtreme(50, Max) < iExtreme(20, Max)) {
         unitTest.assertFalse(
             trendLine_.areTrendLineSetupsGood(50, 20, Max),
             "Incorrect slope test - Max"
         );
-    }else{
+    } else {
         Print("trendLineSetupsTest(): incorrect slope test skipped..");
     }
 
     const double slopeMin = (iExtreme(20, Min) - iExtreme(50, Min)) / (50 - 20);
     const double slopeMax = (iExtreme(20, Max) - iExtreme(50, Max)) / (50 - 20);
 
-    if(slopeMin > 0 && MathAbs(slopeMin) > TRENDLINE_POSITIVE_SLOPE_VOLATILITY * GetMarketVolatility()){
+    if (slopeMin > 0 && MathAbs(slopeMin) > TRENDLINE_POSITIVE_SLOPE_VOLATILITY * GetMarketVolatility()) {
         unitTest.assertFalse(
             trendLine_.areTrendLineSetupsGood(50, 20, Min),
             "TRENDLINE_POSITIVE_SLOPE_VOLATILITY"
         );
-    }else if(slopeMax < 0 && MathAbs(slopeMax) > TRENDLINE_NEGATIVE_SLOPE_VOLATILITY * GetMarketVolatility()){
+    }else if (slopeMax < 0 && MathAbs(slopeMax) > TRENDLINE_NEGATIVE_SLOPE_VOLATILITY * GetMarketVolatility()) {
         unitTest.assertFalse(
             trendLine_.areTrendLineSetupsGood(50, 20, Max),
             "TRENDLINE_NEGATIVE_SLOPE_VOLATILITY"
         );
-    }else{
+    } else {
         Print("trendLineSetupsTest(): excessive slope test skipped..");
     }
 }

@@ -5,7 +5,7 @@
 #include "Candle.mqh"
 
 
-class Pattern: public Candle{
+class Pattern: public Candle {
     public:
         Pattern();
         ~Pattern();
@@ -27,261 +27,233 @@ class Pattern: public Candle{
 
     private:
         const int antiPatternMinSizeSumPips_;
+
+        bool pattern1(int, Discriminator);
+        bool pattern3(int, Discriminator);
 };
 
 Pattern::Pattern():
-    antiPatternMinSizeSumPips_(50){
+    antiPatternMinSizeSumPips_(50) {
 }
 
-Pattern::~Pattern(){}
+Pattern::~Pattern() {}
 
-bool Pattern::sellPattern1(int timeIndex){
-    // Low doji followed by big bull bar
+/**
+ * Low doji followed by big bull bar
+ */
+bool Pattern::sellPattern1(int timeIndex) {
+    if (pattern1(timeIndex, Min)) {
+        return true;
+    }
 
-    if(!bigBar(timeIndex))
+    return false;
+}
+
+/**
+ * High doji followed by big bear bar
+ */
+bool Pattern::buyPattern1(int timeIndex) {
+    if (pattern1(timeIndex, Max)) {
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * Down pinbar
+ */
+bool Pattern::sellPattern2(int timeIndex) {
+    if (!downPinbar(timeIndex)) {
         return false;
-
-    if(!isCandleBull(timeIndex))
-        return false;
-
-    if(!isSupportCandle(timeIndex + 1))
-        return false;
-
-    if(candleBody(timeIndex + 1) > candleBody(timeIndex) / 2)
-        return false;
-
-    if(candleSize(timeIndex + 1) > candleSize(timeIndex))
-        return false;
-
-    if(candleBodyMidPoint(timeIndex + 1) < candleBodyMin(timeIndex) - candleBody(timeIndex) / 2)
-        return false;
-
-    if(candleBodyMidPoint(timeIndex + 1) > candleBodyMin(timeIndex) + candleBody(timeIndex) / 2)
-        return false;
-
-    if(MathAbs(iExtreme(timeIndex + 1, Min) - iExtreme(timeIndex, Min)) > 3 * ErrorPips())
-        return false;
+    }
 
     return true;
 }
 
-
-bool Pattern::buyPattern1(int timeIndex){
-    // High doji followed by big bear bar
-
-    if(!bigBar(timeIndex))
+/**
+ * Up pinbar
+ */
+bool Pattern::buyPattern2(int timeIndex) {
+    if (!upPinbar(timeIndex)) {
         return false;
-
-    if(isCandleBull(timeIndex))
-        return false;
-
-    if(!isSupportCandle(timeIndex + 1))
-        return false;
-
-    if(candleBody(timeIndex + 1) > candleBody(timeIndex) / 2)
-        return false;
-
-    if(candleSize(timeIndex + 1) > candleSize(timeIndex))
-        return false;
-
-    if(candleBodyMidPoint(timeIndex + 1) > candleBodyMax(timeIndex) + candleBody(timeIndex) / 2)
-        return false;
-
-    if(candleBodyMidPoint(timeIndex + 1) < candleBodyMax(timeIndex) - candleBody(timeIndex) / 2)
-        return false;
-
-    if(MathAbs(iExtreme(timeIndex + 1, Max) - iExtreme(timeIndex, Max)) > 3 * ErrorPips())
-        return false;
+    }
 
     return true;
 }
 
-bool Pattern::sellPattern2(int timeIndex){
-    // Down pinbar
+/**
+ * High doji followed by big bear bar and then big bull bar
+ */
+bool Pattern::sellPattern3(int timeIndex) {
+    if (pattern3(timeIndex, Min)) {
+        return true;
+    }
 
-    if(!downPinbar(timeIndex))
+    return false;
+}
+
+/**
+ * Low doji followed by big bull bar and then big bear bar
+ */
+bool Pattern::buyPattern3(int timeIndex) {
+    if (pattern3(timeIndex, Max)) {
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * slimDoji, only for H4
+ */
+bool Pattern::sellBuyPattern4(int timeIndex) {
+    if (!slimDoji(timeIndex)) {
         return false;
+    }
+
+    if (CURRENT_PERIOD != PERIOD_H4) {
+        return false;
+    }
 
     return true;
 }
 
-bool Pattern::buyPattern2(int timeIndex){
-    // Up pinbar
+/**
+ * 3 dojis or discording pinbars in a row
+ */
+bool Pattern::antiPattern1(int timeIndex) {
+    if ((doji(timeIndex) && doji(timeIndex + 1) && doji(timeIndex + 2)) ||
+        (doji(timeIndex) && doji(timeIndex + 1) && downPinbar(timeIndex + 2)) ||
+        (doji(timeIndex) && doji(timeIndex + 1) && upPinbar(timeIndex + 2)) ||
+        (doji(timeIndex) && upPinbar(timeIndex + 1) && doji(timeIndex + 2)) ||
+        (doji(timeIndex) && downPinbar(timeIndex + 1) && doji(timeIndex + 2)) ||
+        (upPinbar(timeIndex) && doji(timeIndex + 1) && doji(timeIndex + 2)) ||
+        (downPinbar(timeIndex) && doji(timeIndex + 1) && doji(timeIndex + 2)) ||
+        (doji(timeIndex) && upPinbar(timeIndex + 1) && downPinbar(timeIndex + 2)) ||
+        (doji(timeIndex) && downPinbar(timeIndex + 1) && upPinbar(timeIndex + 2)) ||
+        (upPinbar(timeIndex) && doji(timeIndex + 1) && downPinbar(timeIndex + 2)) ||
+        (downPinbar(timeIndex) && doji(timeIndex + 1) && upPinbar(timeIndex + 2)) ||
+        (downPinbar(timeIndex) && upPinbar(timeIndex + 1) && doji(timeIndex + 2)) ||
+        (upPinbar(timeIndex) && downPinbar(timeIndex + 1) && doji(timeIndex + 2))) {
 
-    if(!upPinbar(timeIndex))
-        return false;
-
-    return true;
-}
-
-bool Pattern::sellPattern3(int timeIndex){
-    // High doji followed by big bear bar and then big bull bar
-
-    if(!bigBar(timeIndex + 1))
-        return false;
-
-    if(!bigBar(timeIndex))
-        return false;
-
-    if(isCandleBull(timeIndex + 1))
-        return false;
-
-    if(!isCandleBull(timeIndex))
-        return false;
-
-    if(!isSupportCandle(timeIndex + 2))
-        return false;
-
-    if(candleBody(timeIndex + 2) > candleBody(timeIndex + 1) / 2)
-        return false;
-
-    if(candleBody(timeIndex + 1) > candleBody(timeIndex) * 7 / 4)
-        return false;
-
-    if(candleBodyMidPoint(timeIndex + 2) > candleBodyMax(timeIndex + 1)
-    + candleBody(timeIndex + 1) / 2)
-        return false;
-
-    if(candleBodyMidPoint(timeIndex + 2) < candleBodyMax(timeIndex + 1)
-    - candleBody(timeIndex + 1) / 2)
-        return false;
-
-    if(candleSize(timeIndex + 2) > candleSize(timeIndex + 1))
-        return false;
-
-    if(candleSize(timeIndex + 1) < candleSize(timeIndex) * 3 / 4)
-        return false;
-
-    if(candleBody(timeIndex + 1) < candleBody(timeIndex) * 3 / 4)
-        return false;
-
-    if(iExtreme(timeIndex + 1, Max) < candleBodyMax(timeIndex) - ErrorPips())
-        return false;
-
-    if(iExtreme(timeIndex + 1, Min) > candleBodyMin(timeIndex) + ErrorPips())
-        return false;
-
-    if(MathAbs(iExtreme(timeIndex + 1, Min) - iExtreme(timeIndex, Min)) > 3 * ErrorPips())
-        return false;
-
-    return true;
-}
-
-bool Pattern::buyPattern3(int timeIndex){
-    // Low doji followed by big bull bar and then big bear bar
-
-    if(!bigBar(timeIndex + 1))
-        return false;
-
-    if(!bigBar(timeIndex))
-        return false;
-
-    if(!isCandleBull(timeIndex + 1))
-        return false;
-
-    if(isCandleBull(timeIndex))
-        return false;
-
-    if(!isSupportCandle(timeIndex + 2))
-        return false;
-
-    if(candleBody(timeIndex + 2) > candleBody(timeIndex + 1) / 2)
-        return false;
-
-    if(candleBody(timeIndex + 1) > candleBody(timeIndex) * 7 / 4)
-        return false;
-
-    if(candleBodyMidPoint(timeIndex + 2) < candleBodyMin(timeIndex + 1)
-    - candleBody(timeIndex + 1) / 2)
-        return false;
-
-    if(candleBodyMidPoint(timeIndex + 2) > candleBodyMin(timeIndex + 1)
-    + candleBody(timeIndex + 1) / 2)
-        return false;
-
-    if(candleSize(timeIndex + 2) > candleSize(timeIndex + 1))
-        return false;
-
-    if(candleSize(timeIndex + 1) < candleSize(timeIndex) * 3 / 4)
-        return false;
-
-    if(candleBody(timeIndex + 1) < candleBody(timeIndex) * 3 / 4)
-        return false;
-
-    if(iExtreme(timeIndex + 1, Max) < candleBodyMax(timeIndex) - ErrorPips())
-        return false;
-
-    if(iExtreme(timeIndex + 1, Min) > candleBodyMin(timeIndex) + ErrorPips())
-        return false;
-
-    if(MathAbs(iExtreme(timeIndex + 1, Max) - iExtreme(timeIndex, Max)) > 3 * ErrorPips())
-        return false;
-
-    return true;
-}
-
-bool Pattern::sellBuyPattern4(int timeIndex){
-    // slimDoji, only for H4
-
-    if(!slimDoji(timeIndex))
-        return false;
-
-    if(CURRENT_PERIOD != PERIOD_H4)
-        return false;
-
-    return true;
-}
-
-bool Pattern::antiPattern1(int timeIndex){
-    // 3 dojis or discording pinbars in a row
-
-    if((doji(timeIndex) && doji(timeIndex + 1) && doji(timeIndex + 2))
-    || (doji(timeIndex) && doji(timeIndex + 1) && downPinbar(timeIndex + 2))
-    || (doji(timeIndex) && doji(timeIndex + 1) && upPinbar(timeIndex + 2))
-    || (doji(timeIndex) && upPinbar(timeIndex + 1) && doji(timeIndex + 2))
-    || (doji(timeIndex) && downPinbar(timeIndex + 1) && doji(timeIndex + 2))
-    || (upPinbar(timeIndex) && doji(timeIndex + 1) && doji(timeIndex + 2))
-    || (downPinbar(timeIndex) && doji(timeIndex + 1) && doji(timeIndex + 2))
-    || (doji(timeIndex) && upPinbar(timeIndex + 1) && downPinbar(timeIndex + 2))
-    || (doji(timeIndex) && downPinbar(timeIndex + 1) && upPinbar(timeIndex + 2))
-    || (upPinbar(timeIndex) && doji(timeIndex + 1) && downPinbar(timeIndex + 2))
-    || (downPinbar(timeIndex) && doji(timeIndex + 1) && upPinbar(timeIndex + 2))
-    || (downPinbar(timeIndex) && upPinbar(timeIndex + 1) && doji(timeIndex + 2))
-    || (upPinbar(timeIndex) && downPinbar(timeIndex + 1) && doji(timeIndex + 2)))
-        if(candleSize(timeIndex) + candleSize(timeIndex + 1) + candleSize(timeIndex + 2)
-        > antiPatternMinSizeSumPips_ * PeriodMultiplicationFactor() * Pips())
+        if (candleSize(timeIndex) + candleSize(timeIndex + 1) + candleSize(timeIndex + 2) >
+            antiPatternMinSizeSumPips_ * PeriodMultiplicationFactor() * Pips()) {
             return true;
-    return false;
-}
-
-bool Pattern::isBuyPattern(int timeIndex){
-    if(isPatternSizeGood(timeIndex)
-    && (buyPattern1(timeIndex) || buyPattern2(timeIndex)
-    || buyPattern3(timeIndex) || sellBuyPattern4(timeIndex)))
-        return true;
+        }
+    }
 
     return false;
 }
 
-bool Pattern::isSellPattern(int timeIndex){
-    if(isPatternSizeGood(timeIndex)
-    && (sellPattern1(timeIndex) || sellPattern2(timeIndex)
-    || sellPattern3(timeIndex) || sellBuyPattern4(timeIndex)))
-        return true;
+bool Pattern::isBuyPattern(int timeIndex) {
+    if (isPatternSizeGood(timeIndex)) {
+        if (buyPattern1(timeIndex) || buyPattern2(timeIndex) ||
+            buyPattern3(timeIndex) || sellBuyPattern4(timeIndex)) {
+            return true;
+        }
+    }
 
     return false;
 }
 
-bool Pattern::isAntiPattern(int timeIndex){
-    if(antiPattern1(timeIndex) || antiPattern1(timeIndex + 1) || antiPattern1(timeIndex + 2))
-        return true;
+bool Pattern::isSellPattern(int timeIndex) {
+    if (isPatternSizeGood(timeIndex)) {
+        if (sellPattern1(timeIndex) || sellPattern2(timeIndex) ||
+            sellPattern3(timeIndex) || sellBuyPattern4(timeIndex)) {
+            return true;
+        }
+    }
 
     return false;
 }
 
-bool Pattern::isPatternSizeGood(int timeIndex){
-    if(candleSize(timeIndex) >= PATTERN_MINIMUM_SIZE_PIPS * PeriodMultiplicationFactor() * Pips()
-    && candleSize(timeIndex) <= PATTERN_MAXIMUM_SIZE_PIPS * PeriodMultiplicationFactor() * Pips())
+bool Pattern::isAntiPattern(int timeIndex) {
+    if (antiPattern1(timeIndex) || antiPattern1(timeIndex + 1) || antiPattern1(timeIndex + 2)) {
         return true;
+    }
+
     return false;
+}
+
+bool Pattern::isPatternSizeGood(int timeIndex) {
+    if (candleSize(timeIndex) >= PATTERN_MINIMUM_SIZE_PIPS * PeriodMultiplicationFactor() * Pips() &&
+        candleSize(timeIndex) <= PATTERN_MAXIMUM_SIZE_PIPS * PeriodMultiplicationFactor() * Pips()) {
+        return true;
+    }
+
+    return false;
+}
+
+bool Pattern::pattern1(int timeIndex, Discriminator discriminator) {
+    bool isBuyPattern = (discriminator == Max) ? true : false;
+
+    if (!bigBar(timeIndex) || !isSupportCandle(timeIndex + 1)) {
+        return false;
+    }
+
+    if ((isBuyPattern && isCandleBull(timeIndex)) ||
+        (!isBuyPattern && !isCandleBull(timeIndex))) {
+        return false;
+    }
+
+    if (candleBody(timeIndex + 1) > candleBody(timeIndex) / 2 ||
+        candleSize(timeIndex + 1) > candleSize(timeIndex)) {
+        return false;
+    }
+
+    double candleBodySide = isBuyPattern ? candleBodyMax(timeIndex) : candleBodyMin(timeIndex);
+
+    if (candleBodyMidPoint(timeIndex + 1) > candleBodySide + candleBody(timeIndex) / 2 ||
+        candleBodyMidPoint(timeIndex + 1) < candleBodySide - candleBody(timeIndex) / 2) {
+        return false;
+    }
+
+    if (MathAbs(iExtreme(timeIndex + 1, discriminator) - iExtreme(timeIndex, discriminator)) > 3 * ErrorPips()) {
+        return false;
+    }
+
+    return true;
+}
+
+bool Pattern::pattern3(int timeIndex, Discriminator discriminator) {
+    bool isBuyPattern = (discriminator == Max) ? true : false;
+
+    if (!bigBar(timeIndex) || !bigBar(timeIndex + 1) || !isSupportCandle(timeIndex + 2)) {
+        return false;
+    }
+
+    if ((isBuyPattern && isCandleBull(timeIndex)) ||
+        (isBuyPattern && !isCandleBull(timeIndex + 1)) ||
+        (!isBuyPattern && !isCandleBull(timeIndex)) ||
+        (!isBuyPattern && isCandleBull(timeIndex + 1))) {
+        return false;
+    }
+
+
+    if (candleBody(timeIndex + 1) > candleBody(timeIndex) * 7 / 4 ||
+        candleBody(timeIndex + 1) < candleBody(timeIndex) * 3 / 4 ||
+        candleSize(timeIndex + 1) < candleSize(timeIndex) * 3 / 4 ||
+        candleBody(timeIndex + 2) > candleBody(timeIndex + 1) / 2 ||
+        candleSize(timeIndex + 2) > candleSize(timeIndex + 1)) {
+        return false;
+    }
+
+    double candleBodySide = isBuyPattern ? candleBodyMin(timeIndex + 1) : candleBodyMax(timeIndex + 1);
+
+    if (candleBodyMidPoint(timeIndex + 2) > candleBodySide + candleBody(timeIndex + 1) / 2 ||
+        candleBodyMidPoint(timeIndex + 2) < candleBodySide - candleBody(timeIndex + 1) / 2) {
+        return false;
+    }
+
+    if (iExtreme(timeIndex + 1, Min) > candleBodyMin(timeIndex) + 2 * ErrorPips() ||
+        iExtreme(timeIndex + 1, Max) < candleBodyMax(timeIndex) - 2 * ErrorPips()) {
+        return false;
+    }
+
+    if (MathAbs(iExtreme(timeIndex + 1, discriminator) - iExtreme(timeIndex, discriminator)) > 3 * ErrorPips()) {
+        return false;
+    }
+
+    return true;
 }

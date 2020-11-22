@@ -4,64 +4,63 @@
 // Operational functions
 //------------------------------------------------------------------------------------------------//
 
-double Pips(){
+double Pips() {
     return Pips(CURRENT_SYMBOL);
 }
 
-double Pips(string OrderSymbol){
+double Pips(string OrderSymbol) {
     return 10 * MarketInfo(OrderSymbol, MODE_TICKSIZE);
 }
 
-double ErrorPips(){
+double ErrorPips() {
     return 2 * PeriodMultiplicationFactor() * Pips();
 }
 
-double GetCurrentMarketValue(){
+double GetCurrentMarketValue() {
     RefreshRates();
     return NormalizeDouble((Ask + Bid) / 2, Digits);
 }
 
-double GetMarketSpread(){
+double GetMarketSpread() {
     RefreshRates();
     return MathAbs(Ask - Bid);
 }
 
-int PeriodMultiplicationFactor(){
-    if(CURRENT_PERIOD == PERIOD_H4)
-        return 2;
-    return 1;
-}
 
-int GetBreakEvenPips(){
-    if(CURRENT_PERIOD == PERIOD_H4)
+
+int GetBreakEvenPips() {
+    if (CURRENT_PERIOD == PERIOD_H4) {
         return 15;
+    }
+
     return 6;
 }
 
 
 
-bool StringContains(string InputString, string InputSubString){
-    if(StringFind(InputString, InputSubString) != -1)
+bool StringContains(string InputString, string InputSubString) {
+    if (StringFind(InputString, InputSubString) != -1) {
         return true;
+    }
+
     return false;
 }
 
-int BotMagicNumber(){
+int BotMagicNumber() {
     return (MY_SCRIPT_ID + CURRENT_PERIOD);
 }
 
-bool IsUnknownMagicNumber(int MagicNumber){
-    if(MagicNumber != MY_SCRIPT_ID_030
-    && MagicNumber != MY_SCRIPT_ID_060
-    && MagicNumber != MY_SCRIPT_ID_240)
+bool IsUnknownMagicNumber(int MagicNumber) {
+    if (MagicNumber != MY_SCRIPT_ID_030 && MagicNumber != MY_SCRIPT_ID_060 && MagicNumber != MY_SCRIPT_ID_240) {
         return true;
+    }
 
     return false;
 }
 
 
 
-datetime GetTimeAtMidnight(){
+datetime GetTimeAtMidnight() {
     return (TimeCurrent() - (TimeCurrent() % (PERIOD_D1 * 60)));
 }
 
@@ -70,26 +69,24 @@ datetime GetTimeAtMidnight(){
 //------------------------------------------------------------------------------------------------//
 
 
-bool AreThereOpenOrders(){
+bool AreThereOpenOrders() {
     bool OpenOrderFound = false;
 
     PreviousOrderTicket = OrderTicket();
-    for(int order = OrdersTotal() - 1; order >= 0; order--){
-        if(!OrderSelect(order, SELECT_BY_POS, MODE_TRADES)
-        || !AreSymbolsCorrelated(OrderSymbol(), CURRENT_SYMBOL))
+    for (int order = OrdersTotal() - 1; order >= 0; order--) {
+        if (!OrderSelect(order, SELECT_BY_POS, MODE_TRADES) || !AreSymbolsCorrelated(OrderSymbol(), CURRENT_SYMBOL)) {
             continue;
+        }
 
-        if(IsUnknownMagicNumber(OrderMagicNumber())){
+        if (IsUnknownMagicNumber(OrderMagicNumber())) {
             Print("Emergency switchoff");
             CloseAllPositions();
             ExpertRemove();
         }
 
-        if(OrderType() == OP_BUY || OrderType() == OP_SELL){
+        if (OrderType() == OP_BUY || OrderType() == OP_SELL) {
             OpenOrderFound = true;
-        }else if(FoundAntiPattern(1)
-        && OrderSymbol() == CURRENT_SYMBOL
-        && OrderMagicNumber() == BotMagicNumber()){
+        }else if (FoundAntiPattern(1) && OrderSymbol() == CURRENT_SYMBOL && OrderMagicNumber() == BotMagicNumber()) {
             Print("Found AntiPattern, deleting pending order OrderTicket(): ", OrderTicket());
             SelectedOrder = OrderDelete(OrderTicket());
         }
@@ -98,10 +95,11 @@ bool AreThereOpenOrders(){
     return OpenOrderFound;
 }
 
-bool AreSymbolsCorrelated(string SymbolOne, string SymbolTwo){
-    if((StringContains(SymbolOne, "GBP") && StringContains(SymbolTwo, "GBP"))
-    || (StringContains(SymbolOne, "EUR") && StringContains(SymbolTwo, "EUR")))
+bool AreSymbolsCorrelated(string SymbolOne, string SymbolTwo) {
+    if ((StringContains(SymbolOne, "GBP") && StringContains(SymbolTwo, "GBP")) ||
+        (StringContains(SymbolOne, "EUR") && StringContains(SymbolTwo, "EUR"))) {
         return true;
+    }
 
     // missing improvement from last ahtodo, check all comments
 
@@ -109,21 +107,24 @@ bool AreSymbolsCorrelated(string SymbolOne, string SymbolTwo){
 }
 
 bool CompareTwinOrders(int OrderType, double OpenPrice,
-    double StopLoss, double OrderLotsModulationFactor){
+    double StopLoss, double OrderLotsModulationFactor) {
 
     PreviousOrderTicket = OrderTicket();
-    for(int order = OrdersTotal() - 1; order >= 0; order--){
-        if(!OrderSelect(order, SELECT_BY_POS, MODE_TRADES)
-        || !AreSymbolsCorrelated(OrderSymbol(), CURRENT_SYMBOL)
-        || OrderType() != OrderType)
+    for (int order = OrdersTotal() - 1; order >= 0; order--) {
+        if (!OrderSelect(order, SELECT_BY_POS, MODE_TRADES) ||
+            !AreSymbolsCorrelated(OrderSymbol(), CURRENT_SYMBOL) ||
+            OrderType() != OrderType) {
             continue;
+        }
 
-        if(IsUnknownMagicNumber(OrderMagicNumber()))
+        if (IsUnknownMagicNumber(OrderMagicNumber())) {
             continue;
+        }
 
         // Shorter timeframes are prioritized over H4
-        if(CURRENT_PERIOD == PERIOD_H4 && OrderMagicNumber() != MY_SCRIPT_ID_240)
+        if (CURRENT_PERIOD == PERIOD_H4 && OrderMagicNumber() != MY_SCRIPT_ID_240) {
             continue;
+        }
 
         double OldOrderLotsModulationFactor = NormalizeDouble(GetOrderLotsModulationFactor(
             OrderType(), OrderOpenPrice(), OrderSymbol()), 2);
@@ -134,10 +135,10 @@ bool CompareTwinOrders(int OrderType, double OpenPrice,
         int NewOrderStopLossPips = MathRound(MathAbs(OpenPrice - StopLoss) / Pips());
 
         // Better size setups
-        if((CURRENT_PERIOD != PERIOD_H4 && OrderMagicNumber() == MY_SCRIPT_ID_240)
-        || (OldOrderLotsModulationFactor < NewOrderLotsModulationFactor)
-        || (OldOrderLotsModulationFactor == NewOrderLotsModulationFactor
-        && OldOrderStopLossPips > NewOrderStopLossPips)){
+        if ((CURRENT_PERIOD != PERIOD_H4 && OrderMagicNumber() == MY_SCRIPT_ID_240) ||
+            (OldOrderLotsModulationFactor < NewOrderLotsModulationFactor) ||
+            (OldOrderLotsModulationFactor == NewOrderLotsModulationFactor &&
+            OldOrderStopLossPips > NewOrderStopLossPips)) {
 
             Print("CompareTwinOrders: deleting order with OrderTicket(): ", OrderTicket());
             Print("OldOrderLotsModulationFactor: ", OldOrderLotsModulationFactor);
@@ -154,14 +155,13 @@ bool CompareTwinOrders(int OrderType, double OpenPrice,
     bool PutNewOrder = true;
 
     PreviousOrderTicket = OrderTicket();
-    for(order = OrdersTotal() - 1; order >= 0; order--){
-        if(!OrderSelect(order, SELECT_BY_POS, MODE_TRADES)
-        || !AreSymbolsCorrelated(OrderSymbol(), CURRENT_SYMBOL))
+    for (order = OrdersTotal() - 1; order >= 0; order--) {
+        if (!OrderSelect(order, SELECT_BY_POS, MODE_TRADES) ||
+            !AreSymbolsCorrelated(OrderSymbol(), CURRENT_SYMBOL)) {
             continue;
+        }
 
-        if(OrderType() == OrderType
-        || OrderType() == OP_BUY
-        || OrderType() == OP_SELL){
+        if (OrderType() == OrderType || OrderType() == OP_BUY || OrderType() == OP_SELL) {
             Print("CompareTwinOrders: found better order with OrderTicket(): ", OrderTicket());
             PutNewOrder = false;
         }
@@ -171,7 +171,7 @@ bool CompareTwinOrders(int OrderType, double OpenPrice,
     return PutNewOrder;
 }
 
-double OrderLotsCalculator(double OpenPrice, double StopLoss, double OrderLotsModulationFactor){
+double OrderLotsCalculator(double OpenPrice, double StopLoss, double OrderLotsModulationFactor) {
     double YenConversionFactor = MarketInfo(CURRENT_SYMBOL, MODE_TICKSIZE) / 0.00001;
 
     double StopLossDistance = MathAbs(OpenPrice - StopLoss)
@@ -182,20 +182,22 @@ double OrderLotsCalculator(double OpenPrice, double StopLoss, double OrderLotsMo
 
     double OrderLots = 2 * NormalizeDouble(RawOrderLots * OrderLotsModulationFactor / 2, 2);
 
-    if(OrderLots < 0.02)
+    if (OrderLots < 0.02) {
         OrderLots = 0.02;
+    }
 
     return NormalizeDouble(OrderLots, 2);
 }
 
-double GetDrawdownFactor(){
+double GetDrawdownFactor() {
     double DrawdownFactor = 1.0;
 
-    if(GetGainsLastDaysThisSymbol(14) < 0){
+    if (GetGainsLastDaysThisSymbol(14) < 0) {
         DrawdownFactor *= 0.9;
 
-        if(GetGainsLastDaysThisSymbol(21) < 0 || GetGainsLastDaysThisSymbol(28) < 0)
+        if (GetGainsLastDaysThisSymbol(21) < 0 || GetGainsLastDaysThisSymbol(28) < 0) {
             DrawdownFactor *= 0.9;
+        }
 
         Print("Reducing size for DrawdownFactor: ", DrawdownFactor);
     }
@@ -203,89 +205,98 @@ double GetDrawdownFactor(){
     return DrawdownFactor;
 }
 
-double GetOrderLotsModulationFactor(int OrderType, double OpenPrice, string OrderSymbol){
+double GetOrderLotsModulationFactor(int OrderType, double OpenPrice, string OrderSymbol) {
     double OrderLotsModulationFactor = 1.0;
 
     OrderLotsModulationFactor *= GetDrawdownFactor();
 
-    if(IsMinorBankHoliday()){
+    if (IsMinorBankHoliday()) {
         Print("IsMinorBankHoliday(): reducing size");
         OrderLotsModulationFactor *= 0.8;
     }
 
-    if(CURRENT_PERIOD != PERIOD_H4){
+    if (CURRENT_PERIOD != PERIOD_H4) {
         // Intraday Pivot for M30 and H1
-        if(OpenPrice > GetPivotRS(OrderSymbol, PERIOD_D1, "R2")
-        || OpenPrice < GetPivotRS(OrderSymbol, PERIOD_D1, "S2")){
+        if (OpenPrice > GetPivotRS(OrderSymbol, PERIOD_D1, "R2") ||
+            OpenPrice < GetPivotRS(OrderSymbol, PERIOD_D1, "S2")) {
             Print("The intraday pivots configuration is red");
             OrderLotsModulationFactor *= 0.0;
-        }else if((OpenPrice > GetPivotRS(OrderSymbol, PERIOD_D1, "R1")
-        && OpenPrice < GetPivotRS(OrderSymbol, PERIOD_D1, "R2"))
-        || (OpenPrice < GetPivotRS(OrderSymbol, PERIOD_D1, "S1")
-        && OpenPrice > GetPivotRS(OrderSymbol, PERIOD_D1, "S2"))){
+        }else if ((OpenPrice > GetPivotRS(OrderSymbol, PERIOD_D1, "R1") &&
+            OpenPrice < GetPivotRS(OrderSymbol, PERIOD_D1, "R2")) ||
+            (OpenPrice < GetPivotRS(OrderSymbol, PERIOD_D1, "S1") &&
+            OpenPrice > GetPivotRS(OrderSymbol, PERIOD_D1, "S2"))) {
             Print("The intraday pivots configuration is yellow");
             OrderLotsModulationFactor *= 0.8;
         }
 
         // Daily Pivot for M30 and H1
-        if(!(iCandle(I_high, OrderSymbol, PERIOD_D1, 0) > GetPivot(OrderSymbol, PERIOD_D1, 0)
-        && iCandle(I_low, OrderSymbol, PERIOD_D1, 0) < GetPivot(OrderSymbol, PERIOD_D1, 0))){
+        if (!(iCandle(I_high, OrderSymbol, PERIOD_D1, 0) > GetPivot(OrderSymbol, PERIOD_D1, 0) &&
+            iCandle(I_low, OrderSymbol, PERIOD_D1, 0) < GetPivot(OrderSymbol, PERIOD_D1, 0))) {
             Print("The daily pivot is not tested");
 
-            if(GetCurrentMarketValue() < GetPivot(OrderSymbol, PERIOD_D1, 0)){
-                if(OrderType == OP_BUYSTOP)
+            if (GetCurrentMarketValue() < GetPivot(OrderSymbol, PERIOD_D1, 0)) {
+                if (OrderType == OP_BUYSTOP) {
                     OrderLotsModulationFactor *= 1.1;
-                if(OrderType == OP_SELLSTOP)
+                }
+                if (OrderType == OP_SELLSTOP) {
                     OrderLotsModulationFactor *= 0.9;
-            }else{
-                if(OrderType == OP_BUYSTOP)
+                }
+            } else {
+                if (OrderType == OP_BUYSTOP) {
                     OrderLotsModulationFactor *= 0.9;
-                if(OrderType == OP_SELLSTOP)
+                }
+                if (OrderType == OP_SELLSTOP) {
                     OrderLotsModulationFactor *= 1.1;
+                }
             }
         }
     }
 
     // Pivots configuration
-    if(GetPivot(OrderSymbol, PERIOD_D1, 0) > GetPivot(OrderSymbol, PERIOD_W1, 0)
-    && GetPivot(OrderSymbol, PERIOD_W1, 0) > GetPivot(OrderSymbol, PERIOD_MN1, 0)){
+    if (GetPivot(OrderSymbol, PERIOD_D1, 0) > GetPivot(OrderSymbol, PERIOD_W1, 0) &&
+        GetPivot(OrderSymbol, PERIOD_W1, 0) > GetPivot(OrderSymbol, PERIOD_MN1, 0)) {
         Print("The daily, weekly, and monthly pivots are in a bull configuration");
 
-        if(OrderType == OP_BUYSTOP)
+        if (OrderType == OP_BUYSTOP) {
             OrderLotsModulationFactor *= 1.1;
-        if(OrderType == OP_SELLSTOP)
+        }
+        if (OrderType == OP_SELLSTOP) {
             OrderLotsModulationFactor *= 0.9;
+        }
     }
-    if(GetPivot(OrderSymbol, PERIOD_D1, 0) < GetPivot(OrderSymbol, PERIOD_W1, 0)
-    && GetPivot(OrderSymbol, PERIOD_W1, 0) < GetPivot(OrderSymbol, PERIOD_MN1, 0)){
+
+    if (GetPivot(OrderSymbol, PERIOD_D1, 0) < GetPivot(OrderSymbol, PERIOD_W1, 0) &&
+        GetPivot(OrderSymbol, PERIOD_W1, 0) < GetPivot(OrderSymbol, PERIOD_MN1, 0)) {
         Print("The daily, weekly, and monthly pivots are in a bear configuration");
 
-        if(OrderType == OP_BUYSTOP)
+        if (OrderType == OP_BUYSTOP) {
             OrderLotsModulationFactor *= 0.9;
-        if(OrderType == OP_SELLSTOP)
+        }
+        if (OrderType == OP_SELLSTOP) {
             OrderLotsModulationFactor *= 1.1;
+        }
     }
 
     return OrderLotsModulationFactor;
 }
 
-bool VerifyGreenTimeWindow(int OrderType){
+bool VerifyGreenTimeWindow(int OrderType) {
     bool IsGreenTimeWindow = true;
     int TimeWindowCandles = MathRound(OrderCandlesDuration / PeriodMultiplicationFactor());
 
     PreviousOrderTicket = OrderTicket();
-    for(int order = 0; order < OrdersHistoryTotal(); order++){
-        if(!OrderSelect(order, SELECT_BY_POS, MODE_HISTORY)
-        || IsUnknownMagicNumber(OrderMagicNumber())
-        || !AreSymbolsCorrelated(OrderSymbol(), CURRENT_SYMBOL)
-        || (OrderType() != OP_BUY && OrderType() != OP_SELL)){
+    for (int order = 0; order < OrdersHistoryTotal(); order++) {
+        if (!OrderSelect(order, SELECT_BY_POS, MODE_HISTORY) ||
+            IsUnknownMagicNumber(OrderMagicNumber()) ||
+            !AreSymbolsCorrelated(OrderSymbol(), CURRENT_SYMBOL) ||
+            (OrderType() != OP_BUY && OrderType() != OP_SELL)) {
             continue;
         }
 
-        if((OrderCloseTime() > TimeCurrent() - 60 * CURRENT_PERIOD)
-        || ((OrderCloseTime() > TimeCurrent() - 60 * TimeWindowCandles * CURRENT_PERIOD)
-        && ((OrderType() == OP_BUY && OrderType == OP_BUYSTOP)
-        || (OrderType() == OP_SELL && OrderType == OP_SELLSTOP)))){
+        if ((OrderCloseTime() > TimeCurrent() - 60 * CURRENT_PERIOD) ||
+            ((OrderCloseTime() > TimeCurrent() - 60 * TimeWindowCandles * CURRENT_PERIOD) &&
+            ((OrderType() == OP_BUY && OrderType == OP_BUYSTOP) ||
+            (OrderType() == OP_SELL && OrderType == OP_SELLSTOP)))) {
             IsGreenTimeWindow = false;
             break;
         }
@@ -294,24 +305,25 @@ bool VerifyGreenTimeWindow(int OrderType){
     return IsGreenTimeWindow;
 }
 
-int GetOrderTypeFromSetups(int TimeIndex){
-    for(int t = 1; t < TimeIndex + 1; t++){
-        if(FoundAntiPattern(t)){
+int GetOrderTypeFromSetups(int TimeIndex) {
+    for (int t = 1; t < TimeIndex + 1; t++) {
+        if (FoundAntiPattern(t)) {
             Print("AntiPattern found at Time: ", TimeToStr(Time[TimeIndex]));
             return -1;
         }
     }
 
-    if(!IsSellPattern(TimeIndex) && !IsBuyPattern(TimeIndex)){
+    if (!IsSellPattern(TimeIndex) && !IsBuyPattern(TimeIndex)) {
         Print("No patterns found at Time: ", TimeToStr(Time[TimeIndex]));
         return -1;
     }
 
-    for(int i = ObjectsTotal() - 1; i >= 0; i--){
-        if(!IsTrendLineGoodForPendingOrder(ObjectName(i), TimeIndex))
+    for (int i = ObjectsTotal() - 1; i >= 0; i--) {
+        if (!IsTrendLineGoodForPendingOrder(ObjectName(i), TimeIndex)) {
             continue;
+        }
 
-        if(IsDebug){
+        if (IsDebug) {
             Print("IsSellPattern(TimeIndex): ", IsSellPattern(TimeIndex));
             Print("IsBuyPattern(TimeIndex): ", IsBuyPattern(TimeIndex));
             Print("iExtreme(TimeIndex, Max): ", iExtreme(TimeIndex, "Max"));
@@ -324,15 +336,15 @@ int GetOrderTypeFromSetups(int TimeIndex){
                 - ObjectGetValueByShift(ObjectName(i), TimeIndex)));
         }
 
-        if(IsSellPattern(TimeIndex) && MathAbs(iExtreme(TimeIndex, "Min")
-        - ObjectGetValueByShift(ObjectName(i), TimeIndex)) < 3 * Pips()){
+        if (IsSellPattern(TimeIndex) && MathAbs(iExtreme(TimeIndex, "Min") -
+            ObjectGetValueByShift(ObjectName(i), TimeIndex)) < 3 * Pips()) {
             Print("Setup for OP_SELLSTOP at Time: ", TimeToStr(Time[TimeIndex]),
                 " for TrendLine: ", ObjectName(i));
             return OP_SELLSTOP;
         }
 
-        if(IsBuyPattern(TimeIndex) && MathAbs(iExtreme(TimeIndex, "Max")
-        - ObjectGetValueByShift(ObjectName(i), TimeIndex)) < 3 * Pips()){
+        if (IsBuyPattern(TimeIndex) && MathAbs(iExtreme(TimeIndex, "Max") -
+            ObjectGetValueByShift(ObjectName(i), TimeIndex)) < 3 * Pips()) {
             Print("Setup for OP_BUYSTOP at Time: ", TimeToStr(Time[TimeIndex]),
                 " for TrendLine: ", ObjectName(i));
             return OP_BUYSTOP;
@@ -343,37 +355,45 @@ int GetOrderTypeFromSetups(int TimeIndex){
     return -1;
 }
 
-void PutPendingOrder(){
+void PutPendingOrder() {
     DeleteCorrelatedPendingOrders();
 
     PutPendingOrder(1);
 
     // At the opening of the market, search for patterns in the past
-    if(Hour() == MarketOpenHour() && Minute() < 30 && TimeSeconds(TimeCurrent()) > 30)
-        for(int time = 1; time < OrderCandlesDuration + 1; time++)
+    if (Hour() == MarketOpenHour() && Minute() < 30 && TimeSeconds(TimeCurrent()) > 30) {
+        for (int time = 1; time < OrderCandlesDuration + 1; time++) {
             PutPendingOrder(time);
+        }
+    }
 }
 
-void PutPendingOrder(int StartIndexForOrder){
-    if(StartIndexForOrder < 1)
+void PutPendingOrder(int StartIndexForOrder) {
+    if (StartIndexForOrder < 1) {
         return;
+    }
 
-    if(TimeSeconds(TimeCurrent()) < 10)
+    if (TimeSeconds(TimeCurrent()) < 10) {
         return;
+    }
 
-    if(Minute() == 0 || Minute() == 59
-    || Minute() == 30 || Minute() == 29)
+    if (Minute() == 0 || Minute() == 59 || Minute() == 30 || Minute() == 29) {
         return;
+    }
 
-    if(CURRENT_PERIOD == PERIOD_M30)
+    if (CURRENT_PERIOD == PERIOD_M30) {
         HardSleep(2);
-    if(CURRENT_PERIOD == PERIOD_H1)
+    }
+    if (CURRENT_PERIOD == PERIOD_H1) {
         HardSleep(10);
-    if(CURRENT_PERIOD == PERIOD_H4)
+    }
+    if (CURRENT_PERIOD == PERIOD_H4) {
         HardSleep(18);
+    }
 
-    if(StringContains(CURRENT_SYMBOL, "CHF") || StringContains(CURRENT_SYMBOL, "JPY"))
+    if (StringContains(CURRENT_SYMBOL, "CHF") || StringContains(CURRENT_SYMBOL, "JPY")) {
         HardSleep(2);
+    }
 
     int OrderType = GetOrderTypeFromSetups(StartIndexForOrder);
 
@@ -383,17 +403,17 @@ void PutPendingOrder(int StartIndexForOrder){
     double Spread = GetMarketSpread();
     double SpreadOpenPrice = 0, SpreadStopLoss = 0;
 
-    if(OrderType == OP_BUYSTOP){
+    if (OrderType == OP_BUYSTOP) {
         OrderSign = 1;
         Discriminator = "Max";
         AntiDiscriminator = "Min";
         SpreadOpenPrice = Spread;
-    }else if(OrderType == OP_SELLSTOP){
+    }else if (OrderType == OP_SELLSTOP) {
         OrderSign = -1;
         Discriminator = "Min";
         AntiDiscriminator = "Max";
         SpreadStopLoss = Spread;
-    }else{
+    } else {
         return;
     }
 
@@ -409,18 +429,19 @@ void PutPendingOrder(int StartIndexForOrder){
     double OrderLotsModulationFactor = GetOrderLotsModulationFactor(OrderType, OpenPrice, CURRENT_SYMBOL);
     double OrderLots = OrderLotsCalculator(OpenPrice, StopLoss, OrderLotsModulationFactor);
 
-    if(OrderLotsModulationFactor == 0){
+    if (OrderLotsModulationFactor == 0) {
         Print("OrderLotsModulationFactor is zero");
         return;
     }
 
-    if(!VerifyGreenTimeWindow(OrderType)){
+    if (!VerifyGreenTimeWindow(OrderType)) {
         Print("VerifyGreenTimeWindow: recent order detected");
         return;
     }
 
-    if(!CompareTwinOrders(OrderType, OpenPrice, StopLoss, OrderLotsModulationFactor))
+    if (!CompareTwinOrders(OrderType, OpenPrice, StopLoss, OrderLotsModulationFactor)) {
         return;
+    }
 
     Print("Putting a pending order: ", OrderType);
 
@@ -432,7 +453,7 @@ void PutPendingOrder(int StartIndexForOrder){
         " R", NormalizeDouble(TakeProfitFactor, 1),
         " S", MathRound(StopLossPips / Pips()));
 
-    while(true){
+    while (true) { // pericoloso
         OrderTicket = OrderSend(
             CURRENT_SYMBOL,
             OrderType,
@@ -446,16 +467,16 @@ void PutPendingOrder(int StartIndexForOrder){
             ExpirationTime,
             Blue);
 
-        if(OrderTicket > 0){
+        if (OrderTicket > 0) {
             SelectedOrder = OrderSelect(OrderTicket, SELECT_BY_TICKET);
             OrderPrint();
             break;
-        }else{
-            if(GetLastError() == 132 || GetLastError() == 136){
+        } else {
+            if (GetLastError() == 132 || GetLastError() == 136) {
                 Print("Got error 132 or 136 while putting pending order, "
                     "sleeping before retrying");
                 Sleep(10);
-            }else{
+            } else {
                 break;
             }
         }
@@ -477,16 +498,19 @@ void PutPendingOrder(int StartIndexForOrder){
     Print("ExpirationTime: ", TimeToStr(ExpirationTime));
 }
 
-void OrderTrailing(){
+void OrderTrailing() {
     PreviousOrderTicket = OrderTicket();
-    for(int order = OrdersTotal() - 1; order >= 0; order--){
-        if(!OrderSelect(order, SELECT_BY_POS, MODE_TRADES))
+    for (int order = OrdersTotal() - 1; order >= 0; order--) {
+        if (!OrderSelect(order, SELECT_BY_POS, MODE_TRADES)) {
             continue;
-        if(OrderSymbol() != CURRENT_SYMBOL || OrderMagicNumber() != BotMagicNumber())
+        }
+        if (OrderSymbol() != CURRENT_SYMBOL || OrderMagicNumber() != BotMagicNumber()) {
             continue;
+        }
 
-        if(OrderType() != OP_BUY && OrderType() != OP_SELL)
+        if (OrderType() != OP_BUY && OrderType() != OP_SELL) {
             continue;
+        }
 
         double StopLoss = OrderStopLoss();
         double TakeProfit = OrderTakeProfit();
@@ -503,10 +527,10 @@ void OrderTrailing(){
         double BreakEvenStopLoss = OrderOpenPrice() - BreakEvenDistance;
 
         // BreakEven
-        if(CurrentExtremeToOpenDistance > BreakEvenDistance && OrderSign > 0){
+        if (CurrentExtremeToOpenDistance > BreakEvenDistance && OrderSign > 0) {
             StopLoss = MathMax(StopLoss, BreakEvenStopLoss);
         }
-        if(CurrentExtremeToOpenDistance < BreakEvenDistance && OrderSign < 0){
+        if (CurrentExtremeToOpenDistance < BreakEvenDistance && OrderSign < 0) {
             StopLoss = MathMin(StopLoss, BreakEvenStopLoss);
         }
 
@@ -520,16 +544,15 @@ void OrderTrailing(){
         double TrailerStopLoss = CurrentExtreme - InitialStopLossDistance * Trailer;
 
         // Trailing StopLoss
-        if(OrderSign > 0){
+        if (OrderSign > 0) {
             StopLoss = MathMax(StopLoss, TrailerStopLoss);
-        }else{
+        } else {
             StopLoss = MathMin(StopLoss, TrailerStopLoss);
         }
 
 
         // Modify order if values changed
-        if(MathAbs(TakeProfit - OrderTakeProfit()) > Pips()
-        || MathAbs(StopLoss - OrderStopLoss()) > Pips()){
+        if (MathAbs(TakeProfit - OrderTakeProfit()) > Pips() || MathAbs(StopLoss - OrderStopLoss()) > Pips()) {
             Print("OrderTrailing: modifying the existing order: ", OrderTicket());
 
             bool OrderModified = OrderModify(
@@ -540,9 +563,9 @@ void OrderTrailing(){
                 0,
                 Blue);
 
-            if(OrderModified)
+            if (OrderModified) {
                 Print("Order modified successfully");
-            else{
+            } else {
                 Print("OrderModify error ", GetLastError());
             }
 
@@ -553,15 +576,14 @@ void OrderTrailing(){
             Print("StopLoss: ", NormalizeDouble(StopLoss, Digits));
             Print("TakeProfit: ", NormalizeDouble(TakeProfit, Digits));
             Print("OrderExpiration(): ", OrderExpiration());
-        }else{
+        } else {
             Print("OrderTrailing: existing order not modified: ", OrderTicket());
         }
 
         // Close half position when BreakEven has been reached
-        if(NormalizeDouble(MathAbs(OrderOpenPrice() - OrderStopLoss()), Digits)
-        == NormalizeDouble(GetBreakEvenPips() * Pips(), Digits)
-        && StringContains(OrderComment(), StringConcatenate("P", CURRENT_PERIOD))
-        && PositionSplit){
+        if (PositionSplit && StringContains(OrderComment(), StringConcatenate("P", CURRENT_PERIOD)) &&
+            NormalizeDouble(MathAbs(OrderOpenPrice() - OrderStopLoss()), Digits) ==
+            NormalizeDouble(GetBreakEvenPips() * Pips(), Digits)) { // estrarre ultima condizione in variabile
             SelectedOrder = OrderClose(OrderTicket(), OrderLots() / 2, OrderClosePrice(), 3);
         }
 
@@ -570,46 +592,51 @@ void OrderTrailing(){
     SelectedOrder = OrderSelect(PreviousOrderTicket, SELECT_BY_TICKET);
 }
 
-double GetTakeProfitFactor(){
+double GetTakeProfitFactor() {
     double TakeProfitFactor = BaseTakeProfitFactor;
 
-    if(GetGainsLastDaysThisSymbol(14) < 0)
+    if (GetGainsLastDaysThisSymbol(14) < 0) {
         TakeProfitFactor -= (BaseTakeProfitFactor + 1) / 10;
-    if(GetGainsLastDaysThisSymbol(21) < 0)
+    }
+    if (GetGainsLastDaysThisSymbol(21) < 0) {
         TakeProfitFactor -= (BaseTakeProfitFactor + 1) / 10;
-    if(GetGainsLastDaysThisSymbol(28) < 0)
+    }
+    if (GetGainsLastDaysThisSymbol(28) < 0) {
         TakeProfitFactor -= (BaseTakeProfitFactor + 1) / 10;
+    }
 
     /*
     double MinTakeProfitPips = 26 * PeriodMultiplicationFactor() * Pips();
     double MaxTakeProfitPips = 60 * PeriodMultiplicationFactor() * Pips();
     double StopLossPipsModule = MathAbs(StopLossPips);
 
-    if(StopLossPipsModule * TakeProfitFactor < MinTakeProfitPips)
+    if (StopLossPipsModule * TakeProfitFactor < MinTakeProfitPips) {
         TakeProfitFactor = MinTakeProfitPips / StopLossPipsModule;
-    if(StopLossPipsModule * TakeProfitFactor > MaxTakeProfitPips)
+    }
+    if (StopLossPipsModule * TakeProfitFactor > MaxTakeProfitPips) {
         TakeProfitFactor = MaxTakeProfitPips / StopLossPipsModule;
+    }
     */
 
-    if(!PositionSplit && TakeProfitFactor < 1)
+    if (!PositionSplit && TakeProfitFactor < 1) {
         TakeProfitFactor = 1;
-    if(PositionSplit && TakeProfitFactor < 2)
+    }
+    if (PositionSplit && TakeProfitFactor < 2) {
         TakeProfitFactor = 2;
+    }
 
     return NormalizeDouble(TakeProfitFactor, 1);
 }
 
-double GetGainsLastDaysThisSymbol(int Days){
+double GetGainsLastDaysThisSymbol(int Days) {
     double AbsoluteRisk = AccountEquity() * PercentRisk / 100;
     double TotalGains = AbsoluteRisk / 10;
 
     PreviousOrderTicket = OrderTicket();
-    for(int order = 0; order < OrdersHistoryTotal(); order++){
-        if(!OrderSelect(order, SELECT_BY_POS, MODE_HISTORY)
-        || OrderProfit() == 0
-        || OrderCloseTime() < GetTimeAtMidnight() - (Days + 1) * 86400
-        || OrderSymbol() != CURRENT_SYMBOL
-        || IsUnknownMagicNumber(OrderMagicNumber())){
+    for (int order = 0; order < OrdersHistoryTotal(); order++) {
+        if (!OrderSelect(order, SELECT_BY_POS, MODE_HISTORY) || OrderProfit() == 0 ||
+            OrderCloseTime() < GetTimeAtMidnight() - (Days + 1) * 86400 ||
+            OrderSymbol() != CURRENT_SYMBOL || IsUnknownMagicNumber(OrderMagicNumber())) {
             continue;
         }
 
@@ -621,24 +648,22 @@ double GetGainsLastDaysThisSymbol(int Days){
     return TotalGains;
 }
 
-bool LossLimiterEnabled(){
+bool LossLimiterEnabled() {
     bool IsLossLimiterEnabled = false;
     int Days = 5;
     double MaximumPercentLoss = 5;
     double TotalLosses = 0;
 
     PreviousOrderTicket = OrderTicket();
-    for(int order = 0; order < OrdersHistoryTotal(); order++){
-        if(!OrderSelect(order, SELECT_BY_POS, MODE_HISTORY)
-        || OrderProfit() == 0
-        || OrderCloseTime() < GetTimeAtMidnight() - (Days + 1) * 86400
-        || IsUnknownMagicNumber(OrderMagicNumber())){
+    for (int order = 0; order < OrdersHistoryTotal(); order++) {
+        if (!OrderSelect(order, SELECT_BY_POS, MODE_HISTORY) || OrderProfit() == 0 ||
+            OrderCloseTime() < GetTimeAtMidnight() - (Days + 1) * 86400 || IsUnknownMagicNumber(OrderMagicNumber())) {
             continue;
         }
 
         TotalLosses -= OrderProfit();
 
-        if(TotalLosses >= AccountEquity() * MaximumPercentLoss / 100){
+        if (TotalLosses >= AccountEquity() * MaximumPercentLoss / 100) {
             Print("Loss Limiter Enabled, TotalLosses: ", TotalLosses);
             CloseAllPositions();
             IsLossLimiterEnabled = true;
@@ -646,50 +671,55 @@ bool LossLimiterEnabled(){
         }
     }
     SelectedOrder = OrderSelect(PreviousOrderTicket, SELECT_BY_TICKET);
+
+    // aggiungere alert
     return IsLossLimiterEnabled;
 }
 
-void DeleteCorrelatedPendingOrdersWhenOrderEntered(int OrderType){
+void DeleteCorrelatedPendingOrdersWhenOrderEntered(int OrderType) {
     PreviousOrderTicket = OrderTicket();
-    for(int order = OrdersTotal() - 1; order >= 0; order--){
-        if(!OrderSelect(order, SELECT_BY_POS, MODE_TRADES)
-        || !AreSymbolsCorrelated(OrderSymbol(), CURRENT_SYMBOL))
+    for (int order = OrdersTotal() - 1; order >= 0; order--) {
+        if (!OrderSelect(order, SELECT_BY_POS, MODE_TRADES) || !AreSymbolsCorrelated(OrderSymbol(), CURRENT_SYMBOL)) {
             continue;
+        }
 
-        if(IsUnknownMagicNumber(OrderMagicNumber()))
+        if (IsUnknownMagicNumber(OrderMagicNumber())) {
             continue;
+        }
 
-        if(OrderSymbol() == CURRENT_SYMBOL && OrderType() != OP_BUY && OrderType() != OP_SELL)
+        if (OrderSymbol() == CURRENT_SYMBOL && OrderType() != OP_BUY && OrderType() != OP_SELL) {
             SelectedOrder = OrderDelete(OrderTicket());
+        }
 
-        if(OrderSymbol() != CURRENT_SYMBOL
-        && ((OrderType() == OP_BUYSTOP && OrderType == OP_BUY)
-        || (OrderType() == OP_SELLSTOP && OrderType == OP_SELL)))
+        if (OrderSymbol() != CURRENT_SYMBOL && ((OrderType() == OP_BUYSTOP && OrderType == OP_BUY) ||
+            (OrderType() == OP_SELLSTOP && OrderType == OP_SELL))) {
             SelectedOrder = OrderDelete(OrderTicket());
-
+        }
     }
     SelectedOrder = OrderSelect(PreviousOrderTicket, SELECT_BY_TICKET);
 }
 
-void DeleteCorrelatedPendingOrders(){
+void DeleteCorrelatedPendingOrders() {
     int CorrelatedBuyStop = 0, CorrelatedSellStop = 0;
 
     PreviousOrderTicket = OrderTicket();
-    for(int order = OrdersTotal() - 1; order >= 0; order--){
-        if(!OrderSelect(order, SELECT_BY_POS, MODE_TRADES)
-        || !AreSymbolsCorrelated(OrderSymbol(), CURRENT_SYMBOL))
+    for (int order = OrdersTotal() - 1; order >= 0; order--) {
+        if (!OrderSelect(order, SELECT_BY_POS, MODE_TRADES) || !AreSymbolsCorrelated(OrderSymbol(), CURRENT_SYMBOL)) {
             continue;
+        }
 
-        if(OrderType() == OP_BUYSTOP)
+        if (OrderType() == OP_BUYSTOP) {
             CorrelatedBuyStop++;
-        if(OrderType() == OP_SELLSTOP)
+        }
+        if (OrderType() == OP_SELLSTOP) {
             CorrelatedSellStop++;
+        }
 
-        if(CorrelatedBuyStop > 1){
+        if (CorrelatedBuyStop > 1) {
             SelectedOrder = OrderDelete(OrderTicket());
             CorrelatedBuyStop--;
         }
-        if(CorrelatedSellStop > 1){
+        if (CorrelatedSellStop > 1) {
             SelectedOrder = OrderDelete(OrderTicket());
             CorrelatedSellStop--;
         }
@@ -697,36 +727,42 @@ void DeleteCorrelatedPendingOrders(){
     SelectedOrder = OrderSelect(PreviousOrderTicket, SELECT_BY_TICKET);
 }
 
-void DeletePendingOrdersThisSymbolThisPeriod(){
+void DeletePendingOrdersThisSymbolThisPeriod() {
     PreviousOrderTicket = OrderTicket();
-    for(int order = OrdersTotal() - 1; order >= 0; order--){
-        if(!OrderSelect(order, SELECT_BY_POS, MODE_TRADES))
+    for (int order = OrdersTotal() - 1; order >= 0; order--) {
+        if (!OrderSelect(order, SELECT_BY_POS, MODE_TRADES)) {
             continue;
+        }
 
-        if(OrderSymbol() != CURRENT_SYMBOL || OrderMagicNumber() != BotMagicNumber())
+        if (OrderSymbol() != CURRENT_SYMBOL || OrderMagicNumber() != BotMagicNumber()) {
             continue;
+        }
 
-        if(OrderType() != OP_BUY && OrderType() != OP_SELL)
+        if (OrderType() != OP_BUY && OrderType() != OP_SELL) {
             SelectedOrder = OrderDelete(OrderTicket());
+        }
     }
     SelectedOrder = OrderSelect(PreviousOrderTicket, SELECT_BY_TICKET);
 }
 
-void CloseAllPositions(){
+void CloseAllPositions() {
     Print("CloseAllPositions() invoked");
 
     PreviousOrderTicket = OrderTicket();
-    for(int order = OrdersTotal() - 1; order >= 0; order--){
-        if(!OrderSelect(order, SELECT_BY_POS, MODE_TRADES))
+    for (int order = OrdersTotal() - 1; order >= 0; order--) {
+        if (!OrderSelect(order, SELECT_BY_POS, MODE_TRADES)) {
             continue;
+        }
 
-        if(OrderSymbol() != CURRENT_SYMBOL || OrderMagicNumber() != BotMagicNumber())
+        if (OrderSymbol() != CURRENT_SYMBOL || OrderMagicNumber() != BotMagicNumber()) {
             continue;
+        }
 
-        if(OrderType() != OP_BUY && OrderType() != OP_SELL)
+        if (OrderType() != OP_BUY && OrderType() != OP_SELL) {
             SelectedOrder = OrderDelete(OrderTicket());
-        else
+        } else {
             SelectedOrder = OrderClose(OrderTicket(), OrderLots(), OrderClosePrice(), 3);
+        }
     }
     SelectedOrder = OrderSelect(PreviousOrderTicket, SELECT_BY_TICKET);
 }
@@ -741,25 +777,22 @@ void CloseAllPositions(){
 
 
 
-void OnTick(){
+void OnTick() {
     //HardSleep(2);
 
-    if(!AllowedSymbolsAndPeriods()){
+    if (!AllowedSymbolsAndPeriods()) {
         ExpertRemove();
         return;
     }
 
-    if(IsUnknownMagicNumber(BotMagicNumber()))
+    if (IsUnknownMagicNumber(BotMagicNumber())) {
         return;
+    }
 
     DrawEverything();
 
-    if(DayOfWeek() >= MARKET_CLOSE_DAY
-    || Hour() < MarketOpenHour()
-    || Hour() >= MarketCloseHour()
-    || GetMarketSpread() > 5 * Pips()
-    || IsMajorBankHoliday()
-    || LossLimiterEnabled()){
+    if (DayOfWeek() >= MARKET_CLOSE_DAY || Hour() < MarketOpenHour() || Hour() >= MarketCloseHour() ||
+        GetMarketSpread() > 5 * Pips() || IsMajorBankHoliday() || LossLimiterEnabled()) {
 
         Print("Market closed at time ", TimeToStr(TimeCurrent()),
             " with GetMarketSpread(): ", GetMarketSpread(),
@@ -773,17 +806,18 @@ void OnTick(){
 
     SetChartMarketOpenedColors();
 
-    if(!IsTradeAllowed())
+    if (!IsTradeAllowed()) {
         return;
+    }
 
-    if(!AreThereOpenOrders()){
-        if(Hour() >= MARKET_CLOSE_HOUR_PENDING){
+    if (!AreThereOpenOrders()) {
+        if (Hour() >= MARKET_CLOSE_HOUR_PENDING) {
             DeletePendingOrdersThisSymbolThisPeriod();
             return;
         }
 
         PutPendingOrder();
-    }else{
+    } else {
         OrderTrailing();
     }
 }

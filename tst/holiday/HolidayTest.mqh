@@ -5,7 +5,7 @@
 #include "../../src/holiday/Holiday.mqh"
 
 
-class HolidayTest{
+class HolidayTest {
     public:
         HolidayTest();
         ~HolidayTest();
@@ -18,12 +18,12 @@ class HolidayTest{
 };
 
 HolidayTest::HolidayTest():
-    holiday_(){
+    holiday_() {
 }
 
-HolidayTest::~HolidayTest(){}
+HolidayTest::~HolidayTest() {}
 
-void HolidayTest::isMajorBankHolidayTest(){
+void HolidayTest::isMajorBankHolidayTest() {
     UnitTest unitTest("isMajorBankHolidayTest");
 
     unitTest.assertTrue(
@@ -88,7 +88,7 @@ void HolidayTest::isMajorBankHolidayTest(){
     );
 }
 
-void HolidayTest::isMinorBankHolidayTest(){
+void HolidayTest::isMinorBankHolidayTest() {
     UnitTest unitTest("isMinorBankHolidayTest");
 
     unitTest.assertFalse(

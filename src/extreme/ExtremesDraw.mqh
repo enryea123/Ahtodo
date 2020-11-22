@@ -4,7 +4,7 @@
 #include "../../Constants.mqh"
 #include "ArrowStyle.mqh"
 
-class ExtremesDraw{
+class ExtremesDraw {
     public:
         ExtremesDraw();
         ~ExtremesDraw();
@@ -25,28 +25,30 @@ ExtremesDraw::ExtremesDraw():
     arrowStyle_(),
     minimumCandlesBetweenExtremes_(1),
     smallestAllowedExtremeIndex_(4),
-    totalCandles_(CANDLES_VISIBLE_IN_GRAPH_2X){
+    totalCandles_(CANDLES_VISIBLE_IN_GRAPH_2X) {
 }
 
-ExtremesDraw::~ExtremesDraw(){}
+ExtremesDraw::~ExtremesDraw() {}
 
-void ExtremesDraw::calculateAllExtremes(int & allExtremes[], Discriminator discriminator){
+void ExtremesDraw::calculateAllExtremes(int & allExtremes[], Discriminator discriminator) {
     int numberOfExtremes = 0;
     ArrayResize(allExtremes, totalCandles_);
 
-    for(int i = smallestAllowedExtremeIndex_; i < totalCandles_; i++){
+    for (int i = smallestAllowedExtremeIndex_; i < totalCandles_; i++) {
         bool isBeatingNeighbours = true;
 
-        for(int j = -minimumCandlesBetweenExtremes_; j < minimumCandlesBetweenExtremes_ + 1; j++){
-            if((iExtreme(i, discriminator) > iExtreme(i + j, discriminator) + Pips() && discriminator == Min)
-            || (iExtreme(i, discriminator) < iExtreme(i + j, discriminator) - Pips() && discriminator == Max))
+        for (int j = -minimumCandlesBetweenExtremes_; j < minimumCandlesBetweenExtremes_ + 1; j++) {
+            if ((iExtreme(i, discriminator) > iExtreme(i + j, discriminator) + Pips() && discriminator == Min) ||
+                (iExtreme(i, discriminator) < iExtreme(i + j, discriminator) - Pips() && discriminator == Max)) {
                 isBeatingNeighbours = false;
                 break;
+            }
         }
 
-        if(isBeatingNeighbours){
-            if(IS_DEBUG)
+        if (isBeatingNeighbours) {
+            if (IS_DEBUG) {
                 arrowStyle_.drawExtremeArrow(i, discriminator, false);
+            }
 
             allExtremes[numberOfExtremes] = i;
             numberOfExtremes++;
@@ -57,32 +59,31 @@ void ExtremesDraw::calculateAllExtremes(int & allExtremes[], Discriminator discr
     ArrayResize(allExtremes, numberOfExtremes);
 }
 
-void ExtremesDraw::calculateValidExtremes(int & validExtremes[], Discriminator discriminator){
+void ExtremesDraw::calculateValidExtremes(int & validExtremes[], Discriminator discriminator) {
     int allExtremes[];
     calculateAllExtremes(allExtremes, discriminator);
 
     int numberOfValidExtremes = 0;
     ArrayResize(validExtremes, MathRound(totalCandles_ / (minimumCandlesBetweenExtremes_ + 1)));
 
-    for(int i = ArraySize(allExtremes) - 1; i >= 0; i--){
+    for (int i = ArraySize(allExtremes) - 1; i >= 0; i--) {
         bool isValidExtreme = true;
+        const int indexI = allExtremes[i];
 
-        for(int j = i - 1; j >= 0; j--){
-            if((iExtreme(allExtremes[i], discriminator)
-            > iExtreme(allExtremes[j], discriminator)
-            && discriminator == Min)
-            || (iExtreme(allExtremes[i], discriminator)
-            < iExtreme(allExtremes[j], discriminator)
-            && discriminator == Max)){
+        for (int j = i - 1; j >= 0; j--) {
+            const int indexJ = allExtremes[j];
+
+            if ((iExtreme(indexI, discriminator) > iExtreme(indexJ, discriminator) && discriminator == Min) ||
+                (iExtreme(indexI, discriminator) < iExtreme(indexJ, discriminator) && discriminator == Max)) {
                 isValidExtreme = false;
                 break;
             }
         }
 
-        if(isValidExtreme){
-            arrowStyle_.drawExtremeArrow(allExtremes[i], discriminator, isValidExtreme);
+        if (isValidExtreme) {
+            arrowStyle_.drawExtremeArrow(indexI, discriminator, isValidExtreme);
 
-            validExtremes[numberOfValidExtremes] = allExtremes[i];
+            validExtremes[numberOfValidExtremes] = indexI;
             numberOfValidExtremes++;
         }
     }
@@ -90,6 +91,6 @@ void ExtremesDraw::calculateValidExtremes(int & validExtremes[], Discriminator d
     ArrayResize(validExtremes, numberOfValidExtremes);
 }
 
-void ExtremesDraw::drawExtremes(int & extremes[], Discriminator discriminator){
+void ExtremesDraw::drawExtremes(int & extremes[], Discriminator discriminator) {
     calculateValidExtremes(extremes, discriminator);
 }

@@ -6,7 +6,7 @@
 #include "Pattern.mqh"
 
 
-class PatternsDraw{
+class PatternsDraw {
     public:
         PatternsDraw();
         ~PatternsDraw();
@@ -24,12 +24,12 @@ class PatternsDraw{
 
 PatternsDraw::PatternsDraw():
     pattern_(),
-    numberOfCandlesForPatternsDraw_(200){
+    numberOfCandlesForPatternsDraw_(200) {
 }
 
-PatternsDraw::~PatternsDraw(){}
+PatternsDraw::~PatternsDraw() {}
 
-void PatternsDraw::drawCandleColoredDot(int timeIndex, string namePrefix, color inputColor, double shift){
+void PatternsDraw::drawCandleColoredDot(int timeIndex, string namePrefix, color inputColor, double shift) {
     const string colouredDotName = StringConcatenate(namePrefix, "_", timeIndex);
 
     ObjectCreate(
@@ -37,19 +37,21 @@ void PatternsDraw::drawCandleColoredDot(int timeIndex, string namePrefix, color 
         OBJ_ARROW_UP,
         0,
         Time[timeIndex],
-        iExtreme(timeIndex, Min) * shift);
+        iExtreme(timeIndex, Min) * shift
+    );
 
     ObjectSet(colouredDotName, OBJPROP_COLOR, inputColor);
     ObjectSet(colouredDotName, OBJPROP_ARROWCODE, 167);
     ObjectSet(colouredDotName, OBJPROP_WIDTH, 1);
 }
 
-void PatternsDraw::drawPatternRectangle(int timeIndex, int patternLength, color patternColor){
-    if(!pattern_.isPatternSizeGood(timeIndex)){
-        if(IS_DEBUG)
+void PatternsDraw::drawPatternRectangle(int timeIndex, int patternLength, color patternColor) {
+    if (!pattern_.isPatternSizeGood(timeIndex)) {
+        if (IS_DEBUG) {
             patternColor = clrPink;
-        else
+        } else {
             return;
+        }
     }
 
     const string patternName = StringConcatenate("Pattern_", timeIndex, "_", patternLength, "_", patternColor);
@@ -67,50 +69,64 @@ void PatternsDraw::drawPatternRectangle(int timeIndex, int patternLength, color 
     ObjectSet(patternName, OBJPROP_COLOR, patternColor);
 }
 
-void PatternsDraw::drawAllColoredDots(int maxCandles){
+void PatternsDraw::drawAllColoredDots(int maxCandles) {
     Candle candle;
 
     // Draw a dot for each candle type
-    for(int i = 1; i < maxCandles; i++){
-        if(candle.doji(i))
+    for (int i = 1; i < maxCandles; i++) {
+        if (candle.doji(i)) {
             drawCandleColoredDot(i, "doji", clrIndianRed, 0.99967);
-        if(candle.slimDoji(i))
+        }
+        if (candle.slimDoji(i)) {
             drawCandleColoredDot(i, "slimDoji", clrPeru, 0.99970);
-        if(candle.bigBar(i))
+        }
+        if (candle.bigBar(i)) {
             drawCandleColoredDot(i, "bigBar", clrForestGreen, 0.99973);
-        if(candle.upPinbar(i))
+        }
+        if (candle.upPinbar(i)) {
             drawCandleColoredDot(i, "upPinbar", clrPlum, 0.99976);
-        if(candle.downPinbar(i))
+        }
+        if (candle.downPinbar(i)) {
             drawCandleColoredDot(i, "downPinbar", clrOrange, 0.99980);
+        }
     }
 }
 
-void PatternsDraw::drawAllPatterns(){
+void PatternsDraw::drawAllPatterns() {
     const int maxCandles = IS_DEBUG ? CANDLES_VISIBLE_IN_GRAPH_2X : numberOfCandlesForPatternsDraw_;
 
     // Draw a rectangle for each pattern
-    for(int i = 1; i < maxCandles; i++){
-        if(pattern_.buyPattern1(i))
+    for (int i = 1; i < maxCandles; i++) {
+        if (pattern_.buyPattern1(i)) {
             drawPatternRectangle(i, 2, clrLightSteelBlue);
-        if(pattern_.buyPattern2(i))
+        }
+        if (pattern_.buyPattern2(i)) {
             drawPatternRectangle(i, 1, clrThistle);
-        if(pattern_.buyPattern3(i))
+        }
+        if (pattern_.buyPattern3(i)) {
             drawPatternRectangle(i, 3, clrDarkSeaGreen);
+        }
 
-        if(pattern_.sellPattern1(i))
+        if (pattern_.sellPattern1(i)) {
             drawPatternRectangle(i, 2, clrPaleGreen);
-        if(pattern_.sellPattern2(i))
+        }
+        if (pattern_.sellPattern2(i)) {
             drawPatternRectangle(i, 1, clrKhaki);
-        if(pattern_.sellPattern3(i))
+        }
+        if (pattern_.sellPattern3(i)) {
             drawPatternRectangle(i, 3, clrSandyBrown);
+        }
 
-        if(pattern_.sellBuyPattern4(i))
+        if (pattern_.sellBuyPattern4(i)) {
             drawPatternRectangle(i, 1, clrRosyBrown);
+        }
 
-        if(pattern_.antiPattern1(i))
+        if (pattern_.antiPattern1(i)) {
             drawPatternRectangle(i, 3, clrDarkGray);
+        }
     }
 
-    if(IS_DEBUG)
+    if (IS_DEBUG) {
         drawAllColoredDots(maxCandles);
+    }
 }

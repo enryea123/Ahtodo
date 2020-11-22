@@ -5,7 +5,7 @@
 #include "../../src/pivot/Pivot.mqh"
 
 
-class PivotTest{
+class PivotTest {
     public:
         PivotTest();
         ~PivotTest();
@@ -21,12 +21,12 @@ class PivotTest{
 };
 
 PivotTest::PivotTest():
-    pivot_(){
+    pivot_() {
 }
 
-PivotTest::~PivotTest(){}
+PivotTest::~PivotTest() {}
 
-void PivotTest::getPivotHappyPathTest(){
+void PivotTest::getPivotHappyPathTest() {
     UnitTest unitTest("getPivotHappyPathTest");
 
     unitTest.assertTrue(
@@ -46,7 +46,7 @@ void PivotTest::getPivotHappyPathTest(){
     );
 }
 
-void PivotTest::getPivotNegativeTimeIndexTest(){
+void PivotTest::getPivotNegativeTimeIndexTest() {
     UnitTest unitTest("getPivotNegativeTimeIndexTest");
 
     unitTest.assertEquals(
@@ -55,7 +55,7 @@ void PivotTest::getPivotNegativeTimeIndexTest(){
     );
 }
 
-void PivotTest::getPivotUnexistestSymbolTest(){
+void PivotTest::getPivotUnexistestSymbolTest() {
     UnitTest unitTest("getPivotUnexistestSymbolTest");
 
     unitTest.assertEquals(
@@ -64,7 +64,7 @@ void PivotTest::getPivotUnexistestSymbolTest(){
     );
 }
 
-void PivotTest::getPivotRSHappyPathTest(){
+void PivotTest::getPivotRSHappyPathTest() {
     UnitTest unitTest("getPivotRSHappyPathTest");
 
     unitTest.assertTrue(
@@ -80,7 +80,7 @@ void PivotTest::getPivotRSHappyPathTest(){
     );
 }
 
-void PivotTest::getPivotRSUnexistestSymbolTest(){
+void PivotTest::getPivotRSUnexistestSymbolTest() {
     UnitTest unitTest("getPivotRSUnexistestSymbolTest");
 
     unitTest.assertEquals(

@@ -7,7 +7,7 @@
 #include "../trendline/TrendLinesDraw.mqh"
 
 
-class Drawer{
+class Drawer {
     public:
         Drawer();
         ~Drawer();
@@ -22,15 +22,16 @@ class Drawer{
         void drawOpenMarketLines();
 };
 
-Drawer::Drawer(){}
+Drawer::Drawer() {}
 
-Drawer::~Drawer(){}
+Drawer::~Drawer() {}
 
-bool Drawer::drawLastDrawingTimeSignal(){
+bool Drawer::drawLastDrawingTimeSignal() {
     const string LastDrawingTimeSignal = StringConcatenate("LastDrawingTime_", Time[1]);
 
-    if(ObjectFind(LastDrawingTimeSignal) >= 0)
+    if (ObjectFind(LastDrawingTimeSignal) >= 0) {
         return false;
+    }
 
     ObjectsDeleteAll();
 
@@ -49,19 +50,20 @@ bool Drawer::drawLastDrawingTimeSignal(){
     return true;
 }
 
-void Drawer::drawOpenMarketLines(){
+void Drawer::drawOpenMarketLines() {
     const int maxDays = 40;
 
-    for(int day = 0; day < maxDays; day++){
+    for (int day = 0; day < maxDays; day++) {
         const datetime ThisDayStart = StrToTime(StringConcatenate(Year(), ".", Month(), ".", Day(),
             " ", MarketOpenHour(), ":00")) - 86400 * day;
 
         const datetime ThisDayEnd = StrToTime(StringConcatenate(Year(), ".", Month(), ".", Day(),
             " ", MarketCloseHour() - 1, ":30")) - 86400 * day;
 
-        if(TimeDayOfWeek(ThisDayStart) >= (MARKET_CLOSE_DAY)
-        || TimeDayOfWeek(ThisDayStart) < MARKET_OPEN_DAY)
+        if (TimeDayOfWeek(ThisDayStart) >= (MARKET_CLOSE_DAY) ||
+            TimeDayOfWeek(ThisDayStart) < MARKET_OPEN_DAY) {
             continue;
+        }
 
         const string MarketOpenLineName = StringConcatenate("MarketOpenLine-", day);
 
@@ -70,9 +72,12 @@ void Drawer::drawOpenMarketLines(){
             OBJ_TREND,
             0,
             ThisDayStart,
-            MathMin(iCandle(I_low, CURRENT_SYMBOL, PERIOD_MN1, 0), iCandle(I_low, CURRENT_SYMBOL, PERIOD_MN1, 1)) - 10 * Pips(),
+            MathMin(iCandle(I_low, CURRENT_SYMBOL, PERIOD_MN1, 0),
+                iCandle(I_low, CURRENT_SYMBOL, PERIOD_MN1, 1)) - 10 * Pips(),
             ThisDayEnd,
-            MathMin(iCandle(I_low, CURRENT_SYMBOL, PERIOD_MN1, 0), iCandle(I_low, CURRENT_SYMBOL, PERIOD_MN1, 1)) - 10 * Pips());
+            MathMin(iCandle(I_low, CURRENT_SYMBOL, PERIOD_MN1, 0),
+                iCandle(I_low, CURRENT_SYMBOL, PERIOD_MN1, 1)) - 10 * Pips()
+        );
 
         ObjectSet(MarketOpenLineName, OBJPROP_RAY_RIGHT, false);
         ObjectSet(MarketOpenLineName, OBJPROP_COLOR, clrMediumSeaGreen);
@@ -81,9 +86,10 @@ void Drawer::drawOpenMarketLines(){
     }
 }
 
-void Drawer::drawEverything(){
-    if(!drawLastDrawingTimeSignal())
+void Drawer::drawEverything() {
+    if (!drawLastDrawingTimeSignal()) {
         return;
+    }
 
     TrendLinesDraw trendLinesDraw;
     trendLinesDraw.drawTrendLines();
@@ -94,13 +100,13 @@ void Drawer::drawEverything(){
     PivotsDraw pivotsDraw;
     pivotsDraw.drawAllPivots();
 
-    if(IS_DEBUG){
+    if (IS_DEBUG) {
         drawOpenMarketLines();
         Print("Updated drawings at Time: ", TimeToStr(TimeCurrent()));
     }
 }
 
-void Drawer::setChartDefaultColors(){
+void Drawer::setChartDefaultColors() {
     ChartSetInteger(0, CHART_COLOR_BACKGROUND, clrWhite);
     ChartSetInteger(0, CHART_COLOR_GRID, clrSilver);
     ChartSetInteger(0, CHART_COLOR_FOREGROUND, clrBlack);
@@ -113,12 +119,12 @@ void Drawer::setChartDefaultColors(){
     ChartSetInteger(0, CHART_COLOR_CHART_LINE, clrBlack);
 }
 
-void Drawer::setChartMarketOpenColors(){
+void Drawer::setChartMarketOpenColors() {
     ChartSetInteger(0, CHART_COLOR_BACKGROUND, clrWhite);
     ChartSetInteger(0, CHART_COLOR_GRID, clrSilver);
 }
 
-void Drawer::setChartMarketClosedColors(){
+void Drawer::setChartMarketClosedColors() {
     ChartSetInteger(0, CHART_COLOR_BACKGROUND, clrSilver);
     ChartSetInteger(0, CHART_COLOR_GRID, clrWhite);
 }

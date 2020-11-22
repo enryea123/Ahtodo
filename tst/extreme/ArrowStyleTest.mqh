@@ -5,7 +5,7 @@
 #include "../../src/extreme/ArrowStyle.mqh"
 
 
-class ArrowStyleTest{
+class ArrowStyleTest {
     public:
         ArrowStyleTest();
         ~ArrowStyleTest();
@@ -17,12 +17,12 @@ class ArrowStyleTest{
 };
 
 ArrowStyleTest::ArrowStyleTest():
-    arrowStyle_(){
+    arrowStyle_() {
 }
 
-ArrowStyleTest::~ArrowStyleTest(){}
+ArrowStyleTest::~ArrowStyleTest() {}
 
-void ArrowStyleTest::drawExtremeArrowTest(){
+void ArrowStyleTest::drawExtremeArrowTest() {
     UnitTest unitTest("drawExtremeArrowTest");
 
     arrowStyle_.drawExtremeArrow(10, Max, true);
