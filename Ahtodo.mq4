@@ -8,7 +8,11 @@
 
 
 void OnInit() {
+    RefreshRates();
     Sleep(1000);
+
+    CURRENT_PERIOD = Period();
+    CURRENT_SYMBOL = Symbol();
 
     UnitTestsRunner unitTestsRunner;
     unitTestsRunner.runAllUnitTests();

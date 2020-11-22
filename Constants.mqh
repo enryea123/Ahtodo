@@ -15,13 +15,12 @@ const int MARKET_CLOSE_HOUR_PENDING = 16;
 const int MARKET_OPEN_DAY = 1;
 const int MARKET_CLOSE_DAY = 5;
 
-bool SelectedOrder;
-int PreviousOrderTicket;
 
-int OrderCandlesDuration = 6;
 
-const int CURRENT_PERIOD = Period();
-const string CURRENT_SYMBOL = Symbol();
+
+// queste 2 non sono const, forse vanno da un'altra parte. O magari non devono essere variabili ma funzioni
+int CURRENT_PERIOD = NULL;
+string CURRENT_SYMBOL = NULL;
 
 // mettere TUTTE le costanti qui
 // forse rinominare il file a Config.mqh o Variables.Mqh
@@ -38,10 +37,15 @@ const datetime BOT_EXPIRATION_DATE = (datetime) "2021-06-30";
 const int CANDLES_VISIBLE_IN_GRAPH_2X = 940;
 const bool IS_DEBUG = false;
 
-bool PositionSplit = true;
-
+/*
 input double PercentRisk = 1.0;
-double BaseTakeProfitFactor = 3.0;
+
+const bool SelectedOrder;
+const int PreviousOrderTicket;
+const int OrderCandlesDuration = 6;
+const bool PositionSplit = true;
+const double BaseTakeProfitFactor = 3.0;
+*/
 
 bool IsPeriodAllowed(int i) {
     return true;
