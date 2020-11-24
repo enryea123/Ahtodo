@@ -56,7 +56,7 @@ void Drawer::drawEverything() {
 
     if (IS_DEBUG) {
         drawOpenMarketLines();
-        Print("Updated drawings at Time: ", TimeToStr(TimeCurrent()));
+        Print("Updated drawings at Time: ", TimeToStr(TimeLocal()));
     }
 }
 

@@ -19,7 +19,7 @@ class Holiday {
 };
 
 bool Holiday::isMajorBankHoliday() {
-    return isMajorBankHoliday(TimeGMT()); // timeMilan
+    return isMajorBankHoliday(TimeGMT());
 }
 
 bool Holiday::isMinorBankHoliday() {

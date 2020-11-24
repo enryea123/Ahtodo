@@ -10,8 +10,8 @@
  */
 class HolidayExposed: public Holiday {
     public:
-        bool _isMajorBankHoliday(datetime date) {return isMajorBankHoliday(date);};
-        bool _isMinorBankHoliday(datetime date) {return isMinorBankHoliday(date);};
+        bool _isMajorBankHoliday(datetime date) {return isMajorBankHoliday(date);}
+        bool _isMinorBankHoliday(datetime date) {return isMinorBankHoliday(date);}
 };
 
 

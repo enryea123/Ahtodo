@@ -2,7 +2,6 @@
 #property link "https://www.linkedin.com/in/enryea123"
 
 #include "../../Constants.mqh"
-#include "MarketTime.mqh"
 
 
 class Market {
@@ -11,17 +10,16 @@ class Market {
 
         void marketConditionsValidation();
 
+    protected:
+        bool forceIsLiveAccountForTesting_;
+
         bool isAllowedAccountNumber(int);
         bool isAllowedExecutionDate(datetime);
         bool isAllowedPeriod(int);
         bool isAllowedBroker(string);
         bool isAllowedSymbol(string);
         bool isAllowedSymbolPeriodCombo(string, int);
-
         bool isDemoTrading(int);
-
-    protected:
-        bool forceIsLiveAccountForTesting_;
 };
 
 Market::Market():
@@ -60,8 +58,7 @@ bool Market::isAllowedAccountNumber(int accountNumber = NULL) {
 
 bool Market::isAllowedExecutionDate(datetime date = NULL) {
     if (!date) {
-        MarketTime marketTime_;
-        date = marketTime_.timeItaly();
+        date = TimeGMT();
     }
 
     if (date < BOT_EXPIRATION_DATE) {

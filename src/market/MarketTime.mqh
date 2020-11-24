@@ -33,13 +33,17 @@ class MarketTime {
     protected:
         bool isMarketOpened(datetime);
         datetime findDayOfWeekOccurrenceInMonth(int, int, int, int);
-        int getDaylightSavingCorrectionGMT(datetime);
+        int getDaylightSavingCorrectionCET(datetime);
         int getDaylightSavingCorrectionUSA(datetime);
 
     private:
+        static const string knownTimeZoneBrokers_;
+
         int getDaysInMonth(int);
         bool isLeapYear(int);
 };
+
+const string MarketTime::knownTimeZoneBrokers_ = "KEY TO MARKETS";
 
 bool MarketTime::isMarketOpened() {
     return isMarketOpened(timeItaly());
@@ -60,26 +64,27 @@ bool MarketTime::isMarketOpened(datetime date) {
 int MarketTime::marketOpenHour() {
     const int baseMarketOpenHour = Period() != PERIOD_H4 ? MARKET_OPEN_HOUR : MARKET_OPEN_HOUR_H4;
 
-    return baseMarketOpenHour + getDaylightSavingCorrectionGMT();
+    return baseMarketOpenHour + getDaylightSavingCorrectionCET();
 }
 
 int MarketTime::marketCloseHour() {
     const int baseMarketCloseHour = Period() != PERIOD_H4 ? MARKET_CLOSE_HOUR : MARKET_CLOSE_HOUR_H4;
 
-    return baseMarketCloseHour + getDaylightSavingCorrectionGMT();
+    return baseMarketCloseHour + getDaylightSavingCorrectionCET();
 }
 
 datetime MarketTime::timeItaly() {
-    return TimeGMT() + 3600 * (1 + getDaylightSavingCorrectionGMT());
+    return TimeGMT() + 3600 * (1 + getDaylightSavingCorrectionCET());
 }
 
 datetime MarketTime::timeBroker() {
-// Decidere dopo come riorganizzare il codice di market e markettime
-//    if (!market_.isAllowedBroker()) {
-//        return ThrowException(-1, __FUNCTION__, "Unsupported broker, impossible to calculate time");
-//    }
+    const string broker = AccountCompany();
 
-    return TimeGMT() + 3600 * (2 + getDaylightSavingCorrectionUSA());
+    if (StringContains(broker, knownTimeZoneBrokers_)) {
+        return TimeGMT() + 3600 * (2 + getDaylightSavingCorrectionUSA());
+    }
+
+    return ThrowException(-1, __FUNCTION__, StringConcatenate("timeBroker, error for broker:", broker));
 }
 
 datetime MarketTime::timeAtMidnight(datetime date) {
@@ -97,7 +102,7 @@ int MarketTime::timeShiftInHours(datetime date1, datetime date2) {
  * @param {datetime=} date The date for which to check DST
  * @return boolean
  */
-int MarketTime::getDaylightSavingCorrectionGMT(datetime date = NULL) {
+int MarketTime::getDaylightSavingCorrectionCET(datetime date = NULL) {
     if (!date) {
         date = TimeGMT();
     }

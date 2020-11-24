@@ -2,7 +2,6 @@
 #property link "https://www.linkedin.com/in/enryea123"
 
 #include "../../Constants.mqh"
-#include "Pivot.mqh"
 
 
 class PivotStyle {

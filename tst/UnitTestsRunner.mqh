@@ -35,6 +35,9 @@ void UnitTestsRunner::runAllUnitTests() {
     marketTest.isAllowedSymbolPeriodComboTest();
     marketTest.isDemoTradingTest();
 
+    PatternTest patternTest;
+    patternTest.isPatternTest();
+
     PivotTest pivotTest;
     pivotTest.getPivotHappyPathTest();
     pivotTest.getPivotNegativeTimeIndexTest();
@@ -52,9 +55,6 @@ void UnitTestsRunner::runAllUnitTests() {
     trendLineTest.getTrendLineIndexesTest();
     trendLineTest.trendLineNameTest();
     trendLineTest.trendLineSetupsTest();
-
-    PatternTest patternTest;
-    patternTest.isPatternTest();
 
     int endTime = TimeLocal() - startTime;
     Print("All unit tests run in ", endTime, " seconds. StartTime: ", TimeToStr(startTime));
