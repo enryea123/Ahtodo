@@ -9,42 +9,39 @@ class Market {
     public:
         Market();
 
-        void startUpMarketValidation();
-// classe molto lunga. va splittata? decidi dopo che sarà finita, mancano varie funzioni
-// alcune protected?, probabilmente posso mettere il default degli argomenti con parametri private
+        void marketConditionsValidation();
+
         bool isAllowedAccountNumber(int);
         bool isAllowedExecutionDate(datetime);
         bool isAllowedPeriod(int);
+        bool isAllowedBroker(string);
         bool isAllowedSymbol(string);
         bool isAllowedSymbolPeriodCombo(string, int);
 
         bool isDemoTrading(int);
-        void forceIsLiveAccount();
-        void resetAccountTypeOverride();
 
-    private:
-        bool forceIsLiveAccount_;
+    protected:
+        bool forceIsLiveAccountForTesting_;
 };
 
 Market::Market():
-    forceIsLiveAccount_(false) {
+    forceIsLiveAccountForTesting_(false) {
 }
 
-void Market::startUpMarketValidation() { // controllo ad ogni tick. variabile startUpTime_?
-    MarketTime marketTime_;
-
-    if (isAllowedAccountNumber(AccountNumber()) &&
-        isAllowedExecutionDate(marketTime_.timeItaly()) &&
-        isAllowedPeriod(Period()) && // argomenti non tutti necessari, fare revisione completa di dove servono e dove si puo fare l'overloaded protected ecc
-        isAllowedSymbol(Symbol()) &&
-        isAllowedSymbolPeriodCombo(Symbol(), Period())) {
+void Market::marketConditionsValidation() {
+    if (isAllowedAccountNumber() && isAllowedExecutionDate() && isAllowedPeriod() &&
+        isAllowedBroker() && isAllowedSymbol() && isAllowedSymbolPeriodCombo()) {
         return;
     }
 
-    ThrowFatalException("startUpMarketValidation failed");
+    ThrowFatalException(__FUNCTION__, "marketConditionsValidation failed");
 }
 
-bool Market::isAllowedAccountNumber(int accountNumber) {
+bool Market::isAllowedAccountNumber(int accountNumber = NULL) {
+    if (!accountNumber) {
+        accountNumber = AccountNumber();
+    }
+
     for (int i = 0; i < ArraySize(ALLOWED_DEMO_ACCOUNT_NUMBERS); i++) {
         if (accountNumber == ALLOWED_DEMO_ACCOUNT_NUMBERS[i]) {
             return true;
@@ -57,30 +54,43 @@ bool Market::isAllowedAccountNumber(int accountNumber) {
         }
     }
 
-    return ThrowException(false, StringConcatenate("isAllowedAccountNumber, ",
+    return ThrowException(false, __FUNCTION__, StringConcatenate("isAllowedAccountNumber, ",
         "unauthorized accountNumber: ", accountNumber));
 }
 
-bool Market::isAllowedExecutionDate(datetime executionDate) {
-    if (executionDate < BOT_EXPIRATION_DATE) {
+bool Market::isAllowedExecutionDate(datetime date = NULL) {
+    if (!date) {
+        MarketTime marketTime_;
+        date = marketTime_.timeItaly();
+    }
+
+    if (date < BOT_EXPIRATION_DATE) {
         return true;
     }
 
-    return ThrowException(false, StringConcatenate("isAllowedExecutionDate, "
-        "unauthorized executionDate: ", executionDate));
+    return ThrowException(false, __FUNCTION__, StringConcatenate(
+        "isAllowedExecutionDate, unauthorized execution date: ", date));
 }
 
-bool Market::isAllowedPeriod(int period) {
+bool Market::isAllowedPeriod(int period = NULL) {
+    if (!period) {
+        period = Period();
+    }
+
     for (int i = 0; i < ArraySize(ALLOWED_PERIODS); i++) {
         if (period == ALLOWED_PERIODS[i]) {
             return true;
         }
     }
 
-    return ThrowException(false, StringConcatenate("isAllowedPeriod, unauthorized period: ", period));
+    return ThrowException(false, __FUNCTION__, StringConcatenate("isAllowedPeriod, unauthorized period: ", period));
 }
 
-bool Market::isAllowedSymbol(string symbol) {
+bool Market::isAllowedSymbol(string symbol = "") {
+    if (symbol == "") {
+        symbol = Symbol();
+    }
+
     if (isDemoTrading() && SymbolExists(symbol)) {
         return true;
     }
@@ -91,17 +101,43 @@ bool Market::isAllowedSymbol(string symbol) {
         }
     }
 
-    return ThrowException(false, StringConcatenate("isAllowedSymbol, unauthorized symbol: ", symbol));
+    return ThrowException(false, __FUNCTION__, StringConcatenate("isAllowedSymbol, unauthorized symbol: ", symbol));
 }
 
-bool Market::isAllowedSymbolPeriodCombo(string symbol, int period) {
+bool Market::isAllowedBroker(string broker = "") {
+    if (broker == "") {
+        broker = AccountCompany();
+    }
+
+    if (isDemoTrading()) {
+        return true;
+    }
+
+    for (int i = 0; i < ArraySize(ALLOWED_BROKERS); i++) {
+        if (broker == ALLOWED_BROKERS[i]) {
+            return true;
+        }
+    }
+
+    return ThrowException(false, __FUNCTION__, StringConcatenate("isAllowedBroker, unauthorized broker: ", broker));
+}
+
+bool Market::isAllowedSymbolPeriodCombo(string symbol = "", int period = NULL) {
+    if (symbol == "") {
+        symbol = Symbol();
+    }
+    if (!period) {
+        period = Period();
+    }
+
     if (isDemoTrading()) {
         return true;
     }
 
     for (int i = 0; i < ArraySize(RESTRICTED_SYMBOL_FAMILIES_H4); i++) {
         if (StringContains(symbol, RESTRICTED_SYMBOL_FAMILIES_H4[i]) && period != PERIOD_H4) {
-            return ThrowException(false, StringConcatenate("isAllowedSymbolPeriodCombo, unauthorized symbol ",
+            return ThrowException(false, __FUNCTION__, StringConcatenate(
+                "isAllowedSymbolPeriodCombo, unauthorized symbol ",
                 symbol, " and period ", period, " combination"));
         }
     }
@@ -114,7 +150,7 @@ bool Market::isDemoTrading(int accountNumber = NULL) {
         accountNumber = AccountNumber();
     }
 
-    if (forceIsLiveAccount_) {
+    if (forceIsLiveAccountForTesting_) {
         return false;
     }
 
@@ -126,45 +162,3 @@ bool Market::isDemoTrading(int accountNumber = NULL) {
 
     return false;
 }
-
-void Market::forceIsLiveAccount() {
-    forceIsLiveAccount_ = true;
-}
-
-void Market::resetAccountTypeOverride() {
-    forceIsLiveAccount_ = false;
-}
-
-
-/**
-
-// Print("isDemoTrading() && SymbolExists(symbol): ", isDemoTrading(), " && ", SymbolExists(symbol));
-
-
-void Market::tickMarketValidation() { // ci sono vari livelli di questo, ma non deve fare fatal exception probabilmente
-    if (???) {
-        return;
-    }
-
-// isAllowedExecutionDate serve
-
-    ThrowFatalException("startUpMarketValidation failed");
-}
-
-// nuova funzione isMarketOpened, e poi isMarketOpenedFirstBar (che cancola direttamente se si possono fare ordini a -6)
-
-// sicuramente nuova classe markettime (magari poi ereditata da questa? o magari no perche frutta -/-> fragola).
-
-// magari usare timelocal per apertura mercato, che non dipende dalla timezone. Ah pero pericoloso in caso di cambi del computer.
-// meglio timecurrent allora (no perche è l'orario di metatrader, non del broker). o timelocal in altra timezone
-    if (DayOfWeek() >= MARKET_CLOSE_DAY || DayOfWeek() < MARKET_OPEN_DAY) {
-        SetChartMarketClosedColors();
-    }
-
-bool Market::isMarketOpened(day, hour, minute?) {
-    if (year < 2022) {
-        return true;
-    }
-}
-
-*/

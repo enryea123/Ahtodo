@@ -53,11 +53,11 @@ const string TrendLine::trendLineNameSeparator_ = NAME_SEPARATOR;
 
 bool TrendLine::areTrendLineSetupsGood(int indexI, int indexJ, Discriminator discriminator) {
     if (indexI < indexJ) {
-        return ThrowException(false, "areTrendLineSetupsGood: indexI < indexJ");
+        return ThrowException(false, __FUNCTION__, "areTrendLineSetupsGood: indexI < indexJ");
     }
 
     if (indexI < 1 || indexJ < 1) {
-        return ThrowException(false, "areTrendLineSetupsGood: indexI < 1 || indexJ < 1");
+        return ThrowException(false, __FUNCTION__, "areTrendLineSetupsGood: indexI < 1 || indexJ < 1");
     }
 
     if (indexI < trendLineMinCandlesLength_ && indexJ < trendLineMinCandlesLength_) {

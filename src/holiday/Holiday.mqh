@@ -2,6 +2,7 @@
 #property link "https://www.linkedin.com/in/enryea123"
 
 #include "../../Constants.mqh"
+#include "../market/MarketTime.mqh"
 
 
 class Holiday {
@@ -18,7 +19,7 @@ class Holiday {
 };
 
 bool Holiday::isMajorBankHoliday() {
-    return isMajorBankHoliday(TimeGMT());
+    return isMajorBankHoliday(TimeGMT()); // timeMilan
 }
 
 bool Holiday::isMinorBankHoliday() {
@@ -37,29 +38,29 @@ bool Holiday::isMajorBankHoliday(datetime inputDate) {
     const int dayOfYear = TimeDayOfYear(inputDate);
 
     if (easterDayOfYear(year) < 0) {
-        return ThrowException(false, StringConcatenate("Easter day of year ", year, " not known"));
+        return ThrowException(false, __FUNCTION__, StringConcatenate("Easter day of year ", year, " not known"));
     }
 
-    if (month == 1) {
+    if (month == JANUARY) {
         // Christmas Holidays Season
         if (day < 7) {
             return true;
         }
 
         // US: Martin Luther King Birthday (Third Monday in January)
-        if (dayOfWeek == 1 && MathCeil(day / 7.0) == 3) {
+        if (dayOfWeek == MONDAY && MathCeil(day / 7.0) == 3) {
             return true;
         }
     }
 
-    if (month == 2) {
+    if (month == FEBRUARY) {
         // US: President's Day (Third Monday in February)
-        if (dayOfWeek == 1 && MathCeil(day / 7.0) == 3) {
+        if (dayOfWeek == MONDAY && MathCeil(day / 7.0) == 3) {
             return true;
         }
     }
 
-    if (month == 5) {
+    if (month == MAY) {
         // IT, FR, DE, UK: Lavoro
         if (day == 1) {
             return true;
@@ -67,19 +68,19 @@ bool Holiday::isMajorBankHoliday(datetime inputDate) {
 
         // US: Memorial Day (Last Monday in May)
         // UK: Spring Bank Holiday (Last Monday in May)
-        if (dayOfWeek == 1 && 31 - day < 7) {
+        if (dayOfWeek == MONDAY && 31 - day < 7) {
             return true;
         }
     }
 
-    if (month == 7) {
+    if (month == JULY) {
         // US: Independence Day
-        if (day == 4 || (day == 3 && dayOfWeek == 5) || (day == 5 && dayOfWeek == 1)) {
+        if (day == 4 || (day == 3 && dayOfWeek == FRIDAY) || (day == 5 && dayOfWeek == MONDAY)) {
             return true;
         }
     }
 
-    if (month == 8) {
+    if (month == AUGUST) {
         // Summer Holidays
         if (day > 7 && day < 24) {
             return true;
@@ -91,33 +92,33 @@ bool Holiday::isMajorBankHoliday(datetime inputDate) {
         }
     }
 
-    if (month == 9) {
+    if (month == SEPTEMBER) {
         // US: Labor Day (First Monday in September)
-        if (dayOfWeek == 1 && MathCeil(day / 7.0) == 1) {
+        if (dayOfWeek == MONDAY && MathCeil(day / 7.0) == 1) {
             return true;
         }
     }
 
-    if (month == 10) {
+    if (month == OCTOBER) {
         // US: Columbus Day (Second Monday in October)
-        if (dayOfWeek == 1 && MathCeil(day / 7.0) == 2) {
+        if (dayOfWeek == MONDAY && MathCeil(day / 7.0) == 2) {
             return true;
         }
     }
 
-    if (month == 11) {
+    if (month == NOVEMBER) {
         // US: Veterans Day
-        if (day == 11 || (day == 10 && dayOfWeek == 5) || (day == 12 && dayOfWeek == 1)) {
+        if (day == 11 || (day == 10 && dayOfWeek == FRIDAY) || (day == 12 && dayOfWeek == MONDAY)) {
             return true;
         }
 
         // US: Thanksgiving Day (Fourth Thursday in November
-        if (dayOfWeek == 4 && MathCeil(day / 7.0) == 4) {
+        if (dayOfWeek == THURSDAY && MathCeil(day / 7.0) == 4) {
             return true;
         }
     }
 
-    if (month == 12) {
+    if (month == DECEMBER) {
         // Christmas Holidays Season
         if (day > 20) {
             return true;
@@ -156,16 +157,16 @@ bool Holiday::isMinorBankHoliday(datetime inputDate) {
     const int month = TimeMonth(inputDate);
     const int dayOfWeek = TimeDayOfWeek(inputDate);
 
-    if (month == 4) {
+    if (month == APRIL) {
         // IT: Liberazione
         if (day == 25) {
             return true;
         }
     }
 
-    if (month == 5) {
+    if (month == MAY) {
         // UK: Early May Bank Holiday (First Monday in May)
-        if (dayOfWeek == 1 && MathCeil(day / 7.0) == 1) {
+        if (dayOfWeek == MONDAY && MathCeil(day / 7.0) == 1) {
             return true;
         }
 
@@ -175,21 +176,21 @@ bool Holiday::isMinorBankHoliday(datetime inputDate) {
         }
     }
 
-    if (month == 6) {
+    if (month == JUNE) {
         // IT: Festa della Repubblica
         if (day == 2) {
             return true;
         }
     }
 
-    if (month == 7) {
+    if (month == JULY) {
         // FR: Bastille
         if (day == 14) {
             return true;
         }
     }
 
-    if (month == 8) {
+    if (month == AUGUST) {
         // Summer Holidays
         return true;
 
@@ -199,19 +200,19 @@ bool Holiday::isMinorBankHoliday(datetime inputDate) {
         }
 
         // UK: Summer Bank Holiday (Last Monday in August)
-        if (dayOfWeek == 1 && 31 - day < 7) {
+        if (dayOfWeek == MONDAY && 31 - day < 7) {
             return true;
         }
     }
 
-    if (month == 10) {
+    if (month == OCTOBER) {
         // DE: German Unity
         if (day == 3) {
             return true;
         }
     }
 
-    if (month == 11) {
+    if (month == NOVEMBER) {
         // IT: Tutti i Santi
         if (day == 1) {
             return true;
@@ -223,7 +224,7 @@ bool Holiday::isMinorBankHoliday(datetime inputDate) {
         }
     }
 
-    if (month == 12) {
+    if (month == DECEMBER) {
         // IT: Immacolata
         if (day == 8) {
             return true;

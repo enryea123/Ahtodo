@@ -119,6 +119,6 @@ void UnitTest::getTestResult() {
     if (passedAssertions_ == totalAssertions_) {
         Print("Test ", testName_, ": PASSED");
     } else {
-        ThrowFatalException(StringConcatenate("Test ", testName_, ": FAILED"));
+        ThrowFatalException(__FUNCTION__, StringConcatenate("Test ", testName_, ": FAILED"));
     }
 }

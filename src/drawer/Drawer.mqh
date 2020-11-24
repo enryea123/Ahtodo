@@ -2,6 +2,7 @@
 #property link "https://www.linkedin.com/in/enryea123"
 
 #include "../../Constants.mqh"
+#include "../market/Market.mqh"
 #include "../market/MarketTime.mqh"
 #include "../pattern/PatternsDraw.mqh"
 #include "../pivot/PivotsDraw.mqh"
@@ -21,7 +22,9 @@ class Drawer {
         static const string lastDrawingTimePrefix_;
         static const string openMarketLinePrefix_;
 
-        bool drawLastDrawingTimeSignal();
+        bool areDrawingsUpdated();
+        string getLastDrawingTimeSignalName();
+        void drawLastDrawingTimeSignal();
         void drawOpenMarketLines();
 };
 
@@ -31,9 +34,14 @@ const string Drawer::lastDrawingTimePrefix_ = "LastDrawingTime";
 const string Drawer::openMarketLinePrefix_ = "OpenMarketLine";
 
 void Drawer::drawEverything() {
-    if (!drawLastDrawingTimeSignal()) {
+    if (areDrawingsUpdated()) {
         return;
     }
+
+    ObjectsDeleteAll();
+
+    Market market;
+    market.marketConditionsValidation();
 
     TrendLinesDraw trendLinesDraw;
     trendLinesDraw.drawTrendLines();
@@ -43,6 +51,8 @@ void Drawer::drawEverything() {
 
     PivotsDraw pivotsDraw;
     pivotsDraw.drawAllPivots();
+
+    drawLastDrawingTimeSignal();
 
     if (IS_DEBUG) {
         drawOpenMarketLines();
@@ -73,14 +83,12 @@ void Drawer::setChartMarketClosedColors() {
     ChartSetInteger(0, CHART_COLOR_GRID, clrWhite);
 }
 
-bool Drawer::drawLastDrawingTimeSignal() {
-    const string lastDrawingTimeSignal = StringConcatenate(lastDrawingTimePrefix_, NAME_SEPARATOR, Time[1]);
+bool Drawer::areDrawingsUpdated() {
+    return (ObjectFind(getLastDrawingTimeSignalName()) >= 0) ? true : false;
+}
 
-    if (ObjectFind(lastDrawingTimeSignal) >= 0) {
-        return false;
-    }
-
-    ObjectsDeleteAll();
+void Drawer::drawLastDrawingTimeSignal() {
+    const string lastDrawingTimeSignal = getLastDrawingTimeSignalName();
 
     ObjectCreate(
         lastDrawingTimeSignal,
@@ -93,24 +101,24 @@ bool Drawer::drawLastDrawingTimeSignal() {
     ObjectSet(lastDrawingTimeSignal, OBJPROP_COLOR, clrForestGreen);
     ObjectSet(lastDrawingTimeSignal, OBJPROP_ARROWCODE, 233);
     ObjectSet(lastDrawingTimeSignal, OBJPROP_WIDTH, 4);
+}
 
-    return true;
+string Drawer::getLastDrawingTimeSignalName() {
+    return StringConcatenate(lastDrawingTimePrefix_, NAME_SEPARATOR, Time[1]);
 }
 
 void Drawer::drawOpenMarketLines() {
     MarketTime marketTime_;
 
     const datetime today = marketTime_.timeAtMidnight(marketTime_.timeItaly());
-
-    // devo creare una funzione che calcola lo shift
-    const int mt4HourShift = 1;
+    const int brokerHoursShift = marketTime_.timeShiftInHours(marketTime_.timeBroker(), marketTime_.timeItaly());
 
     for (int day = 0; day < drawOpenMarketLinesMaxDays_; day++) {
         const datetime thisDayStart = StringToTime(StringConcatenate(today, " ",
-            marketTime_.marketOpenHour() + mt4HourShift, ":00")) - 86400 * day;
+            marketTime_.marketOpenHour() + brokerHoursShift, ":00")) - 86400 * day;
 
         const datetime thisDayEnd = StringToTime(StringConcatenate(today, " ",
-            marketTime_.marketCloseHour() + mt4HourShift, ":00")) - 86400 * day;
+            marketTime_.marketCloseHour() + brokerHoursShift, ":00")) - 86400 * day;
 
         if (TimeDayOfWeek(thisDayStart) >= (MARKET_CLOSE_DAY) ||
             TimeDayOfWeek(thisDayStart) < MARKET_OPEN_DAY) {

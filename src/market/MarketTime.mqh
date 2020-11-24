@@ -3,74 +3,59 @@
 
 #include "../../Constants.mqh"
 
+enum MonthNumber {
+    JANUARY = 1,
+    FEBRUARY = 2,
+    MARCH = 3,
+    APRIL = 4,
+    MAY = 5,
+    JUNE = 6,
+    JULY = 7,
+    AUGUST = 8,
+    SEPTEMBER = 9,
+    OCTOBER = 10,
+    NOVEMBER = 11,
+    DECEMBER = 12,
+};
+
 
 class MarketTime {
     public:
-        bool isMarketOpened(datetime);
-        int getDaylightSavingCorrectionGMT(datetime);
-        int getDaylightSavingCorrection();
+        bool isMarketOpened();
         int marketOpenHour();
         int marketCloseHour();
-        //int mt4TerminalHoursShift(datetime);
+
         datetime timeItaly();
+        datetime timeBroker();
         datetime timeAtMidnight(datetime);
+        int timeShiftInHours(datetime, datetime);
 
     protected:
-        datetime getLastSundayOfMonth(int, int);
+        bool isMarketOpened(datetime);
+        datetime findDayOfWeekOccurrenceInMonth(int, int, int, int);
+        int getDaylightSavingCorrectionGMT(datetime);
+        int getDaylightSavingCorrectionUSA(datetime);
+
+    private:
+        int getDaysInMonth(int);
+        bool isLeapYear(int);
 };
 
-// verifica come testare metodi protetti, non va bene dare la possibilita pubblica di usare parametri nel metodi dove non si dovrebbe. quindi va cambiato. ha senso testare ereditando?
+bool MarketTime::isMarketOpened() {
+    return isMarketOpened(timeItaly());
+}
 
-
-/**
- * This method returns true if the daylight saving time correction is on.
- *
- * @param {datetime=} date The date for which to check DST
- * @return boolean
- */
-int MarketTime::getDaylightSavingCorrectionGMT(datetime date = NULL) {
-    if (!date) {
-        date = TimeGMT();
-    }
-
-    const int day = TimeDay(date);
-    const int month = TimeMonth(date);
-    const int year = TimeYear(date);
+bool MarketTime::isMarketOpened(datetime date) {
+    const int hour = TimeHour(date);
     const int dayOfWeek = TimeDayOfWeek(date);
 
-    const datetime lastSundayOfMarch = getLastSundayOfMonth(year, 3);
-    const datetime lastSundayOfOctober = getLastSundayOfMonth(year, 10);
-
-    if (date > lastSundayOfMarch && date < lastSundayOfOctober) {
-        return 1;
+    if (hour >= marketOpenHour() && hour < marketCloseHour() &&
+        dayOfWeek >= MARKET_OPEN_DAY && dayOfWeek < MARKET_CLOSE_DAY) {
+        return true;
     }
 
-    return 0;
+    return false;
 }
-
-datetime MarketTime::getLastSundayOfMonth(int year, int month) {
-    if (month != 3 && month != 10) {
-        return ThrowException(-1, StringConcatenate("Unsupported month: ", month, " for last Sunday calculation"));
-    }
-
-    for (int day = 25; day < 32; day++) {
-        const datetime date = StringToTime(StringConcatenate(year, ".", month, ".", day, " 01:00:00"));
-
-        if (TimeDayOfWeek(date) == 0) {
-            return date;
-        }
-    }
-
-    return ThrowException(-1, StringConcatenate("Could not calculate last Sunday of month: ", month));
-}
-
-datetime MarketTime::timeItaly() {
-    return TimeGMT() + 3600 * (1 + getDaylightSavingCorrectionGMT());
-}
-
-//datetime MarketTime::timeMetatrader() {
-//    return TimeGMT() + 3600 * (1 + getDaylightSavingCorrectionGMT());
-//}
 
 int MarketTime::marketOpenHour() {
     const int baseMarketOpenHour = Period() != PERIOD_H4 ? MARKET_OPEN_HOUR : MARKET_OPEN_HOUR_H4;
@@ -84,53 +69,147 @@ int MarketTime::marketCloseHour() {
     return baseMarketCloseHour + getDaylightSavingCorrectionGMT();
 }
 
-bool MarketTime::isMarketOpened(datetime date = NULL) {
-    if (!date) {
-        date = timeItaly();
-    }
+datetime MarketTime::timeItaly() {
+    return TimeGMT() + 3600 * (1 + getDaylightSavingCorrectionGMT());
+}
 
-    const int hour = TimeHour(date);
-    const int dayOfWeek = TimeDayOfWeek(date);
+datetime MarketTime::timeBroker() {
+// Decidere dopo come riorganizzare il codice di market e markettime
+//    if (!market_.isAllowedBroker()) {
+//        return ThrowException(-1, __FUNCTION__, "Unsupported broker, impossible to calculate time");
+//    }
 
-    if (hour >= marketOpenHour() && hour < marketCloseHour() &&
-        dayOfWeek >= MARKET_OPEN_DAY && dayOfWeek < MARKET_CLOSE_DAY) {
-        return true;
-    }
-
-    return false;
+    return TimeGMT() + 3600 * (2 + getDaylightSavingCorrectionUSA());
 }
 
 datetime MarketTime::timeAtMidnight(datetime date) {
     return date - (date % (PERIOD_D1 * 60));
 }
 
-//int MarketTime::mt4TerminalHoursShift(datetime date) {
-//    return MathRound(MathAbs(date - TimeCurrent()) / 3600); // non funziona nei weekend, fare timezone novembre
-//}
-
-// mettere allowed broker "KEY TO MARKETS NZ LIMITED" con validations e orario di questo broker in drawer e markettime (check broker anche quando calcoli l'ora)
-
-
-// https://www.timeanddate.com/time/zone/uk/london
-// Bisogna testare questa classe, eri arrivato qui
-
-//0	08:49:18.467	Ahtodo AUDUSD,H1: TimeCurrent(): 2020.10.27 10:49
-//0	08:49:18.467	Ahtodo AUDUSD,H1: TimeLocal(): 2020.10.27 08:49
-//0	08:49:18.467	Ahtodo AUDUSD,H1: TimeGMT(): 2020.10.27 07:49
-//0	08:49:18.467	Ahtodo AUDUSD,H1: Hour(): 10
-
-
-// nuova funzione isMarketOpenedFirstBar? (che cancola direttamente se si possono fare ordini a -6)
-
-
-/*
-    if (DayOfWeek() >= MARKET_CLOSE_DAY || DayOfWeek() < MARKET_OPEN_DAY) {
-        SetChartMarketClosedColors();
-    }
-
-bool Market::isMarketOpened(day, hour, minute?) {
-    if (year < 2022) {
-        return true; // exception? fatal exception? Incorporate in other method. already isAllowedExecutionDate in Market. ThrowFatalException gia li
-    }
+// Can also be negative
+int MarketTime::timeShiftInHours(datetime date1, datetime date2) {
+    return MathRound((date1 - date2) / (double) 3600);
 }
-*/
+
+/**
+ * This method returns true if the daylight saving time correction is on.
+ *
+ * @param {datetime=} date The date for which to check DST
+ * @return boolean
+ */
+int MarketTime::getDaylightSavingCorrectionGMT(datetime date = NULL) {
+    if (!date) {
+        date = TimeGMT();
+    }
+
+    const int year = TimeYear(date);
+
+    const datetime lastSundayOfMarch = findDayOfWeekOccurrenceInMonth(year, MARCH, SUNDAY, -1);
+    const datetime lastSundayOfOctober = findDayOfWeekOccurrenceInMonth(year, OCTOBER, SUNDAY, -1);
+
+    if (date > lastSundayOfMarch && date < lastSundayOfOctober) {
+        return 1;
+    }
+
+    return 0;
+}
+
+int MarketTime::getDaylightSavingCorrectionUSA(datetime date = NULL) {
+    if (!date) {
+        date = TimeGMT();
+    }
+
+    const int year = TimeYear(date);
+
+    const datetime secondSundayOfMarch = findDayOfWeekOccurrenceInMonth(year, MARCH, SUNDAY, 2);
+    const datetime firstSundayOfNovember = findDayOfWeekOccurrenceInMonth(year, NOVEMBER, SUNDAY, 1);
+
+    if (date > secondSundayOfMarch && date < firstSundayOfNovember) {
+        return 1;
+    }
+
+    return 0;
+}
+
+/**
+ * Considerata la possibilita di usare anche -1 e -2 bisogna spiegare bene e mettere constraints su occurrence
+ */
+datetime MarketTime::findDayOfWeekOccurrenceInMonth(int year, int month, int dayOfWeek, int occurrence) {
+    const int daysInMonth = getDaysInMonth(month);
+
+    if (daysInMonth < 0 || occurrence == 0) {
+        return ThrowException(-1, __FUNCTION__, StringConcatenate("Could not get days in month:",
+            month, " with occurrence: ", occurrence));
+    }
+
+    int startDay, endDay;
+
+    if (occurrence > 0) {
+        startDay = MathMin(1 + 7 * (occurrence - 1), daysInMonth - 7);
+        endDay = MathMin(7 * occurrence, daysInMonth);
+    } else if(occurrence < 0) {
+        startDay = MathMax(1 + daysInMonth + 7 * occurrence, 1);
+        endDay = MathMax(daysInMonth + 7 * (occurrence + 1), 7);
+    }
+
+    for (int day = startDay; day <= endDay; day++) {
+        const datetime date = StringToTime(StringConcatenate(year, ".", month, ".", day, " 01:00:00"));
+
+        if (TimeDayOfWeek(date) == dayOfWeek) {
+            return date;
+        }
+    }
+
+    return ThrowException(-1, __FUNCTION__, StringConcatenate(
+        "findDayOfWeekOccurrenceInMonth, could not calculate date"));
+}
+
+int MarketTime::getDaysInMonth(int month) {
+    if (month == JANUARY) {
+        return 31;
+    }
+    if (month == FEBRUARY) {
+        return isLeapYear() ? 29 : 28;
+    }
+    if (month == MARCH) {
+        return 31;
+    }
+    if (month == APRIL) {
+        return 30;
+    }
+    if (month == MAY) {
+        return 31;
+    }
+    if (month == JUNE) {
+        return 30;
+    }
+    if (month == JULY) {
+        return 31;
+    }
+    if (month == AUGUST) {
+        return 31;
+    }
+    if (month == SEPTEMBER) {
+        return 30;
+    }
+    if (month == OCTOBER) {
+        return 31;
+    }
+    if (month == NOVEMBER) {
+        return 30;
+    }
+    if (month == DECEMBER) {
+        return 31;
+    }
+
+    return ThrowException(-1, __FUNCTION__, StringConcatenate("Could not calculate days in month: ", month));
+}
+
+bool MarketTime::isLeapYear(int year = NULL) {
+    if (!year) {
+        year = Year();
+    }
+
+    bool leapYearCondition = (year % 4 == 0) && (year % 100 != 0 || year % 400 == 0);
+    return leapYearCondition ? true : false;
+}

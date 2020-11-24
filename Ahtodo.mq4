@@ -3,13 +3,12 @@
 #property description "Enrico Albano's automated bot for Ahtodo"
 
 #include "src/drawer/Drawer.mqh"
-#include "src/market/Market.mqh"
 #include "tst/UnitTestsRunner.mqh"
-
-input double PercentRisk = NULL; // getPercentRisk: if !PercentRisk -> get from list of account owners
 
 
 void OnInit() {
+    STARTUP_TIME = TimeLocal();
+
     RefreshRates();
     Sleep(1000);
 
@@ -18,9 +17,6 @@ void OnInit() {
 
     // Market opening stuff, check Ahtodo_mono for info
 
-    Market market;
-    market.startUpMarketValidation();
-
     Drawer drawer;
     drawer.setChartDefaultColors();
     drawer.drawEverything();
@@ -28,6 +24,7 @@ void OnInit() {
 }
 
 void OnTick() {
+    RefreshRates();
     Sleep(1000);
 
     Drawer drawer;

@@ -1,6 +1,9 @@
 #property copyright "2020 Enrico Albano"
 #property link "https://www.linkedin.com/in/enryea123"
 
+input double PercentRisk = NULL; // getPercentRisk: if !PercentRisk -> get from list of account owners
+datetime STARTUP_TIME = NULL;
+
 const bool IS_DEBUG = false;
 
 const int MY_SCRIPT_ID = 2044000;
@@ -18,6 +21,7 @@ const int MARKET_OPEN_DAY = 1;
 const int MARKET_CLOSE_DAY = 5;
 
 const datetime BOT_EXPIRATION_DATE = (datetime) "2021-06-30";
+const int STARTUP_EXCEPTIONS_BUFFER_SECONDS = 10;
 
 const int CANDLES_VISIBLE_IN_GRAPH_2X = 940;
 const int PATTERN_MINIMUM_SIZE_PIPS = 7;
@@ -41,6 +45,11 @@ const int ALLOWED_PERIODS [] = {
     PERIOD_M30,
     PERIOD_H1,
     PERIOD_H4
+};
+
+const string ALLOWED_BROKERS [] = {
+    "KEY TO MARKETS NZ Limited",
+    "KEY TO MARKETS NZ LIMITED"
 };
 
 const string ALLOWED_SYMBOLS [] = {
@@ -88,7 +97,7 @@ bool SymbolExists(string symbol) {
         return true;
     }
 
-    return ThrowException(false, StringConcatenate("SymbolExists, uknown symbol: ", symbol));
+    return ThrowException(false, __FUNCTION__, StringConcatenate("SymbolExists, uknown symbol: ", symbol));
 }
 
 /*
@@ -114,7 +123,7 @@ double iExtreme(int timeIndex, Discriminator discriminator) {
         return iCandle(I_low, timeIndex);
     }
 
-    return ThrowException(-1, "iExtreme: could not get value");
+    return ThrowException(-1, __FUNCTION__, "iExtreme: could not get value");
 }
 
 enum CandleSeriesType {
@@ -131,14 +140,14 @@ double iCandle(CandleSeriesType candleSeriesType, int timeIndex) {
 
 double iCandle(CandleSeriesType candleSeriesType, string symbol, int period, int timeIndex) { // servono unit tests su iCandle
     if (!SymbolExists(symbol)) {
-        return ThrowException(-1, "iCandle: unknown symbol");
+        return ThrowException(-1, __FUNCTION__, "iCandle: unknown symbol");
     }
 
     if (timeIndex < 0) {
         if (candleSeriesType == I_time) {
             return TimeCurrent();
         }
-        return ThrowException(-1, "iCandle: timeIndex < 0");
+        return ThrowException(-1, __FUNCTION__, "iCandle: timeIndex < 0");
     }
 
     const int maxAttempts = 20;
@@ -179,7 +188,7 @@ double iCandle(CandleSeriesType candleSeriesType, string symbol, int period, int
         Sleep(500);
     }
 
-    return ThrowException(-1, "iCandle: could not get market data");
+    return ThrowException(-1, __FUNCTION__, "iCandle: could not get market data");
 }
 
 /*
@@ -235,28 +244,30 @@ double GetMarketVolatility() {
     return Volatility;
 }
 
-bool ThrowException(bool returnValue, string message) {
-    Print("ThrowException invoked with message: ", message);
+bool ThrowException(bool returnValue, string function, string message) {
+    ThrowException(function, message);
     return returnValue;
 }
 
-int ThrowException(int returnValue, string message) {
-    Print("ThrowException invoked with message: ", message);
+int ThrowException(int returnValue, string function, string message) {
+    ThrowException(function, message);
     return returnValue;
 }
 
-datetime ThrowException(datetime returnValue, string message) {
-    Print("ThrowException invoked with message: ", message);
+datetime ThrowException(datetime returnValue, string function, string message) {
+    ThrowException(function, message);
     return returnValue;
 }
 
-void ThrowException(string message) {
-    Print("ThrowException invoked with message: ", message);
+void ThrowException(string function, string message) {
+    if (TimeLocal() < STARTUP_TIME + STARTUP_EXCEPTIONS_BUFFER_SECONDS) {
+        Print(function, " | ThrowException invoked with message: ", message);
+    } else {
+        Alert(function, " | ThrowException invoked with message: ", message);
+    }
 }
 
-int ThrowFatalException(string message) {
-    Alert("ThrowFatalException invoked with message: ", message);
-
+void ThrowFatalException(string function, string message) {
+    Alert(function, " | ThrowFatalException invoked with message: ", message);
     ExpertRemove();
-    return -1;
 }

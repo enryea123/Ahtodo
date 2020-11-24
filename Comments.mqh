@@ -108,3 +108,7 @@
 // stampare tutti i log con stringa DEBUG invece che non stamparli? o non stamparli ma aggiungere comunque DEBUG
 
 // check timezone of drawOpenMarketLines()
+
+// const function arguments when they don't have to change
+
+// Ora che le exception fanno alert, si possono mettere in ancora piu punti per verificare il codice

@@ -17,7 +17,7 @@ class UnitTestsRunner {
 };
 
 void UnitTestsRunner::runAllUnitTests() {
-    int startTime = TimeLocal(); // TimeCurrent is the Broker's time
+    int startTime = TimeLocal();
 
     ArrowStyleTest arrowStyleTest;
     arrowStyleTest.drawExtremeArrowTest();
@@ -30,6 +30,7 @@ void UnitTestsRunner::runAllUnitTests() {
     marketTest.isAllowedAccountNumberTest();
     marketTest.isAllowedExecutionDateTest();
     marketTest.isAllowedPeriodTest();
+    marketTest.isAllowedBrokerTest();
     marketTest.isAllowedSymbolTest();
     marketTest.isAllowedSymbolPeriodComboTest();
     marketTest.isDemoTradingTest();
