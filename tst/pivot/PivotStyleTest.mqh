@@ -8,7 +8,6 @@
 class PivotStyleTest {
     public:
         PivotStyleTest();
-        ~PivotStyleTest();
 
         void pivotStyleBaseTest();
         void pivotRSLabelColorTest();
@@ -23,8 +22,6 @@ PivotStyleTest::PivotStyleTest():
     pivotStyleD1_(D1),
     pivotStyleW1_(W1) {
 }
-
-PivotStyleTest::~PivotStyleTest() {}
 
 void PivotStyleTest::pivotStyleBaseTest() {
     UnitTest unitTest("pivotStyleBaseTest");
@@ -68,7 +65,7 @@ void PivotStyleTest::pivotRSLabelNameTest() {
     UnitTest unitTest("pivotRSLabelNameTest");
 
     unitTest.assertEquals(
-        "S1-PivotLabel-D1",
+        "PivotLabelRS_S1_D1",
         pivotStyleD1_.pivotRSLabelName(S1)
     );
 }

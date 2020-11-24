@@ -13,15 +13,8 @@
 
 class UnitTestsRunner {
     public:
-        UnitTestsRunner();
-        ~UnitTestsRunner();
-
         void runAllUnitTests();
 };
-
-UnitTestsRunner::UnitTestsRunner() {}
-
-UnitTestsRunner::~UnitTestsRunner() {}
 
 void UnitTestsRunner::runAllUnitTests() {
     int startTime = TimeLocal(); // TimeCurrent is the Broker's time

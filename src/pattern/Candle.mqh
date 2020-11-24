@@ -6,9 +6,6 @@
 
 class Candle {
     public:
-        Candle();
-        ~Candle();
-
         bool doji(int);
         bool slimDoji(int);
         bool downPinbar(int);
@@ -27,10 +24,6 @@ class Candle {
         double candleBodyMin(int);
         double candleBodyMax(int);
 };
-
-Candle::Candle() {}
-
-Candle::~Candle() {}
 
 bool Candle::doji(int timeIndex) {
     if (candleBody(timeIndex) < 3 * ErrorPips() &&

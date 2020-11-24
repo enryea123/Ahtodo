@@ -6,19 +6,16 @@
 
 class Holiday {
     public:
-        Holiday();
-        ~Holiday();
+        bool isMajorBankHoliday();
+        bool isMinorBankHoliday();
 
+    protected:
         bool isMajorBankHoliday(datetime);
         bool isMinorBankHoliday(datetime);
 
     private:
         int easterDayOfYear(int);
 };
-
-Holiday::Holiday() {}
-
-Holiday::~Holiday() {}
 
 int Holiday::easterDayOfYear(int year) {
     if (year == 2020) {
@@ -46,7 +43,15 @@ int Holiday::easterDayOfYear(int year) {
     return -1;
 }
 
-bool Holiday::isMajorBankHoliday(datetime inputDate = NULL) {
+bool Holiday::isMajorBankHoliday() {
+    return isMajorBankHoliday(TimeGMT());
+}
+
+bool Holiday::isMinorBankHoliday() {
+    return isMinorBankHoliday(TimeGMT());
+}
+
+bool Holiday::isMajorBankHoliday(datetime inputDate) {
     if (!inputDate) {
         inputDate = TimeGMT();
     }
@@ -168,7 +173,7 @@ bool Holiday::isMajorBankHoliday(datetime inputDate = NULL) {
     return false;
 }
 
-bool Holiday::isMinorBankHoliday(datetime inputDate = NULL) {
+bool Holiday::isMinorBankHoliday(datetime inputDate) {
     if (!inputDate) {
         inputDate = TimeGMT();
     }

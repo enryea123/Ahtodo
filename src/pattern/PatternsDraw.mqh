@@ -8,29 +8,23 @@
 
 class PatternsDraw {
     public:
-        PatternsDraw();
-        ~PatternsDraw();
-
         void drawAllPatterns();
 
     private:
         Pattern pattern_;
-        const int numberOfCandlesForPatternsDraw_;
+        static const int numberOfCandlesForPatternsDraw_;
+        static const string patternNamePrefix_;
 
         void drawAllColoredDots(int);
         void drawCandleColoredDot(int, string, color, double);
         void drawPatternRectangle(int, int, color);
 };
 
-PatternsDraw::PatternsDraw():
-    pattern_(),
-    numberOfCandlesForPatternsDraw_(200) {
-}
-
-PatternsDraw::~PatternsDraw() {}
+const int PatternsDraw::numberOfCandlesForPatternsDraw_ = 200;
+const string PatternsDraw::patternNamePrefix_ = "Pattern";
 
 void PatternsDraw::drawCandleColoredDot(int timeIndex, string namePrefix, color inputColor, double shift) {
-    const string colouredDotName = StringConcatenate(namePrefix, "_", timeIndex);
+    const string colouredDotName = StringConcatenate(namePrefix, NAME_SEPARATOR, timeIndex);
 
     ObjectCreate(
         colouredDotName,
@@ -54,7 +48,8 @@ void PatternsDraw::drawPatternRectangle(int timeIndex, int patternLength, color 
         }
     }
 
-    const string patternName = StringConcatenate("Pattern_", timeIndex, "_", patternLength, "_", patternColor);
+    const string patternName = StringConcatenate(patternNamePrefix_, NAME_SEPARATOR, timeIndex,
+        NAME_SEPARATOR, patternLength, NAME_SEPARATOR, patternColor);
 
     ObjectCreate(
         patternName,

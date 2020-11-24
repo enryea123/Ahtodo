@@ -7,20 +7,11 @@
 
 class PatternTest {
     public:
-        PatternTest();
-        ~PatternTest();
-
         void isPatternTest();
 
     private:
         Pattern pattern_;
 };
-
-PatternTest::PatternTest():
-    pattern_() {
-}
-
-PatternTest::~PatternTest() {}
 
 void PatternTest::isPatternTest() {
     UnitTest unitTest("isPatternTest");

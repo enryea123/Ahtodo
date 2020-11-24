@@ -4,37 +4,28 @@
 #include "../../Constants.mqh"
 #include "ArrowStyle.mqh"
 
+
 class ExtremesDraw {
     public:
-        ExtremesDraw();
-        ~ExtremesDraw();
-
         void drawExtremes(int & [], Discriminator);
 
     private:
         ArrowStyle arrowStyle_;
-        const int minimumCandlesBetweenExtremes_;
-        const int smallestAllowedExtremeIndex_;
-        const int totalCandles_;
+        static const int minimumCandlesBetweenExtremes_;
+        static const int smallestAllowedExtremeIndex_;
 
         void calculateAllExtremes(int & [], Discriminator);
         void calculateValidExtremes(int & [], Discriminator);
 };
 
-ExtremesDraw::ExtremesDraw():
-    arrowStyle_(),
-    minimumCandlesBetweenExtremes_(1),
-    smallestAllowedExtremeIndex_(4),
-    totalCandles_(CANDLES_VISIBLE_IN_GRAPH_2X) {
-}
-
-ExtremesDraw::~ExtremesDraw() {}
+const int ExtremesDraw::minimumCandlesBetweenExtremes_ = 1;
+const int ExtremesDraw::smallestAllowedExtremeIndex_ = 4;
 
 void ExtremesDraw::calculateAllExtremes(int & allExtremes[], Discriminator discriminator) {
     int numberOfExtremes = 0;
-    ArrayResize(allExtremes, totalCandles_);
+    ArrayResize(allExtremes, CANDLES_VISIBLE_IN_GRAPH_2X);
 
-    for (int i = smallestAllowedExtremeIndex_; i < totalCandles_; i++) {
+    for (int i = smallestAllowedExtremeIndex_; i < CANDLES_VISIBLE_IN_GRAPH_2X; i++) {
         bool isBeatingNeighbours = true;
 
         for (int j = -minimumCandlesBetweenExtremes_; j < minimumCandlesBetweenExtremes_ + 1; j++) {
@@ -64,7 +55,7 @@ void ExtremesDraw::calculateValidExtremes(int & validExtremes[], Discriminator d
     calculateAllExtremes(allExtremes, discriminator);
 
     int numberOfValidExtremes = 0;
-    ArrayResize(validExtremes, MathRound(totalCandles_ / (minimumCandlesBetweenExtremes_ + 1)));
+    ArrayResize(validExtremes, MathRound(CANDLES_VISIBLE_IN_GRAPH_2X / (minimumCandlesBetweenExtremes_ + 1)));
 
     for (int i = ArraySize(allExtremes) - 1; i >= 0; i--) {
         bool isValidExtreme = true;

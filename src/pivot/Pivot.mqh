@@ -22,21 +22,12 @@ enum PivotRS {
 
 class Pivot {
     public:
-        Pivot();
-        ~Pivot();
-
         double getPivot(string, PivotPeriod, int);
         double getPivotRS(string, PivotPeriod, PivotRS);
 
     private:
         Market market_;
 };
-
-Pivot::Pivot():
-    market_() {
-}
-
-Pivot::~Pivot() {}
 
 double Pivot::getPivot(string symbol, PivotPeriod pivotPeriod, int timeIndex) {
     if (!market_.isAllowedSymbol(symbol)) {

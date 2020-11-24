@@ -2,45 +2,13 @@
 #property link "https://www.linkedin.com/in/enryea123"
 
 #include "../../Constants.mqh"
-
-const int ALLOWED_DEMO_ACCOUNT_NUMBERS [] = {
-    2100219063, // Enrico
-    2100220672, // Enrico
-    2100225710, // Eugenio
-    2100222405 // Tanya
-};
-
-const int ALLOWED_LIVE_ACCOUNT_NUMBERS [] = {
-    2100183900, // Enrico
-    2100175255, // Eugenio
-    2100186686 // Tanya
-};
-
-const int ALLOWED_PERIODS [] = {
-    PERIOD_M30,
-    PERIOD_H1,
-    PERIOD_H4
-};
-
-const string ALLOWED_SYMBOLS [] = {
-    "EURJPY",
-    "EURUSD",
-    "GBPCHF",
-    "GBPJPY",
-    "GBPUSD",
-};
-
-const string RESTRICTED_SYMBOL_FAMILIES_H4 [] = {
-    "JPY"
-};
+#include "MarketTime.mqh"
 
 
 class Market {
     public:
         Market();
-        ~Market();
 
-// variabili sopra da spostare nel file comune? Vedro dopo
 // classe molto lunga. va splittata? decidi dopo che sarà finita, mancano varie funzioni
 // alcune protected?, probabilmente posso mettere il default degli argomenti con parametri private
         bool isAllowedAccountNumber(int);
@@ -49,7 +17,6 @@ class Market {
         bool isAllowedSymbol(string);
         bool isAllowedSymbolPeriodCombo(string, int);
 
-        bool isDemoTrading();
         bool isDemoTrading(int);
         void forceIsLiveAccount();
         void resetAccountTypeOverride();
@@ -57,16 +24,12 @@ class Market {
         void startUpMarketValidation();
 
     private:
-        const int accountNumber_;
         bool forceIsLiveAccount_;
 };
 
 Market::Market():
-    forceIsLiveAccount_(false),
-    accountNumber_(AccountNumber()) {
+    forceIsLiveAccount_(false) {
 }
-
-Market::~Market() {}
 
 bool Market::isAllowedAccountNumber(int accountNumber) {
     for (int i = 0; i < ArraySize(ALLOWED_DEMO_ACCOUNT_NUMBERS); i++) {
@@ -133,11 +96,11 @@ bool Market::isAllowedSymbolPeriodCombo(string symbol, int period) {
     return true;
 }
 
-bool Market::isDemoTrading() {
-    return isDemoTrading(accountNumber_);
-}
+bool Market::isDemoTrading(int accountNumber = NULL) {
+    if (!accountNumber) {
+        accountNumber = AccountNumber();
+    }
 
-bool Market::isDemoTrading(int accountNumber) {
     if (forceIsLiveAccount_) {
         return false;
     }
@@ -160,11 +123,13 @@ void Market::resetAccountTypeOverride() {
 }
 
 void Market::startUpMarketValidation() { // controllo ad ogni tick. variabile startUpTime_?
-    if (isAllowedAccountNumber(accountNumber_) &&
-        isAllowedExecutionDate(TimeCurrent()) &&
-        isAllowedPeriod(CURRENT_PERIOD) &&
-        isAllowedSymbol(CURRENT_SYMBOL) &&
-        isAllowedSymbolPeriodCombo(CURRENT_SYMBOL, CURRENT_PERIOD)) {
+    MarketTime marketTime_;
+
+    if (isAllowedAccountNumber(AccountNumber()) &&
+        isAllowedExecutionDate(marketTime_.timeItaly()) &&
+        isAllowedPeriod(Period()) && // argomenti non tutti necessari, fare revisione completa di dove servono e dove si puo fare l'overloaded protected ecc
+        isAllowedSymbol(Symbol()) &&
+        isAllowedSymbolPeriodCombo(Symbol(), Period())) {
         return;
     }
 

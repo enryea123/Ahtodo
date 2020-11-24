@@ -7,9 +7,6 @@
 
 class Pattern: public Candle {
     public:
-        Pattern();
-        ~Pattern();
-
         bool isBuyPattern(int);
         bool isSellPattern(int);
         bool isAntiPattern(int);
@@ -26,97 +23,62 @@ class Pattern: public Candle {
         bool isPatternSizeGood(int);
 
     private:
-        const int antiPatternMinSizeSumPips_;
+        static const int antiPatternMinSizeSumPips_;
 
         bool pattern1(int, Discriminator);
         bool pattern3(int, Discriminator);
 };
 
-Pattern::Pattern():
-    antiPatternMinSizeSumPips_(50) {
-}
+const int Pattern::antiPatternMinSizeSumPips_ = 50;
 
-Pattern::~Pattern() {}
 
 /**
  * Low doji followed by big bull bar
  */
 bool Pattern::sellPattern1(int timeIndex) {
-    if (pattern1(timeIndex, Min)) {
-        return true;
-    }
-
-    return false;
+    return pattern1(timeIndex, Min) ? true : false;
 }
 
 /**
  * High doji followed by big bear bar
  */
 bool Pattern::buyPattern1(int timeIndex) {
-    if (pattern1(timeIndex, Max)) {
-        return true;
-    }
-
-    return false;
+    return pattern1(timeIndex, Max) ? true : false;
 }
 
 /**
  * Down pinbar
  */
 bool Pattern::sellPattern2(int timeIndex) {
-    if (!downPinbar(timeIndex)) {
-        return false;
-    }
-
-    return true;
+    return downPinbar(timeIndex) ? true : false;
 }
 
 /**
  * Up pinbar
  */
 bool Pattern::buyPattern2(int timeIndex) {
-    if (!upPinbar(timeIndex)) {
-        return false;
-    }
-
-    return true;
+    return upPinbar(timeIndex) ? true : false;
 }
 
 /**
  * High doji followed by big bear bar and then big bull bar
  */
 bool Pattern::sellPattern3(int timeIndex) {
-    if (pattern3(timeIndex, Min)) {
-        return true;
-    }
-
-    return false;
+    return pattern3(timeIndex, Min) ? true : false;
 }
 
 /**
  * Low doji followed by big bull bar and then big bear bar
  */
 bool Pattern::buyPattern3(int timeIndex) {
-    if (pattern3(timeIndex, Max)) {
-        return true;
-    }
-
-    return false;
+    return pattern3(timeIndex, Max) ? true : false;
 }
 
 /**
  * slimDoji, only for H4
  */
 bool Pattern::sellBuyPattern4(int timeIndex) {
-    if (!slimDoji(timeIndex)) {
-        return false;
-    }
-
-    if (CURRENT_PERIOD != PERIOD_H4) {
-        return false;
-    }
-
-    return true;
+    return (slimDoji(timeIndex) && Period() == PERIOD_H4) ? true : false;
 }
 
 /**

@@ -1,10 +1,12 @@
 #property copyright "2020 Enrico Albano"
 #property link "https://www.linkedin.com/in/enryea123"
 
-#define MY_SCRIPT_ID 2044000
-#define MY_SCRIPT_ID_030 2044030
-#define MY_SCRIPT_ID_060 2044060
-#define MY_SCRIPT_ID_240 2044240
+const bool IS_DEBUG = false;
+
+const int MY_SCRIPT_ID = 2044000;
+const int MY_SCRIPT_ID_030 = 2044030;
+const int MY_SCRIPT_ID_060 = 2044060;
+const int MY_SCRIPT_ID_240 = 2044240;
 
 // TimeZone Milano
 const int MARKET_OPEN_HOUR = 9;
@@ -15,37 +17,55 @@ const int MARKET_CLOSE_HOUR_PENDING = 16;
 const int MARKET_OPEN_DAY = 1;
 const int MARKET_CLOSE_DAY = 5;
 
-
-
-
-// queste 2 non sono const, forse vanno da un'altra parte. O magari non devono essere variabili ma funzioni
-int CURRENT_PERIOD = NULL;
-string CURRENT_SYMBOL = NULL;
-
-// mettere TUTTE le costanti qui
-// forse rinominare il file a Config.mqh o Variables.Mqh
-
-const int PATTERN_MINIMUM_SIZE_PIPS = 7;
-const int PATTERN_MAXIMUM_SIZE_PIPS = 22;
-
-const int TRENDLINE_MIN_EXTREMES_DISTANCE = 3;
-const double TRENDLINE_NEGATIVE_SLOPE_VOLATILITY = 0.0038;
-const double TRENDLINE_POSITIVE_SLOPE_VOLATILITY = 0.0024;
-
 const datetime BOT_EXPIRATION_DATE = (datetime) "2021-06-30";
 
 const int CANDLES_VISIBLE_IN_GRAPH_2X = 940;
-const bool IS_DEBUG = false;
+const int PATTERN_MINIMUM_SIZE_PIPS = 7;
+const int PATTERN_MAXIMUM_SIZE_PIPS = 22;
+const string NAME_SEPARATOR = "_";
+
+const int ALLOWED_DEMO_ACCOUNT_NUMBERS [] = {
+    2100219063, // Enrico
+    2100220672, // Enrico
+    2100225710, // Eugenio
+    2100222405 // Tanya
+};
+
+const int ALLOWED_LIVE_ACCOUNT_NUMBERS [] = {
+    2100183900, // Enrico
+    2100175255, // Eugenio
+    2100186686 // Tanya
+};
+
+const int ALLOWED_PERIODS [] = {
+    PERIOD_M30,
+    PERIOD_H1,
+    PERIOD_H4
+};
+
+const string ALLOWED_SYMBOLS [] = {
+    "EURJPY",
+    "EURUSD",
+    "GBPCHF",
+    "GBPJPY",
+    "GBPUSD",
+};
+
+const string RESTRICTED_SYMBOL_FAMILIES_H4 [] = {
+    "JPY"
+};
+
 
 /*
-input double PercentRisk = 1.0;
-
 const bool SelectedOrder;
 const int PreviousOrderTicket;
 const int OrderCandlesDuration = 6;
 const bool PositionSplit = true;
 const double BaseTakeProfitFactor = 3.0;
 */
+
+
+// Sotto ci sono funzioni da migrare in classi o in file util
 
 bool IsPeriodAllowed(int i) {
     return true;
@@ -106,7 +126,7 @@ enum CandleSeriesType {
 };
 
 double iCandle(CandleSeriesType candleSeriesType, int timeIndex) {
-    return iCandle(candleSeriesType, CURRENT_SYMBOL, CURRENT_PERIOD, timeIndex);
+    return iCandle(candleSeriesType, Symbol(), Period(), timeIndex);
 }
 
 double iCandle(CandleSeriesType candleSeriesType, string symbol, int period, int timeIndex) { // servono unit tests su iCandle
@@ -195,7 +215,7 @@ double ErrorPips() {
 }
 
 int PeriodMultiplicationFactor() {
-    if (CURRENT_PERIOD == PERIOD_H4) {
+    if (Period() == PERIOD_H4) {
         return 2;
     }
 
@@ -239,18 +259,4 @@ int ThrowFatalException(string message) {
 
     ExpertRemove();
     return -1;
-}
-
-int MarketOpenHour(){ // delete and use the ones in MarketTime
-    if(CURRENT_PERIOD == PERIOD_H4)
-        return MARKET_OPEN_HOUR_H4;
-
-    return MARKET_OPEN_HOUR;
-}
-
-int MarketCloseHour(){
-    if(CURRENT_PERIOD == PERIOD_H4)
-        return MARKET_CLOSE_HOUR_H4;
-
-    return MARKET_CLOSE_HOUR;
 }

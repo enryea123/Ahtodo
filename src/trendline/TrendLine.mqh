@@ -6,9 +6,6 @@
 
 class TrendLine {
     public:
-        TrendLine();
-        ~TrendLine();
-
         bool areTrendLineSetupsGood(int, int, Discriminator);
         bool isExistingTrendLineBad(string, Discriminator);
         bool isBadTrendLineFromName(string);
@@ -18,50 +15,41 @@ class TrendLine {
         string buildTrendLineName(int, int, int, Discriminator);
         string buildBadTrendLineName(int, int, int, Discriminator);
 
+        static const int trendLineMinExtremesDistance_;
+        static const double trendLineNegativeSlopeVolatility_;
+        static const double trendLinePositiveSlopeVolatility_;
+
     private:
-        const int trendLineMinCandlesLength_;
-        const int trendLineMinExtremesDistance_;
-        const int trendLineNameFirstIndexPosition_;
-        const int trendLineNameSecondIndexPosition_;
-
-        const double negativeSlopeVolatility_;
-        const double pipsFromPriceTrendLineThreshold_;
-        const double positiveSlopeVolatility_;
-        const double trendLineBalanceRatioThreshold_;
-
-        const string trendLineNamePrefix_;
-        const string badTrendLineNameSuffix_;
-
-        const string trendLineNameBeamIdentifier_;
-        const string trendLineNameFirstIndexIdentifier_;
-        const string trendLineNameSecondIndexIdentifier_;
-        const string trendLineNameSeparator_;
+        static const int trendLineMinCandlesLength_;
+        static const int trendLineNameFirstIndexPosition_;
+        static const int trendLineNameSecondIndexPosition_;
+        static const double trendLinePipsFromPriceThreshold_;
+        static const double trendLineBalanceRatioThreshold_;
+        static const string trendLineNamePrefix_;
+        static const string trendLineBadNameSuffix_;
+        static const string trendLineNameBeamIdentifier_;
+        static const string trendLineNameFirstIndexIdentifier_;
+        static const string trendLineNameSecondIndexIdentifier_;
+        static const string trendLineNameSeparator_;
 
         int getTrendLineIndex(string, string);
         double getMaxTrendLineSlope(double);
 };
 
-TrendLine::TrendLine():
-    trendLineMinCandlesLength_(10),
-    trendLineMinExtremesDistance_(TRENDLINE_MIN_EXTREMES_DISTANCE),
-    trendLineNameFirstIndexPosition_(1),
-    trendLineNameSecondIndexPosition_(2),
-
-    negativeSlopeVolatility_(TRENDLINE_NEGATIVE_SLOPE_VOLATILITY),
-    positiveSlopeVolatility_(TRENDLINE_POSITIVE_SLOPE_VOLATILITY),
-    pipsFromPriceTrendLineThreshold_(PATTERN_MINIMUM_SIZE_PIPS + PATTERN_MAXIMUM_SIZE_PIPS),
-    trendLineBalanceRatioThreshold_(0.92),
-
-    trendLineNamePrefix_("TrendLine"),
-    badTrendLineNameSuffix_("Bad"),
-
-    trendLineNameBeamIdentifier_("b"),
-    trendLineNameFirstIndexIdentifier_("i"),
-    trendLineNameSecondIndexIdentifier_("j"),
-    trendLineNameSeparator_("_") {
-}
-
-TrendLine::~TrendLine() {}
+const int TrendLine::trendLineMinCandlesLength_ = 10;
+const int TrendLine::trendLineMinExtremesDistance_ = 3;
+const int TrendLine::trendLineNameFirstIndexPosition_ = 1;
+const int TrendLine::trendLineNameSecondIndexPosition_ = 2;
+const double TrendLine::trendLineNegativeSlopeVolatility_ = 0.0038;
+const double TrendLine::trendLinePositiveSlopeVolatility_ = 0.0024;
+const double TrendLine::trendLinePipsFromPriceThreshold_ = PATTERN_MINIMUM_SIZE_PIPS + PATTERN_MAXIMUM_SIZE_PIPS;
+const double TrendLine::trendLineBalanceRatioThreshold_ = 0.92;
+const string TrendLine::trendLineNamePrefix_ = "TrendLine";
+const string TrendLine::trendLineBadNameSuffix_ = "Bad";
+const string TrendLine::trendLineNameBeamIdentifier_ = "b";
+const string TrendLine::trendLineNameFirstIndexIdentifier_ = "i";
+const string TrendLine::trendLineNameSecondIndexIdentifier_ = "j";
+const string TrendLine::trendLineNameSeparator_ = NAME_SEPARATOR;
 
 bool TrendLine::areTrendLineSetupsGood(int indexI, int indexJ, Discriminator discriminator) {
     if (indexI < indexJ) {
@@ -130,7 +118,7 @@ bool TrendLine::isExistingTrendLineBad(string trendLineName, Discriminator discr
 
     // TrendLine far from current price
     if (!IS_DEBUG && MathAbs(ObjectGetValueByShift(trendLineName, 1) - iCandle(I_close, 1)) >
-        pipsFromPriceTrendLineThreshold_ * PeriodMultiplicationFactor() * Pips()) {
+        trendLinePipsFromPriceThreshold_ * PeriodMultiplicationFactor() * Pips()) {
         return true;
     }
 
@@ -139,7 +127,7 @@ bool TrendLine::isExistingTrendLineBad(string trendLineName, Discriminator discr
 
 bool TrendLine::isBadTrendLineFromName(string trendLineName) {
     if (StringContains(trendLineName, trendLineNamePrefix_) &&
-        StringContains(trendLineName, badTrendLineNameSuffix_)) {
+        StringContains(trendLineName, trendLineBadNameSuffix_)) {
         return true;
     }
 
@@ -148,7 +136,7 @@ bool TrendLine::isBadTrendLineFromName(string trendLineName) {
 
 bool TrendLine::isTrendLineGoodForPendingOrder(string trendLineName, int timeIndex) {
     if (!StringContains(trendLineName, trendLineNamePrefix_) ||
-        StringContains(trendLineName, badTrendLineNameSuffix_)) {
+        StringContains(trendLineName, trendLineBadNameSuffix_)) {
         return false;
     }
 
@@ -199,7 +187,8 @@ int TrendLine::getTrendLineMinIndex(string trendLineName) {
 }
 
 double TrendLine::getMaxTrendLineSlope(double trendLineSlope) {
-    const double maxVolatilityPercentage = trendLineSlope > 0 ? positiveSlopeVolatility_ : negativeSlopeVolatility_;
+    const double maxVolatilityPercentage = trendLineSlope > 0 ?
+        trendLinePositiveSlopeVolatility_ : trendLineNegativeSlopeVolatility_;
     return MathAbs(maxVolatilityPercentage * GetMarketVolatility());
 }
 
@@ -213,5 +202,5 @@ string TrendLine::buildTrendLineName(int indexI, int indexJ, int beam, Discrimin
 
 string TrendLine::buildBadTrendLineName(int indexI, int indexJ, int beam, Discriminator discriminator) {
     return StringConcatenate(buildTrendLineName(indexI, indexJ, beam, discriminator),
-        trendLineNameSeparator_, badTrendLineNameSuffix_);
+        trendLineNameSeparator_, trendLineBadNameSuffix_);
 }

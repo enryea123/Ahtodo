@@ -6,22 +6,18 @@
 
 class MarketTime {
     public:
-        MarketTime();
-        ~MarketTime();
-
-        bool getDaylightSavingCorrectionGMT(datetime);
         bool isMarketOpened(datetime);
+        int getDaylightSavingCorrectionGMT(datetime);
         int getDaylightSavingCorrection();
         int marketOpenHour();
         int marketCloseHour();
-        int marketOpenHour();
-        int marketOpenHour();
+        //int mt4TerminalHoursShift(datetime);
+        datetime timeItaly();
+        datetime timeAtMidnight(datetime);
+
+    protected:
+        datetime getLastSundayOfMonth(int, int);
 };
-
-MarketTime::MarketTime() {}
-
-MarketTime::~MarketTime() {}
-
 
 // verifica come testare metodi protetti, non va bene dare la possibilita pubblica di usare parametri nel metodi dove non si dovrebbe. quindi va cambiato. ha senso testare ereditando?
 
@@ -54,7 +50,7 @@ int MarketTime::getDaylightSavingCorrectionGMT(datetime date = NULL) {
 
 datetime MarketTime::getLastSundayOfMonth(int year, int month) {
     if (month != 3 && month != 10) {
-        return ThrowException(-1, StringConcatenate("Cannot calculate last Sunday of month: ", month));
+        return ThrowException(-1, StringConcatenate("Unsupported month: ", month, " for last Sunday calculation"));
     }
 
     for (int day = 25; day < 32; day++) {
@@ -64,20 +60,26 @@ datetime MarketTime::getLastSundayOfMonth(int year, int month) {
             return date;
         }
     }
+
+    return ThrowException(-1, StringConcatenate("Could not calculate last Sunday of month: ", month));
 }
 
 datetime MarketTime::timeItaly() {
     return TimeGMT() + 3600 * (1 + getDaylightSavingCorrectionGMT());
 }
 
+//datetime MarketTime::timeMetatrader() {
+//    return TimeGMT() + 3600 * (1 + getDaylightSavingCorrectionGMT());
+//}
+
 int MarketTime::marketOpenHour() {
-    const int baseMarketOpenHour = CURRENT_PERIOD != PERIOD_H4 ? MARKET_OPEN_HOUR : MARKET_OPEN_HOUR_H4;
+    const int baseMarketOpenHour = Period() != PERIOD_H4 ? MARKET_OPEN_HOUR : MARKET_OPEN_HOUR_H4;
 
     return baseMarketOpenHour + getDaylightSavingCorrectionGMT();
 }
 
 int MarketTime::marketCloseHour() {
-    const int baseMarketCloseHour = CURRENT_PERIOD != PERIOD_H4 ? MARKET_CLOSE_HOUR : MARKET_CLOSE_HOUR_H4;
+    const int baseMarketCloseHour = Period() != PERIOD_H4 ? MARKET_CLOSE_HOUR : MARKET_CLOSE_HOUR_H4;
 
     return baseMarketCloseHour + getDaylightSavingCorrectionGMT();
 }
@@ -97,6 +99,17 @@ bool MarketTime::isMarketOpened(datetime date = NULL) {
 
     return false;
 }
+
+datetime MarketTime::timeAtMidnight(datetime date) {
+    return date - (date % (PERIOD_D1 * 60));
+}
+
+//int MarketTime::mt4TerminalHoursShift(datetime date) {
+//    return MathRound(MathAbs(date - TimeCurrent()) / 3600); // non funziona nei weekend, fare timezone novembre
+//}
+
+// mettere allowed broker "KEY TO MARKETS NZ LIMITED" con validations e orario di questo broker in drawer e markettime (check broker anche quando calcoli l'ora)
+
 
 // https://www.timeanddate.com/time/zone/uk/london
 // Bisogna testare questa classe, eri arrivato qui

@@ -7,9 +7,6 @@
 
 class MarketTest {
     public:
-        MarketTest();
-        ~MarketTest();
-
         void isAllowedAccountNumberTest();
         void isAllowedExecutionDateTest();
         void isAllowedPeriodTest();
@@ -20,12 +17,6 @@ class MarketTest {
     private:
         Market market_;
 };
-
-MarketTest::MarketTest():
-    market_() {
-}
-
-MarketTest::~MarketTest() {}
 
 void MarketTest::isAllowedAccountNumberTest() {
     UnitTest unitTest("isAllowedAccountNumberTest");
@@ -55,7 +46,7 @@ void MarketTest::isAllowedPeriodTest() {
     UnitTest unitTest("isAllowedPeriodTest");
 
     unitTest.assertTrue(
-        market_.isAllowedPeriod(CURRENT_PERIOD)
+        market_.isAllowedPeriod(Period())
     );
 
     unitTest.assertTrue(
@@ -71,7 +62,7 @@ void MarketTest::isAllowedSymbolTest() {
     UnitTest unitTest("isAllowedSymbolTest");
 
     unitTest.assertTrue(
-        market_.isAllowedSymbol(CURRENT_SYMBOL)
+        market_.isAllowedSymbol(Symbol())
     );
 
     unitTest.assertTrue(

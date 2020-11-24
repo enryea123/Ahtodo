@@ -2,6 +2,7 @@
 #property link "https://www.linkedin.com/in/enryea123"
 
 #include "../../Constants.mqh"
+#include "../market/MarketTime.mqh"
 #include "../pattern/PatternsDraw.mqh"
 #include "../pivot/PivotsDraw.mqh"
 #include "../trendline/TrendLinesDraw.mqh"
@@ -9,80 +10,88 @@
 
 class Drawer {
     public:
-        Drawer();
-        ~Drawer();
-
         void drawEverything();
         void setChartDefaultColors();
         void setChartMarketOpenColors();
         void setChartMarketClosedColors();
 
     private:
+        static const int drawOpenMarketLinesMaxDays_;
+        static const int openMarketLinesPipsShift_;
+        static const string lastDrawingTimePrefix_;
+        static const string openMarketLinePrefix_;
+
         bool drawLastDrawingTimeSignal();
         void drawOpenMarketLines();
 };
 
-Drawer::Drawer() {}
-
-Drawer::~Drawer() {}
+const int Drawer::drawOpenMarketLinesMaxDays_ = 40;
+const int Drawer::openMarketLinesPipsShift_ = 10;
+const string Drawer::lastDrawingTimePrefix_ = "LastDrawingTime";
+const string Drawer::openMarketLinePrefix_ = "OpenMarketLine";
 
 bool Drawer::drawLastDrawingTimeSignal() {
-    const string LastDrawingTimeSignal = StringConcatenate("LastDrawingTime_", Time[1]);
+    const string lastDrawingTimeSignal = StringConcatenate(lastDrawingTimePrefix_, NAME_SEPARATOR, Time[1]);
 
-    if (ObjectFind(LastDrawingTimeSignal) >= 0) {
+    if (ObjectFind(lastDrawingTimeSignal) >= 0) {
         return false;
     }
 
     ObjectsDeleteAll();
 
     ObjectCreate(
-        LastDrawingTimeSignal,
+        lastDrawingTimeSignal,
         OBJ_ARROW_UP,
         0,
         Time[1],
         iExtreme(1, Min) * 0.999
     );
 
-    ObjectSet(LastDrawingTimeSignal, OBJPROP_COLOR, clrForestGreen);
-    ObjectSet(LastDrawingTimeSignal, OBJPROP_ARROWCODE, 233);
-    ObjectSet(LastDrawingTimeSignal, OBJPROP_WIDTH, 4);
+    ObjectSet(lastDrawingTimeSignal, OBJPROP_COLOR, clrForestGreen);
+    ObjectSet(lastDrawingTimeSignal, OBJPROP_ARROWCODE, 233);
+    ObjectSet(lastDrawingTimeSignal, OBJPROP_WIDTH, 4);
 
     return true;
 }
 
 void Drawer::drawOpenMarketLines() {
-    const int maxDays = 40;
+    MarketTime marketTime_;
 
-    for (int day = 0; day < maxDays; day++) {
-        const datetime ThisDayStart = StrToTime(StringConcatenate(Year(), ".", Month(), ".", Day(),
-            " ", MarketOpenHour(), ":00")) - 86400 * day;
+    const datetime today = marketTime_.timeAtMidnight(marketTime_.timeItaly());
 
-        const datetime ThisDayEnd = StrToTime(StringConcatenate(Year(), ".", Month(), ".", Day(),
-            " ", MarketCloseHour() - 1, ":30")) - 86400 * day;
+    // devo creare una funzione che calcola lo shift
+    const int mt4HourShift = 1;
 
-        if (TimeDayOfWeek(ThisDayStart) >= (MARKET_CLOSE_DAY) ||
-            TimeDayOfWeek(ThisDayStart) < MARKET_OPEN_DAY) {
+    for (int day = 0; day < drawOpenMarketLinesMaxDays_; day++) {
+        const datetime thisDayStart = StringToTime(StringConcatenate(today, " ",
+            marketTime_.marketOpenHour() + mt4HourShift, ":00")) - 86400 * day;
+
+        const datetime thisDayEnd = StringToTime(StringConcatenate(today, " ",
+            marketTime_.marketCloseHour() + mt4HourShift, ":00")) - 86400 * day;
+
+        if (TimeDayOfWeek(thisDayStart) >= (MARKET_CLOSE_DAY) ||
+            TimeDayOfWeek(thisDayStart) < MARKET_OPEN_DAY) {
             continue;
         }
 
-        const string MarketOpenLineName = StringConcatenate("MarketOpenLine-", day);
+        const string openMarketLineName = StringConcatenate(openMarketLinePrefix_, NAME_SEPARATOR, day);
 
         ObjectCreate(
-            MarketOpenLineName,
+            openMarketLineName,
             OBJ_TREND,
             0,
-            ThisDayStart,
-            MathMin(iCandle(I_low, CURRENT_SYMBOL, PERIOD_MN1, 0),
-                iCandle(I_low, CURRENT_SYMBOL, PERIOD_MN1, 1)) - 10 * Pips(),
-            ThisDayEnd,
-            MathMin(iCandle(I_low, CURRENT_SYMBOL, PERIOD_MN1, 0),
-                iCandle(I_low, CURRENT_SYMBOL, PERIOD_MN1, 1)) - 10 * Pips()
+            thisDayStart,
+            MathMin(iCandle(I_low, Symbol(), PERIOD_MN1, 0),
+                iCandle(I_low, Symbol(), PERIOD_MN1, 1)) - openMarketLinesPipsShift_ * Pips(),
+            thisDayEnd,
+            MathMin(iCandle(I_low, Symbol(), PERIOD_MN1, 0),
+                iCandle(I_low, Symbol(), PERIOD_MN1, 1)) - openMarketLinesPipsShift_ * Pips()
         );
 
-        ObjectSet(MarketOpenLineName, OBJPROP_RAY_RIGHT, false);
-        ObjectSet(MarketOpenLineName, OBJPROP_COLOR, clrMediumSeaGreen);
-        ObjectSet(MarketOpenLineName, OBJPROP_WIDTH, 4);
-        ObjectSet(MarketOpenLineName, OBJPROP_BACK, true);
+        ObjectSet(openMarketLineName, OBJPROP_RAY_RIGHT, false);
+        ObjectSet(openMarketLineName, OBJPROP_COLOR, clrMediumSeaGreen);
+        ObjectSet(openMarketLineName, OBJPROP_WIDTH, 4);
+        ObjectSet(openMarketLineName, OBJPROP_BACK, true);
     }
 }
 

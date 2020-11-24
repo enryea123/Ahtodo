@@ -8,7 +8,6 @@
 class PivotStyle {
     public:
         PivotStyle(PivotPeriod);
-        ~PivotStyle();
 
         color pivotColor();
         color pivotRSLabelColor(PivotRS);
@@ -28,8 +27,6 @@ class PivotStyle {
 PivotStyle::PivotStyle(PivotPeriod pivotPeriod):
     pivotPeriod_(pivotPeriod) {
 }
-
-PivotStyle::~PivotStyle() {}
 
 color PivotStyle::pivotColor() {
     if (pivotPeriod_ == (PivotPeriod) PERIOD_D1) {
@@ -78,21 +75,25 @@ string PivotStyle::pivotLabelText() {
 }
 
 string PivotStyle::pivotLabelName() {
-    return StringConcatenate("PivotLabel-", EnumToString(pivotPeriod_));
+    return StringConcatenate("PivotLabel", NAME_SEPARATOR, EnumToString(pivotPeriod_));
 }
 
 string PivotStyle::horizontalPivotLineName(int timeIndex) {
-    return StringConcatenate("HorizontalPivotLine-", EnumToString(pivotPeriod_), "-", timeIndex);
+    return StringConcatenate("PivotLineHorizontal", NAME_SEPARATOR,
+        EnumToString(pivotPeriod_), NAME_SEPARATOR, timeIndex);
 }
 
 string PivotStyle::verticalPivotLineName(int timeIndex) {
-    return StringConcatenate("VerticalPivotLine-", EnumToString(pivotPeriod_), "-", timeIndex);
+    return StringConcatenate("PivotLineVertical", NAME_SEPARATOR,
+        EnumToString(pivotPeriod_), NAME_SEPARATOR, timeIndex);
 }
 
 string PivotStyle::pivotRSLabelName(PivotRS pivotRS) {
-    return StringConcatenate(EnumToString(pivotRS), "-PivotLabel-", EnumToString(pivotPeriod_));
+    return StringConcatenate("PivotLabelRS", NAME_SEPARATOR, EnumToString(pivotRS),
+        NAME_SEPARATOR, EnumToString(pivotPeriod_));
 }
 
 string PivotStyle::pivotRSLineName(PivotRS pivotRS) {
-    return StringConcatenate(EnumToString(pivotRS), "-PivotLine-", EnumToString(pivotPeriod_));
+    return StringConcatenate("PivotLineRS", NAME_SEPARATOR, EnumToString(pivotRS),
+        NAME_SEPARATOR, EnumToString(pivotPeriod_));
 }

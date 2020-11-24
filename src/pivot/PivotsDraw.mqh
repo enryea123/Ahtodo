@@ -8,17 +8,13 @@
 
 class PivotsDraw {
     public:
-        PivotsDraw();
-        ~PivotsDraw();
-
         void drawAllPivots();
 
     private:
         Pivot pivot_;
-
-        const int maxCandlesPivotLinesDraw_;
-        const int pivotLabelFontSize_;
-        const int pivotRSLineLength_;
+        static const int maxCandlesPivotLinesDraw_;
+        static const int pivotLabelFontSize_;
+        static const int pivotRSLineLength_;
 
         int getMaxTimeIndex(int);
         void drawPivotLabel(string, string, color, double);
@@ -29,18 +25,13 @@ class PivotsDraw {
         void drawPivotRS(PivotPeriod, PivotRS);
 };
 
-PivotsDraw::PivotsDraw():
-    pivot_(),
-    maxCandlesPivotLinesDraw_(100),
-    pivotLabelFontSize_(8),
-    pivotRSLineLength_(6) {
-}
-
-PivotsDraw::~PivotsDraw() {}
+const int PivotsDraw::maxCandlesPivotLinesDraw_ = 100;
+const int PivotsDraw::pivotLabelFontSize_ = 8;
+const int PivotsDraw::pivotRSLineLength_ = 6;
 
 int PivotsDraw::getMaxTimeIndex(int pivotPeriodFactor) {
     const int maxCandles = IS_DEBUG ? CANDLES_VISIBLE_IN_GRAPH_2X : maxCandlesPivotLinesDraw_;
-    return MathRound(1 + maxCandles * CURRENT_PERIOD / PERIOD_D1 / pivotPeriodFactor) + 1;
+    return MathRound(1 + maxCandles * Period() / PERIOD_D1 / pivotPeriodFactor) + 1;
 }
 
 void PivotsDraw::drawPivotLabel(string pivotLabelName, string pivotLabelText, color pivotColor, double x) {
@@ -66,26 +57,26 @@ void PivotsDraw::drawPivot(PivotPeriod pivotPeriod) {
         pivotStyle.pivotLabelName(),
         pivotStyle.pivotLabelText(),
         pivotStyle.pivotColor(),
-        pivot_.getPivot(CURRENT_SYMBOL, pivotPeriod, 0)
+        pivot_.getPivot(Symbol(), pivotPeriod, 0)
     );
 
     for (int timeIndex = 0; timeIndex < getMaxTimeIndex(pivotStyle.pivotPeriodFactor()); timeIndex++) {
         drawPivotLine(
             pivotStyle.horizontalPivotLineName(timeIndex),
             pivotStyle.pivotColor(),
-            iCandle(I_time, CURRENT_SYMBOL, pivotPeriod, timeIndex - 1),
-            iCandle(I_time, CURRENT_SYMBOL, pivotPeriod, timeIndex),
-            pivot_.getPivot(CURRENT_SYMBOL, pivotPeriod, timeIndex),
-            pivot_.getPivot(CURRENT_SYMBOL, pivotPeriod, timeIndex)
+            iCandle(I_time, Symbol(), pivotPeriod, timeIndex - 1),
+            iCandle(I_time, Symbol(), pivotPeriod, timeIndex),
+            pivot_.getPivot(Symbol(), pivotPeriod, timeIndex),
+            pivot_.getPivot(Symbol(), pivotPeriod, timeIndex)
         );
 
         drawPivotLine(
             pivotStyle.verticalPivotLineName(timeIndex),
             pivotStyle.pivotColor(),
-            iCandle(I_time, CURRENT_SYMBOL, pivotPeriod, timeIndex),
-            iCandle(I_time, CURRENT_SYMBOL, pivotPeriod, timeIndex),
-            pivot_.getPivot(CURRENT_SYMBOL, pivotPeriod, timeIndex),
-            pivot_.getPivot(CURRENT_SYMBOL, pivotPeriod, timeIndex + 1)
+            iCandle(I_time, Symbol(), pivotPeriod, timeIndex),
+            iCandle(I_time, Symbol(), pivotPeriod, timeIndex),
+            pivot_.getPivot(Symbol(), pivotPeriod, timeIndex),
+            pivot_.getPivot(Symbol(), pivotPeriod, timeIndex + 1)
         );
     }
 }
@@ -101,7 +92,7 @@ void PivotsDraw::drawPivotRS(PivotPeriod pivotPeriod, PivotRS pivotRS) {
         pivotStyle.pivotRSLabelName(pivotRS),
         EnumToString(pivotRS),
         pivotStyle.pivotRSLabelColor(pivotRS),
-        pivot_.getPivotRS(CURRENT_SYMBOL, pivotPeriod, pivotRS)
+        pivot_.getPivotRS(Symbol(), pivotPeriod, pivotRS)
     );
 
     drawPivotLine(
@@ -109,8 +100,8 @@ void PivotsDraw::drawPivotRS(PivotPeriod pivotPeriod, PivotRS pivotRS) {
         pivotStyle.pivotRSLabelColor(pivotRS),
         Time[0],
         Time[pivotRSLineLength_],
-        pivot_.getPivotRS(CURRENT_SYMBOL, pivotPeriod, pivotRS),
-        pivot_.getPivotRS(CURRENT_SYMBOL, pivotPeriod, pivotRS)
+        pivot_.getPivotRS(Symbol(), pivotPeriod, pivotRS),
+        pivot_.getPivotRS(Symbol(), pivotPeriod, pivotRS)
     );
 }
 
@@ -127,6 +118,6 @@ void PivotsDraw::drawAllPivots() {
     drawPivotRS(S3);
 
     if (IS_DEBUG) {
-        Print("PivotsDraw: pivot_.getPivot(", CURRENT_SYMBOL, ", D1, 0): ", pivot_.getPivot(CURRENT_SYMBOL, D1, 0));
+        Print("PivotsDraw: pivot_.getPivot(", Symbol(), ", D1, 0): ", pivot_.getPivot(Symbol(), D1, 0));
     }
 }

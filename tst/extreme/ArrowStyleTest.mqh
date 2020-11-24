@@ -7,20 +7,11 @@
 
 class ArrowStyleTest {
     public:
-        ArrowStyleTest();
-        ~ArrowStyleTest();
-
         void drawExtremeArrowTest();
 
     private:
         ArrowStyle arrowStyle_;
 };
-
-ArrowStyleTest::ArrowStyleTest():
-    arrowStyle_() {
-}
-
-ArrowStyleTest::~ArrowStyleTest() {}
 
 void ArrowStyleTest::drawExtremeArrowTest() {
     UnitTest unitTest("drawExtremeArrowTest");

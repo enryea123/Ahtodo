@@ -5,86 +5,87 @@
 #include "../../src/holiday/Holiday.mqh"
 
 
+/**
+ * This class exposes the protected methods of Holiday for testing 
+ */
+class HolidayExposed: public Holiday {
+    public:
+        bool _isMajorBankHoliday(datetime date) {return isMajorBankHoliday(date);};
+        bool _isMinorBankHoliday(datetime date) {return isMinorBankHoliday(date);};
+};
+
+
 class HolidayTest {
     public:
-        HolidayTest();
-        ~HolidayTest();
-
         void isMajorBankHolidayTest();
         void isMinorBankHolidayTest();
 
     private:
-        Holiday holiday_;
+        HolidayExposed holidayExposed_;
 };
-
-HolidayTest::HolidayTest():
-    holiday_() {
-}
-
-HolidayTest::~HolidayTest() {}
 
 void HolidayTest::isMajorBankHolidayTest() {
     UnitTest unitTest("isMajorBankHolidayTest");
 
     unitTest.assertTrue(
-        holiday_.isMajorBankHoliday((datetime) "2020-01-03")
+        holidayExposed_._isMajorBankHoliday((datetime) "2020-01-03")
     );
 
     unitTest.assertFalse(
-        holiday_.isMajorBankHoliday((datetime) "2020-03-01 07.18.01")
+        holidayExposed_._isMajorBankHoliday((datetime) "2020-03-01 07.18.01")
     );
 
     // Pasquetta
     unitTest.assertTrue(
-        holiday_.isMajorBankHoliday((datetime) "2020-04-13")
+        holidayExposed_._isMajorBankHoliday((datetime) "2020-04-13")
     );
 
     // Not Pasquetta
     unitTest.assertFalse(
-        holiday_.isMajorBankHoliday((datetime) "2021-04-13")
+        holidayExposed_._isMajorBankHoliday((datetime) "2021-04-13")
     );
 
     // Not Pasquetta
     unitTest.assertFalse(
-        holiday_.isMajorBankHoliday((datetime) "2020-04-05")
+        holidayExposed_._isMajorBankHoliday((datetime) "2020-04-05")
     );
 
     // Pasquetta
     unitTest.assertTrue(
-        holiday_.isMajorBankHoliday((datetime) "2021-04-05")
+        holidayExposed_._isMajorBankHoliday((datetime) "2021-04-05")
     );
 
     // Ascension
     unitTest.assertTrue(
-        holiday_.isMajorBankHoliday((datetime) "2021-05-13")
+        holidayExposed_._isMajorBankHoliday((datetime) "2021-05-13")
     );
 
     // Ascension
     unitTest.assertTrue(
-        holiday_.isMajorBankHoliday((datetime) "2025-05-29")
+        holidayExposed_._isMajorBankHoliday((datetime) "2025-05-29")
     );
 
     // Pentecoste
     unitTest.assertTrue(
-        holiday_.isMajorBankHoliday((datetime) "2023-05-28")
+        holidayExposed_._isMajorBankHoliday((datetime) "2023-05-28")
     );
 
     // Pentecoste
     unitTest.assertTrue(
-        holiday_.isMajorBankHoliday((datetime) "2024-05-19")
+        holidayExposed_._isMajorBankHoliday((datetime) "2024-05-19")
     );
 
     // Columbus day
     unitTest.assertTrue(
-        holiday_.isMajorBankHoliday((datetime) "2022-10-10")
+        holidayExposed_._isMajorBankHoliday((datetime) "2022-10-10")
     );
 
     unitTest.assertTrue(
-        holiday_.isMajorBankHoliday((datetime) "2022-12-23 18:00")
+        holidayExposed_._isMajorBankHoliday((datetime) "2022-12-23 18:00")
     );
 
     unitTest.assertFalse(
-        holiday_.isMajorBankHoliday((datetime) "9999-01-01")
+        holidayExposed_._isMajorBankHoliday((datetime) "9999-01-01")
     );
 }
 
@@ -92,14 +93,14 @@ void HolidayTest::isMinorBankHolidayTest() {
     UnitTest unitTest("isMinorBankHolidayTest");
 
     unitTest.assertFalse(
-        holiday_.isMinorBankHoliday((datetime) "2021-01-10")
+        holidayExposed_._isMinorBankHoliday((datetime) "2021-01-10")
     );
 
     unitTest.assertTrue(
-        holiday_.isMinorBankHoliday((datetime) "2024-06-02 08:08:00")
+        holidayExposed_._isMinorBankHoliday((datetime) "2024-06-02 08:08:00")
     );
 
     unitTest.assertTrue(
-        holiday_.isMinorBankHoliday((datetime) "2022-08-29")
+        holidayExposed_._isMinorBankHoliday((datetime) "2022-08-29")
     );
 }

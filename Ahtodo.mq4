@@ -6,13 +6,12 @@
 #include "src/market/Market.mqh"
 #include "tst/UnitTestsRunner.mqh"
 
+input double PercentRisk = NULL; // getPercentRisk: if !PercentRisk -> get from list of account owners
+
 
 void OnInit() {
     RefreshRates();
     Sleep(1000);
-
-    CURRENT_PERIOD = Period();
-    CURRENT_SYMBOL = Symbol();
 
     UnitTestsRunner unitTestsRunner;
     unitTestsRunner.runAllUnitTests();

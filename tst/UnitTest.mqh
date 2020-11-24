@@ -19,8 +19,6 @@ class UnitTest {
         void assertTrue(bool, string);
         void assertFalse(bool, string);
 
-        void getTestResult();
-
     private:
         uint passedAssertions_;
         uint totalAssertions_;
@@ -30,6 +28,7 @@ class UnitTest {
         void setFailure(string);
         void setFailure(int, int, string);
         void setFailure(string, string, string);
+        void getTestResult();
 };
 
 UnitTest::UnitTest(string testName):

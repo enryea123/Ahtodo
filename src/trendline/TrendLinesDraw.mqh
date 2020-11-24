@@ -8,49 +8,36 @@
 
 class TrendLinesDraw {
     public:
-        TrendLinesDraw();
-        ~TrendLinesDraw();
-
         void drawTrendLines();
 
     private:
         TrendLine trendLine_;
-        const color trendLineColor_;
-        const color badTrendLineColor_;
-        const int numberOfBeams_;
-        const int trendLineWidth_;
-        const int badTrendLineWidth_;
-        const double beamSize_;
+        static const color trendLineColor_;
+        static const color badTrendLineColor_;
+        static const int numberOfBeams_;
+        static const int trendLineWidth_;
+        static const int badTrendLineWidth_;
 
         void drawSingleTrendLine(string, int, int, int, Discriminator);
         void drawDiscriminatedTrendLines(int & [], Discriminator);
 };
 
-TrendLinesDraw::TrendLinesDraw():
-    trendLine_(),
-    trendLineColor_(clrYellow),
-    badTrendLineColor_(clrMistyRose),
-    numberOfBeams_(2),
-    trendLineWidth_(5),
-    badTrendLineWidth_(1),
-    beamSize_(Pips()) {
-}
+const color TrendLinesDraw::trendLineColor_ = clrYellow;
+const color TrendLinesDraw::badTrendLineColor_ = clrMistyRose;
+const int TrendLinesDraw::numberOfBeams_ = 2;
+const int TrendLinesDraw::trendLineWidth_ = 5;
+const int TrendLinesDraw::badTrendLineWidth_ = 1;
 
-TrendLinesDraw::~TrendLinesDraw() {}
-
-void TrendLinesDraw::drawSingleTrendLine(string trendLineName,
-                                         int indexI,
-                                         int indexJ,
-                                         int beam,
-                                         Discriminator discriminator) {
+void TrendLinesDraw::drawSingleTrendLine(string trendLineName, int indexI, int indexJ,
+                                         int beam, Discriminator discriminator) {
     ObjectCreate(
         trendLineName,
         OBJ_TREND,
         0,
         Time[indexI],
-        iExtreme(indexI, discriminator) + beamSize_ * beam / numberOfBeams_,
+        iExtreme(indexI, discriminator) + Pips() * beam / numberOfBeams_,
         Time[indexJ],
-        iExtreme(indexJ, discriminator) - beamSize_ * beam / numberOfBeams_
+        iExtreme(indexJ, discriminator) - Pips() * beam / numberOfBeams_
     );
 
     if (trendLine_.isExistingTrendLineBad(trendLineName, discriminator)) {
