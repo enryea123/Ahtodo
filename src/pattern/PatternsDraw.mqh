@@ -23,20 +23,43 @@ class PatternsDraw {
 const int PatternsDraw::numberOfCandlesForPatternsDraw_ = 200;
 const string PatternsDraw::patternNamePrefix_ = "Pattern";
 
-void PatternsDraw::drawCandleColoredDot(int timeIndex, string namePrefix, color inputColor, double shift) {
-    const string colouredDotName = StringConcatenate(namePrefix, NAME_SEPARATOR, timeIndex);
+void PatternsDraw::drawAllPatterns() {
+    const int maxCandles = IS_DEBUG ? CANDLES_VISIBLE_IN_GRAPH_2X : numberOfCandlesForPatternsDraw_;
 
-    ObjectCreate(
-        colouredDotName,
-        OBJ_ARROW_UP,
-        0,
-        Time[timeIndex],
-        iExtreme(timeIndex, Min) * shift
-    );
+    // Draw a rectangle for each pattern
+    for (int i = 1; i < maxCandles; i++) {
+        if (pattern_.buyPattern1(i)) {
+            drawPatternRectangle(i, 2, clrLightSteelBlue);
+        }
+        if (pattern_.buyPattern2(i)) {
+            drawPatternRectangle(i, 1, clrThistle);
+        }
+        if (pattern_.buyPattern3(i)) {
+            drawPatternRectangle(i, 3, clrDarkSeaGreen);
+        }
 
-    ObjectSet(colouredDotName, OBJPROP_COLOR, inputColor);
-    ObjectSet(colouredDotName, OBJPROP_ARROWCODE, 167);
-    ObjectSet(colouredDotName, OBJPROP_WIDTH, 1);
+        if (pattern_.sellPattern1(i)) {
+            drawPatternRectangle(i, 2, clrPaleGreen);
+        }
+        if (pattern_.sellPattern2(i)) {
+            drawPatternRectangle(i, 1, clrKhaki);
+        }
+        if (pattern_.sellPattern3(i)) {
+            drawPatternRectangle(i, 3, clrSandyBrown);
+        }
+
+        if (pattern_.sellBuyPattern4(i)) {
+            drawPatternRectangle(i, 1, clrRosyBrown);
+        }
+
+        if (pattern_.antiPattern1(i)) {
+            drawPatternRectangle(i, 3, clrDarkGray);
+        }
+    }
+
+    if (IS_DEBUG) {
+        drawAllColoredDots(maxCandles);
+    }
 }
 
 void PatternsDraw::drawPatternRectangle(int timeIndex, int patternLength, color patternColor) {
@@ -87,41 +110,18 @@ void PatternsDraw::drawAllColoredDots(int maxCandles) {
     }
 }
 
-void PatternsDraw::drawAllPatterns() {
-    const int maxCandles = IS_DEBUG ? CANDLES_VISIBLE_IN_GRAPH_2X : numberOfCandlesForPatternsDraw_;
+void PatternsDraw::drawCandleColoredDot(int timeIndex, string namePrefix, color inputColor, double shift) {
+    const string colouredDotName = StringConcatenate(namePrefix, NAME_SEPARATOR, timeIndex);
 
-    // Draw a rectangle for each pattern
-    for (int i = 1; i < maxCandles; i++) {
-        if (pattern_.buyPattern1(i)) {
-            drawPatternRectangle(i, 2, clrLightSteelBlue);
-        }
-        if (pattern_.buyPattern2(i)) {
-            drawPatternRectangle(i, 1, clrThistle);
-        }
-        if (pattern_.buyPattern3(i)) {
-            drawPatternRectangle(i, 3, clrDarkSeaGreen);
-        }
+    ObjectCreate(
+        colouredDotName,
+        OBJ_ARROW_UP,
+        0,
+        Time[timeIndex],
+        iExtreme(timeIndex, Min) * shift
+    );
 
-        if (pattern_.sellPattern1(i)) {
-            drawPatternRectangle(i, 2, clrPaleGreen);
-        }
-        if (pattern_.sellPattern2(i)) {
-            drawPatternRectangle(i, 1, clrKhaki);
-        }
-        if (pattern_.sellPattern3(i)) {
-            drawPatternRectangle(i, 3, clrSandyBrown);
-        }
-
-        if (pattern_.sellBuyPattern4(i)) {
-            drawPatternRectangle(i, 1, clrRosyBrown);
-        }
-
-        if (pattern_.antiPattern1(i)) {
-            drawPatternRectangle(i, 3, clrDarkGray);
-        }
-    }
-
-    if (IS_DEBUG) {
-        drawAllColoredDots(maxCandles);
-    }
+    ObjectSet(colouredDotName, OBJPROP_COLOR, inputColor);
+    ObjectSet(colouredDotName, OBJPROP_ARROWCODE, 167);
+    ObjectSet(colouredDotName, OBJPROP_WIDTH, 1);
 }

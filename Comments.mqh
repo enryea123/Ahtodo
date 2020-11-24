@@ -107,4 +107,4 @@
 
 // stampare tutti i log con stringa DEBUG invece che non stamparli? o non stamparli ma aggiungere comunque DEBUG
 
-// quali variabili possono essere static?
+// check timezone of drawOpenMarketLines()

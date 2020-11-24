@@ -17,32 +17,6 @@ class Holiday {
         int easterDayOfYear(int);
 };
 
-int Holiday::easterDayOfYear(int year) {
-    if (year == 2020) {
-        return 103;
-    }
-    if (year == 2021) {
-        return 94;
-    }
-    if (year == 2022) {
-        return 107;
-    }
-    if (year == 2023) {
-        return 99;
-    }
-    if (year == 2024) {
-        return 91;
-    }
-    if (year == 2025) {
-        return 110;
-    }
-    if (year == 2026) {
-        return 95;
-    }
-
-    return -1;
-}
-
 bool Holiday::isMajorBankHoliday() {
     return isMajorBankHoliday(TimeGMT());
 }
@@ -257,4 +231,30 @@ bool Holiday::isMinorBankHoliday(datetime inputDate) {
     }
 
     return false;
+}
+
+int Holiday::easterDayOfYear(int year) {
+    if (year == 2020) {
+        return 103;
+    }
+    if (year == 2021) {
+        return 94;
+    }
+    if (year == 2022) {
+        return 107;
+    }
+    if (year == 2023) {
+        return 99;
+    }
+    if (year == 2024) {
+        return 91;
+    }
+    if (year == 2025) {
+        return 110;
+    }
+    if (year == 2026) {
+        return 95;
+    }
+
+    return -1;
 }

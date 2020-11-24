@@ -29,25 +29,21 @@ const int PivotsDraw::maxCandlesPivotLinesDraw_ = 100;
 const int PivotsDraw::pivotLabelFontSize_ = 8;
 const int PivotsDraw::pivotRSLineLength_ = 6;
 
-int PivotsDraw::getMaxTimeIndex(int pivotPeriodFactor) {
-    const int maxCandles = IS_DEBUG ? CANDLES_VISIBLE_IN_GRAPH_2X : maxCandlesPivotLinesDraw_;
-    return MathRound(1 + maxCandles * Period() / PERIOD_D1 / pivotPeriodFactor) + 1;
-}
+void PivotsDraw::drawAllPivots() {
+    drawPivot(D1);
+    drawPivot(W1);
+    drawPivot(MN1);
 
-void PivotsDraw::drawPivotLabel(string pivotLabelName, string pivotLabelText, color pivotColor, double x) {
-    ObjectCreate(pivotLabelName, OBJ_TEXT, 0, Time[0], x);
+    drawPivotRS(R1);
+    drawPivotRS(R2);
+    drawPivotRS(R3);
+    drawPivotRS(S1);
+    drawPivotRS(S2);
+    drawPivotRS(S3);
 
-    ObjectSetString(0, pivotLabelName, OBJPROP_TEXT, pivotLabelText);
-    ObjectSet(pivotLabelName, OBJPROP_COLOR, pivotColor);
-    ObjectSet(pivotLabelName, OBJPROP_FONTSIZE, pivotLabelFontSize_);
-}
-
-void PivotsDraw::drawPivotLine(string lineName, color lineColor, datetime t1, datetime t2, double x1, double x2) {
-    ObjectCreate(lineName, OBJ_TREND, 0, t1, x1, t2, x2);
-
-    ObjectSet(lineName, OBJPROP_RAY_RIGHT, false);
-    ObjectSet(lineName, OBJPROP_COLOR, lineColor);
-    ObjectSet(lineName, OBJPROP_BACK, true);
+    if (IS_DEBUG) {
+        Print("PivotsDraw: pivot_.getPivot(", Symbol(), ", D1, 0): ", pivot_.getPivot(Symbol(), D1, 0));
+    }
 }
 
 void PivotsDraw::drawPivot(PivotPeriod pivotPeriod) {
@@ -105,19 +101,23 @@ void PivotsDraw::drawPivotRS(PivotPeriod pivotPeriod, PivotRS pivotRS) {
     );
 }
 
-void PivotsDraw::drawAllPivots() {
-    drawPivot(D1);
-    drawPivot(W1);
-    drawPivot(MN1);
+int PivotsDraw::getMaxTimeIndex(int pivotPeriodFactor) {
+    const int maxCandles = IS_DEBUG ? CANDLES_VISIBLE_IN_GRAPH_2X : maxCandlesPivotLinesDraw_;
+    return MathRound(1 + maxCandles * Period() / PERIOD_D1 / pivotPeriodFactor) + 1;
+}
 
-    drawPivotRS(R1);
-    drawPivotRS(R2);
-    drawPivotRS(R3);
-    drawPivotRS(S1);
-    drawPivotRS(S2);
-    drawPivotRS(S3);
+void PivotsDraw::drawPivotLabel(string pivotLabelName, string pivotLabelText, color pivotColor, double x) {
+    ObjectCreate(pivotLabelName, OBJ_TEXT, 0, Time[0], x);
 
-    if (IS_DEBUG) {
-        Print("PivotsDraw: pivot_.getPivot(", Symbol(), ", D1, 0): ", pivot_.getPivot(Symbol(), D1, 0));
-    }
+    ObjectSetString(0, pivotLabelName, OBJPROP_TEXT, pivotLabelText);
+    ObjectSet(pivotLabelName, OBJPROP_COLOR, pivotColor);
+    ObjectSet(pivotLabelName, OBJPROP_FONTSIZE, pivotLabelFontSize_);
+}
+
+void PivotsDraw::drawPivotLine(string lineName, color lineColor, datetime t1, datetime t2, double x1, double x2) {
+    ObjectCreate(lineName, OBJ_TREND, 0, t1, x1, t2, x2);
+
+    ObjectSet(lineName, OBJPROP_RAY_RIGHT, false);
+    ObjectSet(lineName, OBJPROP_COLOR, lineColor);
+    ObjectSet(lineName, OBJPROP_BACK, true);
 }

@@ -31,6 +31,35 @@ class Pattern: public Candle {
 
 const int Pattern::antiPatternMinSizeSumPips_ = 50;
 
+bool Pattern::isBuyPattern(int timeIndex) {
+    if (isPatternSizeGood(timeIndex)) {
+        if (buyPattern1(timeIndex) || buyPattern2(timeIndex) ||
+            buyPattern3(timeIndex) || sellBuyPattern4(timeIndex)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool Pattern::isSellPattern(int timeIndex) {
+    if (isPatternSizeGood(timeIndex)) {
+        if (sellPattern1(timeIndex) || sellPattern2(timeIndex) ||
+            sellPattern3(timeIndex) || sellBuyPattern4(timeIndex)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool Pattern::isAntiPattern(int timeIndex) {
+    if (antiPattern1(timeIndex) || antiPattern1(timeIndex + 1) || antiPattern1(timeIndex + 2)) {
+        return true;
+    }
+
+    return false;
+}
 
 /**
  * Low doji followed by big bull bar
@@ -103,36 +132,6 @@ bool Pattern::antiPattern1(int timeIndex) {
             antiPatternMinSizeSumPips_ * PeriodMultiplicationFactor() * Pips()) {
             return true;
         }
-    }
-
-    return false;
-}
-
-bool Pattern::isBuyPattern(int timeIndex) {
-    if (isPatternSizeGood(timeIndex)) {
-        if (buyPattern1(timeIndex) || buyPattern2(timeIndex) ||
-            buyPattern3(timeIndex) || sellBuyPattern4(timeIndex)) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-bool Pattern::isSellPattern(int timeIndex) {
-    if (isPatternSizeGood(timeIndex)) {
-        if (sellPattern1(timeIndex) || sellPattern2(timeIndex) ||
-            sellPattern3(timeIndex) || sellBuyPattern4(timeIndex)) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-bool Pattern::isAntiPattern(int timeIndex) {
-    if (antiPattern1(timeIndex) || antiPattern1(timeIndex + 1) || antiPattern1(timeIndex + 2)) {
-        return true;
     }
 
     return false;

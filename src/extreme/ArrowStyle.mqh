@@ -22,6 +22,22 @@ class ArrowStyle {
 const string ArrowStyle::arrowNamePrefix_ = "Arrow";
 const string ArrowStyle::validArrowNameSuffix_ = "Valid";
 
+void ArrowStyle::drawExtremeArrow(int timeIndex, Discriminator discriminator, bool isValidExtreme) {
+    string arrowName = buildArrowName(timeIndex, discriminator, isValidExtreme);
+
+    ObjectCreate(
+        arrowName,
+        getArrowObjectType(discriminator),
+        0,
+        Time[timeIndex],
+        iExtreme(timeIndex, discriminator)
+    );
+
+    ObjectSet(arrowName, OBJPROP_ANCHOR, getArrowAnchor(discriminator));
+    ObjectSet(arrowName, OBJPROP_COLOR, getArrowColor(isValidExtreme));
+    ObjectSet(arrowName, OBJPROP_WIDTH, getArrowSize(isValidExtreme));
+}
+
 color ArrowStyle::getArrowColor(bool isValidExtreme) {
     return isValidExtreme ? clrOrange : clrRed;
 }
@@ -47,20 +63,4 @@ string ArrowStyle::buildArrowName(int timeIndex, Discriminator discriminator, bo
     }
 
     return arrowName;
-}
-
-void ArrowStyle::drawExtremeArrow(int timeIndex, Discriminator discriminator, bool isValidExtreme) {
-    string arrowName = buildArrowName(timeIndex, discriminator, isValidExtreme);
-
-    ObjectCreate(
-        arrowName,
-        getArrowObjectType(discriminator),
-        0,
-        Time[timeIndex],
-        iExtreme(timeIndex, discriminator)
-    );
-
-    ObjectSet(arrowName, OBJPROP_ANCHOR, getArrowAnchor(discriminator));
-    ObjectSet(arrowName, OBJPROP_COLOR, getArrowColor(isValidExtreme));
-    ObjectSet(arrowName, OBJPROP_WIDTH, getArrowSize(isValidExtreme));
 }

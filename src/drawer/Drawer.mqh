@@ -30,6 +30,49 @@ const int Drawer::openMarketLinesPipsShift_ = 10;
 const string Drawer::lastDrawingTimePrefix_ = "LastDrawingTime";
 const string Drawer::openMarketLinePrefix_ = "OpenMarketLine";
 
+void Drawer::drawEverything() {
+    if (!drawLastDrawingTimeSignal()) {
+        return;
+    }
+
+    TrendLinesDraw trendLinesDraw;
+    trendLinesDraw.drawTrendLines();
+
+    PatternsDraw patternsDraw;
+    patternsDraw.drawAllPatterns();
+
+    PivotsDraw pivotsDraw;
+    pivotsDraw.drawAllPivots();
+
+    if (IS_DEBUG) {
+        drawOpenMarketLines();
+        Print("Updated drawings at Time: ", TimeToStr(TimeCurrent()));
+    }
+}
+
+void Drawer::setChartDefaultColors() {
+    ChartSetInteger(0, CHART_COLOR_BACKGROUND, clrWhite);
+    ChartSetInteger(0, CHART_COLOR_GRID, clrSilver);
+    ChartSetInteger(0, CHART_COLOR_FOREGROUND, clrBlack);
+    ChartSetInteger(0, CHART_MODE, CHART_CANDLES);
+    ChartSetInteger(0, CHART_SCALE, 5);
+    ChartSetInteger(0, CHART_COLOR_CHART_UP, clrBlack);
+    ChartSetInteger(0, CHART_COLOR_CHART_DOWN, clrBlack);
+    ChartSetInteger(0, CHART_COLOR_CANDLE_BULL, clrWhite);
+    ChartSetInteger(0, CHART_COLOR_CANDLE_BEAR, clrBlack);
+    ChartSetInteger(0, CHART_COLOR_CHART_LINE, clrBlack);
+}
+
+void Drawer::setChartMarketOpenColors() {
+    ChartSetInteger(0, CHART_COLOR_BACKGROUND, clrWhite);
+    ChartSetInteger(0, CHART_COLOR_GRID, clrSilver);
+}
+
+void Drawer::setChartMarketClosedColors() {
+    ChartSetInteger(0, CHART_COLOR_BACKGROUND, clrSilver);
+    ChartSetInteger(0, CHART_COLOR_GRID, clrWhite);
+}
+
 bool Drawer::drawLastDrawingTimeSignal() {
     const string lastDrawingTimeSignal = StringConcatenate(lastDrawingTimePrefix_, NAME_SEPARATOR, Time[1]);
 
@@ -93,47 +136,4 @@ void Drawer::drawOpenMarketLines() {
         ObjectSet(openMarketLineName, OBJPROP_WIDTH, 4);
         ObjectSet(openMarketLineName, OBJPROP_BACK, true);
     }
-}
-
-void Drawer::drawEverything() {
-    if (!drawLastDrawingTimeSignal()) {
-        return;
-    }
-
-    TrendLinesDraw trendLinesDraw;
-    trendLinesDraw.drawTrendLines();
-
-    PatternsDraw patternsDraw;
-    patternsDraw.drawAllPatterns();
-
-    PivotsDraw pivotsDraw;
-    pivotsDraw.drawAllPivots();
-
-    if (IS_DEBUG) {
-        drawOpenMarketLines();
-        Print("Updated drawings at Time: ", TimeToStr(TimeCurrent()));
-    }
-}
-
-void Drawer::setChartDefaultColors() {
-    ChartSetInteger(0, CHART_COLOR_BACKGROUND, clrWhite);
-    ChartSetInteger(0, CHART_COLOR_GRID, clrSilver);
-    ChartSetInteger(0, CHART_COLOR_FOREGROUND, clrBlack);
-    ChartSetInteger(0, CHART_MODE, CHART_CANDLES);
-    ChartSetInteger(0, CHART_SCALE, 5);
-    ChartSetInteger(0, CHART_COLOR_CHART_UP, clrBlack);
-    ChartSetInteger(0, CHART_COLOR_CHART_DOWN, clrBlack);
-    ChartSetInteger(0, CHART_COLOR_CANDLE_BULL, clrWhite);
-    ChartSetInteger(0, CHART_COLOR_CANDLE_BEAR, clrBlack);
-    ChartSetInteger(0, CHART_COLOR_CHART_LINE, clrBlack);
-}
-
-void Drawer::setChartMarketOpenColors() {
-    ChartSetInteger(0, CHART_COLOR_BACKGROUND, clrWhite);
-    ChartSetInteger(0, CHART_COLOR_GRID, clrSilver);
-}
-
-void Drawer::setChartMarketClosedColors() {
-    ChartSetInteger(0, CHART_COLOR_BACKGROUND, clrSilver);
-    ChartSetInteger(0, CHART_COLOR_GRID, clrWhite);
 }

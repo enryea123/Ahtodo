@@ -28,6 +28,40 @@ const int TrendLinesDraw::numberOfBeams_ = 2;
 const int TrendLinesDraw::trendLineWidth_ = 5;
 const int TrendLinesDraw::badTrendLineWidth_ = 1;
 
+void TrendLinesDraw::drawTrendLines() {
+    int maximums[], minimums[];
+
+    ExtremesDraw extremesDraw;
+    extremesDraw.drawExtremes(maximums, Max);
+    extremesDraw.drawExtremes(minimums, Min);
+
+    drawDiscriminatedTrendLines(maximums, Max);
+    drawDiscriminatedTrendLines(minimums, Min);
+}
+
+void TrendLinesDraw::drawDiscriminatedTrendLines(int & indexes[], Discriminator discriminator) {
+    for (int i = 0; i < ArraySize(indexes) - 1; i++) {
+        for (int j = i + 1; j < ArraySize(indexes); j++) {
+            for (int beam = -numberOfBeams_; beam <= numberOfBeams_; beam++) {
+
+                if (trendLine_.areTrendLineSetupsGood(indexes[i], indexes[j], discriminator)) {
+                    const string trendLineName = trendLine_.buildTrendLineName(
+                        indexes[i], indexes[j], beam, discriminator);
+
+                    drawSingleTrendLine(trendLineName, indexes[i], indexes[j], beam, discriminator);
+                }
+
+                if (IS_DEBUG && !trendLine_.areTrendLineSetupsGood(indexes[i], indexes[j], discriminator)) {
+                    const string badTrendLineName = trendLine_.buildBadTrendLineName(
+                        indexes[i], indexes[j], beam, discriminator);
+
+                    drawSingleTrendLine(badTrendLineName, indexes[i], indexes[j], beam, discriminator);
+                }
+            }
+        }
+    }
+}
+
 void TrendLinesDraw::drawSingleTrendLine(string trendLineName, int indexI, int indexJ,
                                          int beam, Discriminator discriminator) {
     ObjectCreate(
@@ -53,39 +87,4 @@ void TrendLinesDraw::drawSingleTrendLine(string trendLineName, int indexI, int i
     ObjectSet(trendLineName, OBJPROP_WIDTH, trendLineWidth);
     ObjectSet(trendLineName, OBJPROP_COLOR, trendLineColor);
     ObjectSet(trendLineName, OBJPROP_BACK, true);
-}
-
-
-void TrendLinesDraw::drawDiscriminatedTrendLines(int & indexes[], Discriminator discriminator) {
-    for (int i = 0; i < ArraySize(indexes) - 1; i++) {
-        for (int j = i + 1; j < ArraySize(indexes); j++) {
-            for (int beam = -numberOfBeams_; beam <= numberOfBeams_; beam++) {
-
-                if (trendLine_.areTrendLineSetupsGood(indexes[i], indexes[j], discriminator)) {
-                    const string trendLineName = trendLine_.buildTrendLineName(
-                        indexes[i], indexes[j], beam, discriminator);
-
-                    drawSingleTrendLine(trendLineName, indexes[i], indexes[j], beam, discriminator);
-                }
-
-                if (IS_DEBUG && !trendLine_.areTrendLineSetupsGood(indexes[i], indexes[j], discriminator)) {
-                    const string badTrendLineName = trendLine_.buildBadTrendLineName(
-                        indexes[i], indexes[j], beam, discriminator);
-
-                    drawSingleTrendLine(badTrendLineName, indexes[i], indexes[j], beam, discriminator);
-                }
-            }
-        }
-    }
-}
-
-void TrendLinesDraw::drawTrendLines() {
-    int maximums[], minimums[];
-
-    ExtremesDraw extremesDraw;
-    extremesDraw.drawExtremes(maximums, Max);
-    extremesDraw.drawExtremes(minimums, Min);
-
-    drawDiscriminatedTrendLines(maximums, Max);
-    drawDiscriminatedTrendLines(minimums, Min);
 }

@@ -9,6 +9,7 @@ class Market {
     public:
         Market();
 
+        void startUpMarketValidation();
 // classe molto lunga. va splittata? decidi dopo che sarà finita, mancano varie funzioni
 // alcune protected?, probabilmente posso mettere il default degli argomenti con parametri private
         bool isAllowedAccountNumber(int);
@@ -21,14 +22,26 @@ class Market {
         void forceIsLiveAccount();
         void resetAccountTypeOverride();
 
-        void startUpMarketValidation();
-
     private:
         bool forceIsLiveAccount_;
 };
 
 Market::Market():
     forceIsLiveAccount_(false) {
+}
+
+void Market::startUpMarketValidation() { // controllo ad ogni tick. variabile startUpTime_?
+    MarketTime marketTime_;
+
+    if (isAllowedAccountNumber(AccountNumber()) &&
+        isAllowedExecutionDate(marketTime_.timeItaly()) &&
+        isAllowedPeriod(Period()) && // argomenti non tutti necessari, fare revisione completa di dove servono e dove si puo fare l'overloaded protected ecc
+        isAllowedSymbol(Symbol()) &&
+        isAllowedSymbolPeriodCombo(Symbol(), Period())) {
+        return;
+    }
+
+    ThrowFatalException("startUpMarketValidation failed");
 }
 
 bool Market::isAllowedAccountNumber(int accountNumber) {
@@ -122,19 +135,6 @@ void Market::resetAccountTypeOverride() {
     forceIsLiveAccount_ = false;
 }
 
-void Market::startUpMarketValidation() { // controllo ad ogni tick. variabile startUpTime_?
-    MarketTime marketTime_;
-
-    if (isAllowedAccountNumber(AccountNumber()) &&
-        isAllowedExecutionDate(marketTime_.timeItaly()) &&
-        isAllowedPeriod(Period()) && // argomenti non tutti necessari, fare revisione completa di dove servono e dove si puo fare l'overloaded protected ecc
-        isAllowedSymbol(Symbol()) &&
-        isAllowedSymbolPeriodCombo(Symbol(), Period())) {
-        return;
-    }
-
-    ThrowFatalException("startUpMarketValidation failed");
-}
 
 /**
 

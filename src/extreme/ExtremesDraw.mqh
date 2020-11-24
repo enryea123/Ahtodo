@@ -21,6 +21,10 @@ class ExtremesDraw {
 const int ExtremesDraw::minimumCandlesBetweenExtremes_ = 1;
 const int ExtremesDraw::smallestAllowedExtremeIndex_ = 4;
 
+void ExtremesDraw::drawExtremes(int & extremes[], Discriminator discriminator) {
+    calculateValidExtremes(extremes, discriminator);
+}
+
 void ExtremesDraw::calculateAllExtremes(int & allExtremes[], Discriminator discriminator) {
     int numberOfExtremes = 0;
     ArrayResize(allExtremes, CANDLES_VISIBLE_IN_GRAPH_2X);
@@ -80,8 +84,4 @@ void ExtremesDraw::calculateValidExtremes(int & validExtremes[], Discriminator d
     }
 
     ArrayResize(validExtremes, numberOfValidExtremes);
-}
-
-void ExtremesDraw::drawExtremes(int & extremes[], Discriminator discriminator) {
-    calculateValidExtremes(extremes, discriminator);
 }
