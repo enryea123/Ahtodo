@@ -1,6 +1,8 @@
 // ahtodo aggiornato a 20200926
 // prendere il diff dopo quello e implementarlo (ci sono varie differenze)
 
+// alla fine compara le differenze con ahtodo_old, soprattutto in OnInit e OnTick. Sarà difficile.
+
 // PORTARE TUTTE LE VARIABILI IN ALTO (ANCHE IN PIVOT). usare enum quando necessari
 
 // Definire funzione throwexception con messaggio e throwfatalexception

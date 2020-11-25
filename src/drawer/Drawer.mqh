@@ -2,7 +2,7 @@
 #property link "https://www.linkedin.com/in/enryea123"
 
 #include "../../Constants.mqh"
-#include "../market/Market.mqh"
+#include "../market/Holiday.mqh"
 #include "../market/MarketTime.mqh"
 #include "../pattern/PatternsDraw.mqh"
 #include "../pivot/PivotsDraw.mqh"
@@ -13,7 +13,7 @@ class Drawer {
     public:
         void drawEverything();
         void setChartDefaultColors();
-        void setChartMarketOpenColors();
+        void setChartMarketOpenedColors();
         void setChartMarketClosedColors();
 
     private:
@@ -24,6 +24,7 @@ class Drawer {
 
         bool areDrawingsUpdated();
         string getLastDrawingTimeSignalName();
+        color getLastDrawingTimeSignalColor();
         void drawLastDrawingTimeSignal();
         void drawOpenMarketLines();
 };
@@ -39,9 +40,6 @@ void Drawer::drawEverything() {
     }
 
     ObjectsDeleteAll();
-
-    Market market;
-    market.marketConditionsValidation();
 
     TrendLinesDraw trendLinesDraw;
     trendLinesDraw.drawTrendLines();
@@ -61,8 +59,6 @@ void Drawer::drawEverything() {
 }
 
 void Drawer::setChartDefaultColors() {
-    ChartSetInteger(0, CHART_COLOR_BACKGROUND, clrWhite);
-    ChartSetInteger(0, CHART_COLOR_GRID, clrSilver);
     ChartSetInteger(0, CHART_COLOR_FOREGROUND, clrBlack);
     ChartSetInteger(0, CHART_MODE, CHART_CANDLES);
     ChartSetInteger(0, CHART_SCALE, 5);
@@ -71,9 +67,11 @@ void Drawer::setChartDefaultColors() {
     ChartSetInteger(0, CHART_COLOR_CANDLE_BULL, clrWhite);
     ChartSetInteger(0, CHART_COLOR_CANDLE_BEAR, clrBlack);
     ChartSetInteger(0, CHART_COLOR_CHART_LINE, clrBlack);
+
+    setChartMarketOpenedColors();
 }
 
-void Drawer::setChartMarketOpenColors() {
+void Drawer::setChartMarketOpenedColors() {
     ChartSetInteger(0, CHART_COLOR_BACKGROUND, clrWhite);
     ChartSetInteger(0, CHART_COLOR_GRID, clrSilver);
 }
@@ -98,7 +96,9 @@ void Drawer::drawLastDrawingTimeSignal() {
         iExtreme(1, Min) * 0.999
     );
 
-    ObjectSet(lastDrawingTimeSignal, OBJPROP_COLOR, clrForestGreen);
+    const color lastDrawingTimeSignalColor = getLastDrawingTimeSignalColor();
+
+    ObjectSet(lastDrawingTimeSignal, OBJPROP_COLOR, lastDrawingTimeSignalColor);
     ObjectSet(lastDrawingTimeSignal, OBJPROP_ARROWCODE, 233);
     ObjectSet(lastDrawingTimeSignal, OBJPROP_WIDTH, 4);
 }
@@ -107,21 +107,33 @@ string Drawer::getLastDrawingTimeSignalName() {
     return StringConcatenate(lastDrawingTimePrefix_, NAME_SEPARATOR, Time[1]);
 }
 
-void Drawer::drawOpenMarketLines() {
-    MarketTime marketTime_;
+color Drawer::getLastDrawingTimeSignalColor() {
+    Holiday holiday;
 
-    const datetime today = marketTime_.timeAtMidnight(marketTime_.timeItaly());
-    const int brokerHoursShift = marketTime_.timeShiftInHours(marketTime_.timeBroker(), marketTime_.timeItaly());
+    if (holiday.isMajorBankHoliday()) {
+        return clrCrimson;
+    }
+    if (holiday.isMinorBankHoliday()) {
+        return clrGold;
+    }
+    return clrForestGreen;
+}
+
+void Drawer::drawOpenMarketLines() {
+    MarketTime marketTime;
+
+    const datetime today = marketTime.timeAtMidnight(marketTime.timeItaly());
+    const int brokerHoursShift = marketTime.timeShiftInHours(marketTime.timeBroker(), marketTime.timeItaly());
 
     for (int day = 0; day < drawOpenMarketLinesMaxDays_; day++) {
         const datetime thisDayStart = StringToTime(StringConcatenate(today, " ",
-            marketTime_.marketOpenHour() + brokerHoursShift, ":00")) - 86400 * day;
+            marketTime.marketOpenHour() + brokerHoursShift, ":00")) - 86400 * day;
 
         const datetime thisDayEnd = StringToTime(StringConcatenate(today, " ",
-            marketTime_.marketCloseHour() + brokerHoursShift, ":00")) - 86400 * day;
+            marketTime.marketCloseHour() + brokerHoursShift, ":00")) - 86400 * day;
 
-        if (TimeDayOfWeek(thisDayStart) >= (MARKET_CLOSE_DAY) ||
-            TimeDayOfWeek(thisDayStart) < MARKET_OPEN_DAY) {
+        if (TimeDayOfWeek(thisDayStart) >= (marketTime.marketCloseDay()) ||
+            TimeDayOfWeek(thisDayStart) < marketTime.marketOpenDay()) {
             continue;
         }
 

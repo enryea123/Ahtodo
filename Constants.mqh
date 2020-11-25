@@ -12,15 +12,6 @@ const int MY_SCRIPT_ID_030 = 2044030;
 const int MY_SCRIPT_ID_060 = 2044060;
 const int MY_SCRIPT_ID_240 = 2044240;
 
-// TimeZone Milano
-const int MARKET_OPEN_HOUR = 9;
-const int MARKET_OPEN_HOUR_H4 = 8;
-const int MARKET_CLOSE_HOUR = 17;
-const int MARKET_CLOSE_HOUR_H4 = 20;
-const int MARKET_CLOSE_HOUR_PENDING = 16;
-const int MARKET_OPEN_DAY = 1;
-const int MARKET_CLOSE_DAY = 5;
-
 const datetime BOT_EXPIRATION_DATE = (datetime) "2021-06-30";
 const datetime BOT_TESTS_EXPIRATION_DATE = (datetime) "2025-01-01";
 
@@ -230,6 +221,11 @@ int PeriodMultiplicationFactor() {
     return 1;
 }
 
+double GetMarketSpread() {
+    RefreshRates();
+    return NormalizeDouble(MathAbs(Ask - Bid), Digits);
+}
+
 double GetMarketVolatility() {
     int CandlesForVolatility = 465;
     double MarketMax = -10000, MarketMin = 10000;
@@ -241,6 +237,11 @@ double GetMarketVolatility() {
 
     double Volatility = MathAbs(MarketMax - MarketMin);
     return Volatility;
+}
+
+bool IsLossLimiterEnabled() {
+    // Dummy function for now
+    return false;
 }
 
 bool ThrowException(bool returnValue, string function, string message) {
@@ -273,9 +274,12 @@ void ThrowFatalException(string function, string message) {
     ExpertRemove();
 }
 
-void OptionalAlert(string message) {
-    if (ALERT_ALLOWED) {
+void OptionalAlert(string message, bool limitOutput = false) {
+    static datetime alertTimeStamp;
+
+    if (ALERT_ALLOWED && (alertTimeStamp != Time[0] || limitOutput)) {
         Alert(message);
+        alertTimeStamp = Time[0];
     } else {
         Print(message);
     }

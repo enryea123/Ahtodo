@@ -3,7 +3,7 @@
 
 #include "../Constants.mqh"
 #include "extreme/ArrowStyleTest.mqh"
-#include "holiday/HolidayTest.mqh"
+#include "market/HolidayTest.mqh"
 #include "market/MarketTest.mqh"
 #include "market/MarketTimeTest.mqh"
 #include "pattern/PatternTest.mqh"
@@ -28,6 +28,7 @@ void UnitTestsRunner::runAllUnitTests() {
     holidayTest.isMinorBankHolidayTest();
 
     MarketTest marketTest;
+    marketTest.isMarketOpenedTest();
     marketTest.isAllowedAccountNumberTest();
     marketTest.isAllowedExecutionDateTest();
     marketTest.isAllowedPeriodTest();
@@ -37,7 +38,6 @@ void UnitTestsRunner::runAllUnitTests() {
     marketTest.isDemoTradingTest();
 
     MarketTimeTest marketTimeTest;
-    marketTimeTest.isMarketOpenedTest();
     marketTimeTest.findDayOfWeekOccurrenceInMonthTest();
     marketTimeTest.getDaylightSavingCorrectionsTest();
     marketTimeTest.timeAtMidnightTest();

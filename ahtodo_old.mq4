@@ -21,10 +21,6 @@ double GetCurrentMarketValue() {
     return NormalizeDouble((Ask + Bid) / 2, Digits);
 }
 
-double GetMarketSpread() {
-    RefreshRates();
-    return MathAbs(Ask - Bid);
-}
 
 
 
@@ -767,57 +763,7 @@ void CloseAllPositions() {
     SelectedOrder = OrderSelect(PreviousOrderTicket, SELECT_BY_TICKET);
 }
 
-
-//------------------------------------------------------------------------------------------------//
-// Bot Execution
-//------------------------------------------------------------------------------------------------//
-
-
-
-
-
-
-void OnTick() {
-    //HardSleep(2);
-
-    if (!AllowedSymbolsAndPeriods()) {
-        ExpertRemove();
-        return;
-    }
-
-    if (IsUnknownMagicNumber(BotMagicNumber())) {
-        return;
-    }
-
-    DrawEverything();
-
-    if (DayOfWeek() >= MARKET_CLOSE_DAY || Hour() < MarketOpenHour() || Hour() >= MarketCloseHour() ||
-        GetMarketSpread() > 5 * Pips() || IsMajorBankHoliday() || LossLimiterEnabled()) {
-
-        Print("Market closed at time ", TimeToStr(TimeCurrent()),
-            " with GetMarketSpread(): ", GetMarketSpread(),
-            ", IsMajorBankHoliday(): ", IsMajorBankHoliday(),
-            ", LossLimiterEnabled(): ", LossLimiterEnabled());
-
-        SetChartMarketClosedColors();
-        CloseAllPositions();
-        return;
-    }
-
-    SetChartMarketOpenedColors();
-
-    if (!IsTradeAllowed()) {
-        return;
-    }
-
-    if (!AreThereOpenOrders()) {
-        if (Hour() >= MARKET_CLOSE_HOUR_PENDING) {
-            DeletePendingOrdersThisSymbolThisPeriod();
-            return;
-        }
-
-        PutPendingOrder();
-    } else {
-        OrderTrailing();
-    }
-}
+// dentro OnTick, ma non serve
+//    if (IsUnknownMagicNumber(BotMagicNumber())) {
+//        return;
+//    }

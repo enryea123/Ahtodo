@@ -141,10 +141,12 @@ void UnitTest::setFailure(string expected, string actual, string message = NULL)
 }
 
 void UnitTest::getTestResult() {
+    const string baseMessage = StringConcatenate("Test ", testName_,
+        ": %s with ", passedAssertions_, "/", totalAssertions_);
+
     if (passedAssertions_ == totalAssertions_) {
-        Print("Test ", testName_, ": PASSED with ", passedAssertions_, "/", totalAssertions_);
+        Print(StringFormat(baseMessage, "PASSED"));
     } else {
-        ThrowFatalException(__FUNCTION__, StringConcatenate(
-            "Test ", testName_, ": FAILED with ", passedAssertions_, "/", totalAssertions_));
+        ThrowFatalException(__FUNCTION__, StringFormat(baseMessage, "FAILED"));
     }
 }

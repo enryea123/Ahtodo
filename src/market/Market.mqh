@@ -2,18 +2,21 @@
 #property link "https://www.linkedin.com/in/enryea123"
 
 #include "../../Constants.mqh"
-#include "../market/MarketTime.mqh"
+#include "Holiday.mqh"
+#include "MarketTime.mqh"
 
 
 class Market {
     public:
         Market();
 
+        bool isMarketOpened();
         void marketConditionsValidation();
 
     protected:
         bool forceIsLiveAccountForTesting_;
 
+        bool isMarketOpened(datetime);
         bool isAllowedAccountNumber(int);
         bool isAllowedExecutionDate(datetime);
         bool isAllowedPeriod(int);
@@ -21,10 +24,45 @@ class Market {
         bool isAllowedSymbol(string);
         bool isAllowedSymbolPeriodCombo(string, int);
         bool isDemoTrading(int);
+
+    private:
+        Holiday holiday_;
+        MarketTime marketTime_;
 };
 
 Market::Market():
     forceIsLiveAccountForTesting_(false) {
+}
+
+bool Market::isMarketOpened() {
+    return isMarketOpened(marketTime_.timeItaly());
+}
+
+bool Market::isMarketOpened(datetime date) {
+    const int hour = TimeHour(date);
+    const int dayOfWeek = TimeDayOfWeek(date);
+
+    if (hour < marketTime_.marketOpenHour() || hour >= marketTime_.marketCloseHour() ||
+        dayOfWeek < marketTime_.marketOpenDay() || dayOfWeek >= marketTime_.marketCloseDay()) {
+        return false;
+    }
+
+    if (holiday_.isMajorBankHoliday()) {
+        return false;
+    }
+
+    const double spread = GetMarketSpread();
+    if (spread > 5 * Pips()) {
+        OptionalAlert(StringConcatenate("Market closed for spread: ", spread), true);
+        return false;
+    }
+
+    if (IsLossLimiterEnabled()) {
+        OptionalAlert("Market closed for loss limiter", true);
+        return false;
+    }
+
+    return true;
 }
 
 void Market::marketConditionsValidation() {
@@ -32,8 +70,7 @@ void Market::marketConditionsValidation() {
         isAllowedBroker() && isAllowedSymbol() && isAllowedSymbolPeriodCombo()) {
 
         // This doesn't catch an incorrect clock, only a different timezone
-        MarketTime marketTime;
-        if (marketTime.timeItaly() != TimeLocal()) {
+        if (marketTime_.timeItaly() != TimeLocal()) {
             ThrowException(__FUNCTION__, "The computer clock is not on the CET timezone, untested scenario");
         }
 

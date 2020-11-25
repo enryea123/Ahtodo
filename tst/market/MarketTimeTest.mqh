@@ -10,7 +10,6 @@
  */
 class MarketTimeExposed: public MarketTime {
     public:
-        bool _isMarketOpened(datetime date) {return isMarketOpened(date);}
         datetime _findDayOfWeekOccurrenceInMonth(int year, int month, int dayOfWeek, int occurrence) {
             return findDayOfWeekOccurrenceInMonth(year, month, dayOfWeek, occurrence);}
         int _getDaylightSavingCorrectionCET(datetime date) {return getDaylightSavingCorrectionCET(date);}
@@ -20,7 +19,6 @@ class MarketTimeExposed: public MarketTime {
 
 class MarketTimeTest {
     public:
-        void isMarketOpenedTest();
         void findDayOfWeekOccurrenceInMonthTest();
         void getDaylightSavingCorrectionsTest();
         void timeAtMidnightTest();
@@ -29,55 +27,6 @@ class MarketTimeTest {
     private:
         MarketTimeExposed marketTimeExposed_;
 };
-
-void MarketTimeTest::isMarketOpenedTest() {
-    UnitTest unitTest("isMarketOpenedTest");
-
-    if (unitTest.hasDateDependentTestExpired()) {
-        return;
-    }
-
-    if (Period() != PERIOD_H4) {
-        unitTest.assertFalse(
-            marketTimeExposed_._isMarketOpened((datetime) "2020-04-06 08:58")
-        );
-
-        unitTest.assertTrue(
-            marketTimeExposed_._isMarketOpened((datetime) "2020-04-06 09:02")
-        );
-
-        unitTest.assertTrue(
-            marketTimeExposed_._isMarketOpened((datetime) "2021-06-30 16:58")
-        );
-
-        unitTest.assertFalse(
-            marketTimeExposed_._isMarketOpened((datetime) "2021-06-30 17:02")
-        );
-    }
-
-    if (Period() == PERIOD_H4) {
-        unitTest.assertFalse(
-            marketTimeExposed_._isMarketOpened((datetime) "2021-06-30 07:58")
-        );
-        unitTest.assertTrue(
-            marketTimeExposed_._isMarketOpened((datetime) "2021-06-30 08:02")
-        );
-        unitTest.assertTrue(
-            marketTimeExposed_._isMarketOpened((datetime) "2021-06-30 19:30")
-        );
-        unitTest.assertFalse(
-            marketTimeExposed_._isMarketOpened((datetime) "2021-06-30 20:02")
-        );
-    }
-
-    unitTest.assertFalse(
-        marketTimeExposed_._isMarketOpened((datetime) "2020-04-03 12:00") // Friday
-    );
-
-    unitTest.assertFalse(
-        marketTimeExposed_._isMarketOpened((datetime) "2020-04-05 12:00") // Sunday
-    );
-}
 
 void MarketTimeTest::findDayOfWeekOccurrenceInMonthTest() {
     UnitTest unitTest("findDayOfWeekOccurrenceInMonthTest");

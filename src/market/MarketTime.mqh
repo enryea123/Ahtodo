@@ -21,10 +21,11 @@ enum MonthNumber {
 
 class MarketTime {
     public:
-        bool isMarketOpened();
-        int marketOpenHour();   // public o protected?
+        int marketOpenHour();
         int marketCloseHour();
         int marketCloseHourPending();
+        int marketOpenDay();
+        int marketCloseDay();
 
         datetime timeItaly();
         datetime timeBroker();
@@ -32,46 +33,54 @@ class MarketTime {
         int timeShiftInHours(datetime, datetime);
 
     protected:
-        bool isMarketOpened(datetime);
         datetime findDayOfWeekOccurrenceInMonth(int, int, int, int);
         int getDaylightSavingCorrectionCET(datetime);
         int getDaylightSavingCorrectionUSA(datetime);
 
     private:
+        static const int marketOpenHour_;
+        static const int marketOpenHourH4_;
+        static const int marketCloseHour_;
+        static const int marketCloseHourH4_;
+        static const int marketCloseHourPending_;
+        static const int marketOpenDay_;
+        static const int marketCloseDay_;
+
         static const string knownTimeZoneBrokers_;
 
         int getDaysInMonth(int, int);
         bool isLeapYear(int);
 };
 
+// TimeZone Milano
+const int MarketTime::marketOpenHour_ = 9;
+const int MarketTime::marketOpenHourH4_ = 8;
+const int MarketTime::marketCloseHour_ = 17;
+const int MarketTime::marketCloseHourH4_ = 20;
+const int MarketTime::marketCloseHourPending_ = 16;
+const int MarketTime::marketOpenDay_ = 1;
+const int MarketTime::marketCloseDay_ = 5;
+
 const string MarketTime::knownTimeZoneBrokers_ = "KEY TO MARKETS";
 
-bool MarketTime::isMarketOpened() {
-    return isMarketOpened(timeItaly());
-}
-
-bool MarketTime::isMarketOpened(datetime date) {
-    const int hour = TimeHour(date);
-    const int dayOfWeek = TimeDayOfWeek(date);
-
-    if (hour >= marketOpenHour() && hour < marketCloseHour() &&
-        dayOfWeek >= MARKET_OPEN_DAY && dayOfWeek < MARKET_CLOSE_DAY) {
-        return true;
-    }
-
-    return false;
-}
-
 int MarketTime::marketOpenHour() {
-    return (Period() != PERIOD_H4) ? MARKET_OPEN_HOUR : MARKET_OPEN_HOUR_H4;
+    return (Period() != PERIOD_H4) ? marketOpenHour_ : marketOpenHourH4_;
 }
 
 int MarketTime::marketCloseHour() {
-    return (Period() != PERIOD_H4) ? MARKET_CLOSE_HOUR : MARKET_CLOSE_HOUR_H4;
+    return (Period() != PERIOD_H4) ? marketCloseHour_ : marketCloseHourH4_;
 }
 
 int MarketTime::marketCloseHourPending() {
-    return MARKET_CLOSE_HOUR_PENDING;
+    return marketCloseHourPending_;
+}
+
+int MarketTime::marketOpenDay() {
+    return marketOpenDay_;
+}
+
+int MarketTime::marketCloseDay() {
+    return marketCloseDay_;
 }
 
 datetime MarketTime::timeItaly() {
@@ -168,8 +177,7 @@ datetime MarketTime::findDayOfWeekOccurrenceInMonth(int year, int month, int day
         }
     }
 
-    return ThrowException(-1, __FUNCTION__, StringConcatenate(
-        "Could not calculate date"));
+    return ThrowException(-1, __FUNCTION__, "Could not calculate date");
 }
 
 int MarketTime::getDaysInMonth(int year, int month) {

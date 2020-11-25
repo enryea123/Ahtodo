@@ -3,7 +3,15 @@
 #property description "Enrico Albano's automated bot for Ahtodo"
 
 #include "src/drawer/Drawer.mqh"
+#include "src/market/Market.mqh"
 #include "tst/UnitTestsRunner.mqh"
+
+// make these 2 (and MarketTime and Holiday) static singletons? Then cleanup in DeInit.
+// Cosi potrebbero essere inizializzate in OnInit con nomi normali (no default)
+// https://www.mql5.com/en/forum/160423 (static & SINGLETON)
+// https://www.mql5.com/en/forum/159069 (DISALLOW_COPY_AND_ASSIGN)
+Drawer defaultDrawer;
+Market defaultMarket;
 
 
 void OnInit() {
@@ -15,27 +23,47 @@ void OnInit() {
     UnitTestsRunner unitTestsRunner;
     unitTestsRunner.runAllUnitTests();
 
-    // Market opening stuff, check Ahtodo_mono for info
+    defaultDrawer.setChartDefaultColors();
 
-    Drawer drawer;
-    drawer.setChartDefaultColors();
-    drawer.drawEverything();
+    if (!defaultMarket.isMarketOpened()) {
+        defaultDrawer.setChartMarketClosedColors();
+    }
 
+    defaultMarket.marketConditionsValidation();
+    defaultDrawer.drawEverything();
 }
 
 void OnTick() {
     RefreshRates();
     Sleep(1000);
 
-    Drawer drawer;
-    drawer.drawEverything();
+    defaultMarket.marketConditionsValidation();
+    defaultDrawer.drawEverything();
 
-    Print("Ciao");
+    if (defaultMarket.isMarketOpened()) {
+        defaultDrawer.setChartMarketOpenedColors();
+
+        if (!IsTradeAllowed()) {
+            return;
+        }
+
+//        if (!AreThereOpenOrders()) {
+//            if (Hour() >= MARKET_CLOSE_HOUR_PENDING) {
+//                DeletePendingOrdersThisSymbolThisPeriod();
+//                return;
+//            }
+//
+//            PutPendingOrder(); // order.putNewOrder();
+//        } else {
+//            OrderTrailing(); // order.manageOpenedOrders();
+//        }
+    } else {
+        defaultDrawer.setChartMarketClosedColors();
+        // CloseAllPositions(); // order.closeAllOrders();
+    }
 }
 
 void OnDeinit(const int reason) {
-    Drawer drawer;
-    drawer.setChartMarketOpenColors();
-
+    defaultDrawer.setChartDefaultColors();
     ObjectsDeleteAll();
 }

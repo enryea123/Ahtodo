@@ -10,6 +10,7 @@
  */
 class MarketExposed: public Market {
     public:
+        bool _isMarketOpened(datetime date) {return isMarketOpened(date);}
         bool _isAllowedAccountNumber(int account) {return isAllowedAccountNumber(account);}
         bool _isAllowedExecutionDate(datetime date) {return isAllowedExecutionDate(date);}
         bool _isAllowedPeriod() {return isAllowedPeriod();}
@@ -28,6 +29,7 @@ class MarketExposed: public Market {
 
 class MarketTest {
     public:
+        void isMarketOpenedTest();
         void isAllowedAccountNumberTest();
         void isAllowedExecutionDateTest();
         void isAllowedPeriodTest();
@@ -39,6 +41,60 @@ class MarketTest {
     private:
         MarketExposed marketExposed_;
 };
+
+
+void MarketTest::isMarketOpenedTest() {
+    UnitTest unitTest("isMarketOpenedTest");
+
+    if (unitTest.hasDateDependentTestExpired()) {
+        return;
+    }
+
+    if (Period() != PERIOD_H4) {
+        unitTest.assertFalse(
+            marketExposed_._isMarketOpened((datetime) "2020-04-06 08:58")
+        );
+
+        unitTest.assertTrue(
+            marketExposed_._isMarketOpened((datetime) "2020-04-06 09:02")
+        );
+
+        unitTest.assertTrue(
+            marketExposed_._isMarketOpened((datetime) "2021-06-30 16:58")
+        );
+
+        unitTest.assertFalse(
+            marketExposed_._isMarketOpened((datetime) "2021-06-30 17:02")
+        );
+    }
+
+    if (Period() == PERIOD_H4) {
+        unitTest.assertFalse(
+            marketExposed_._isMarketOpened((datetime) "2021-06-30 07:58")
+        );
+        unitTest.assertTrue(
+            marketExposed_._isMarketOpened((datetime) "2021-06-30 08:02")
+        );
+        unitTest.assertTrue(
+            marketExposed_._isMarketOpened((datetime) "2021-06-30 19:30")
+        );
+        unitTest.assertFalse(
+            marketExposed_._isMarketOpened((datetime) "2021-06-30 20:02")
+        );
+    }
+
+    unitTest.assertFalse(
+        marketExposed_._isMarketOpened((datetime) "2020-04-03 12:00") // Friday
+    );
+
+    unitTest.assertFalse(
+        marketExposed_._isMarketOpened((datetime) "2020-04-05 12:00") // Sunday
+    );
+
+    unitTest.assertFalse(
+        marketExposed_._isMarketOpened((datetime) "2020-12-25 12:00") // Christmas
+    );
+}
 
 void MarketTest::isAllowedAccountNumberTest() {
     UnitTest unitTest("isAllowedAccountNumberTest");
