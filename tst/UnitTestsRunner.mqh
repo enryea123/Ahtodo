@@ -5,6 +5,7 @@
 #include "extreme/ArrowStyleTest.mqh"
 #include "holiday/HolidayTest.mqh"
 #include "market/MarketTest.mqh"
+#include "market/MarketTimeTest.mqh"
 #include "pattern/PatternTest.mqh"
 #include "pivot/PivotTest.mqh"
 #include "pivot/PivotStyleTest.mqh"
@@ -34,6 +35,13 @@ void UnitTestsRunner::runAllUnitTests() {
     marketTest.isAllowedSymbolTest();
     marketTest.isAllowedSymbolPeriodComboTest();
     marketTest.isDemoTradingTest();
+
+    MarketTimeTest marketTimeTest;
+    marketTimeTest.isMarketOpenedTest();
+    marketTimeTest.findDayOfWeekOccurrenceInMonthTest();
+    marketTimeTest.getDaylightSavingCorrectionsTest();
+    marketTimeTest.timeAtMidnightTest();
+    marketTimeTest.timeShiftInHoursTest();
 
     PatternTest patternTest;
     patternTest.isPatternTest();

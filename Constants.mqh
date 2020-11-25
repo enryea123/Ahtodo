@@ -1,10 +1,11 @@
 #property copyright "2020 Enrico Albano"
 #property link "https://www.linkedin.com/in/enryea123"
 
-input double PercentRisk = NULL; // getPercentRisk: if !PercentRisk -> get from list of account owners
-datetime STARTUP_TIME = NULL;
+input double PERCENT_RISK = 1.0; // getPercentRisk: if !PercentRisk -> get from list of account owners
+input bool ALERT_ALLOWED = true;
+input bool IS_DEBUG = false;
 
-const bool IS_DEBUG = false;
+datetime STARTUP_TIME = NULL;
 
 const int MY_SCRIPT_ID = 2044000;
 const int MY_SCRIPT_ID_030 = 2044030;
@@ -21,6 +22,8 @@ const int MARKET_OPEN_DAY = 1;
 const int MARKET_CLOSE_DAY = 5;
 
 const datetime BOT_EXPIRATION_DATE = (datetime) "2021-06-30";
+const datetime BOT_TESTS_EXPIRATION_DATE = (datetime) "2025-01-01";
+
 const int STARTUP_EXCEPTIONS_BUFFER_SECONDS = 10;
 
 const int CANDLES_VISIBLE_IN_GRAPH_2X = 940;
@@ -75,10 +78,6 @@ const double BaseTakeProfitFactor = 3.0;
 
 
 // Sotto ci sono funzioni da migrare in classi o in file util
-
-bool IsPeriodAllowed(int i) {
-    return true;
-}
 
 bool StringContains(string inputString, string inputSubString) {
     if (StringFind(inputString, inputSubString) != -1) {
@@ -260,14 +259,24 @@ datetime ThrowException(datetime returnValue, string function, string message) {
 }
 
 void ThrowException(string function, string message) {
+    const string errorMessage = StringConcatenate(function, " | ThrowException invoked with message: ", message);
     if (TimeLocal() < STARTUP_TIME + STARTUP_EXCEPTIONS_BUFFER_SECONDS) {
-        Print(function, " | ThrowException invoked with message: ", message);
+        Print(errorMessage);
     } else {
-        Alert(function, " | ThrowException invoked with message: ", message);
+        OptionalAlert(errorMessage);
     }
 }
 
 void ThrowFatalException(string function, string message) {
-    Alert(function, " | ThrowFatalException invoked with message: ", message);
+    const string errorMessage = StringConcatenate(function, " | ThrowFatalException invoked with message: ", message);
+    OptionalAlert(errorMessage);
     ExpertRemove();
+}
+
+void OptionalAlert(string message) {
+    if (ALERT_ALLOWED) {
+        Alert(message);
+    } else {
+        Print(message);
+    }
 }

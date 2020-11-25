@@ -10,6 +10,7 @@ class UnitTest {
         ~UnitTest();
 
         void assertEquals(color, color, string);
+        void assertEquals(datetime, datetime, string);
         void assertEquals(int, int, string);
         void assertEquals(string, string, string);
 
@@ -19,6 +20,8 @@ class UnitTest {
         void assertTrue(bool, string);
         void assertFalse(bool, string);
 
+        bool hasDateDependentTestExpired();
+
     private:
         uint passedAssertions_;
         uint totalAssertions_;
@@ -26,6 +29,7 @@ class UnitTest {
 
         void setSuccess(string);
         void setFailure(string);
+        void setFailure(datetime, datetime, string);
         void setFailure(int, int, string);
         void setFailure(string, string, string);
         void getTestResult();
@@ -41,39 +45,19 @@ UnitTest::~UnitTest() {
     getTestResult();
 }
 
-void UnitTest::setSuccess(string message = NULL) {
-    passedAssertions_++;
-    totalAssertions_++;
-
-    if (IS_DEBUG && message != NULL && message != "") {
-        Print("Assertion succeeded: ", message);
-    }
-}
-
-void UnitTest::setFailure(string message = NULL) {
-    totalAssertions_++;
-    Print("Assertion failed");
-
-    if (message != NULL && message != "") {
-        Print("Assertion failure message: ", message);
-    }
-}
-
-void UnitTest::setFailure(int expected, int actual, string message = NULL) {
-    setFailure(message);
-    Print("Expected <", expected, "> Actual <", actual, ">");
-}
-
-void UnitTest::setFailure(string expected, string actual, string message = NULL) {
-    setFailure(message);
-    Print("Expected <", expected, "> Actual <", actual, ">");
-}
-
 void UnitTest::assertEquals(color expected, color actual, string message = NULL) {
     if (expected == actual) {
         setSuccess(message);
     } else {
         setFailure(message);
+    }
+}
+
+void UnitTest::assertEquals(datetime expected, datetime actual, string message = NULL) {
+    if (expected == actual) {
+        setSuccess(message);
+    } else {
+        setFailure(expected, actual, message);
     }
 }
 
@@ -115,10 +99,52 @@ void UnitTest::assertFalse(bool condition, string message = NULL) {
     }
 }
 
+bool UnitTest::hasDateDependentTestExpired() {
+    if (TimeGMT() > BOT_TESTS_EXPIRATION_DATE) {
+        return ThrowException(true, __FUNCTION__, StringConcatenate("Skipping expired test: ", testName_));
+    }
+
+    return false;
+}
+
+void UnitTest::setSuccess(string message = NULL) {
+    passedAssertions_++;
+    totalAssertions_++;
+
+    if (IS_DEBUG && message != NULL && message != "") {
+        Print("Assertion succeeded: ", message);
+    }
+}
+
+void UnitTest::setFailure(string message = NULL) {
+    totalAssertions_++;
+    Print("Assertion failed");
+
+    if (message != NULL && message != "") {
+        Print("Assertion failure message: ", message);
+    }
+}
+
+void UnitTest::setFailure(datetime expected, datetime actual, string message = NULL) {
+    setFailure(message);
+    Print("Expected <", expected, "> Actual <", actual, ">");
+}
+
+void UnitTest::setFailure(int expected, int actual, string message = NULL) {
+    setFailure(message);
+    Print("Expected <", expected, "> Actual <", actual, ">");
+}
+
+void UnitTest::setFailure(string expected, string actual, string message = NULL) {
+    setFailure(message);
+    Print("Expected <", expected, "> Actual <", actual, ">");
+}
+
 void UnitTest::getTestResult() {
     if (passedAssertions_ == totalAssertions_) {
-        Print("Test ", testName_, ": PASSED");
+        Print("Test ", testName_, ": PASSED with ", passedAssertions_, "/", totalAssertions_);
     } else {
-        ThrowFatalException(__FUNCTION__, StringConcatenate("Test ", testName_, ": FAILED"));
+        ThrowFatalException(__FUNCTION__, StringConcatenate(
+            "Test ", testName_, ": FAILED with ", passedAssertions_, "/", totalAssertions_));
     }
 }

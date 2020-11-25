@@ -6,7 +6,7 @@
 
 
 /**
- * This class exposes the protected variable of Market for testing
+ * This class exposes the protected methods and variables of Market for testing
  */
 class MarketExposed: public Market {
     public:
@@ -37,30 +37,34 @@ class MarketTest {
         void isDemoTradingTest();
 
     private:
-        MarketExposed marketExaposed_;
+        MarketExposed marketExposed_;
 };
 
 void MarketTest::isAllowedAccountNumberTest() {
     UnitTest unitTest("isAllowedAccountNumberTest");
 
     unitTest.assertTrue(
-        marketExaposed_._isAllowedAccountNumber(2100219063)
+        marketExposed_._isAllowedAccountNumber(2100219063)
     );
 
     unitTest.assertFalse(
-        marketExaposed_._isAllowedAccountNumber(123)
+        marketExposed_._isAllowedAccountNumber(123)
     );
 }
 
 void MarketTest::isAllowedExecutionDateTest() {
     UnitTest unitTest("isAllowedExecutionDateTest");
 
+    if (unitTest.hasDateDependentTestExpired()) {
+        return;
+    }
+
     unitTest.assertTrue(
-        marketExaposed_._isAllowedExecutionDate((datetime) "2020-03-12")
+        marketExposed_._isAllowedExecutionDate((datetime) "2020-03-12")
     );
 
     unitTest.assertFalse(
-        marketExaposed_._isAllowedExecutionDate((datetime) "2021-07-12")
+        marketExposed_._isAllowedExecutionDate((datetime) "2021-07-12")
     );
 }
 
@@ -68,15 +72,15 @@ void MarketTest::isAllowedPeriodTest() {
     UnitTest unitTest("isAllowedPeriodTest");
 
     unitTest.assertTrue(
-        marketExaposed_._isAllowedPeriod()
+        marketExposed_._isAllowedPeriod()
     );
 
     unitTest.assertTrue(
-        marketExaposed_._isAllowedPeriod(PERIOD_M30)
+        marketExposed_._isAllowedPeriod(PERIOD_M30)
     );
 
     unitTest.assertFalse(
-        marketExaposed_._isAllowedPeriod(PERIOD_D1)
+        marketExposed_._isAllowedPeriod(PERIOD_D1)
     );
 }
 
@@ -84,29 +88,29 @@ void MarketTest::isAllowedSymbolTest() {
     UnitTest unitTest("isAllowedSymbolTest");
 
     unitTest.assertTrue(
-        marketExaposed_._isAllowedSymbol()
+        marketExposed_._isAllowedSymbol()
     );
 
     unitTest.assertTrue(
-        marketExaposed_._isAllowedSymbol("GBPUSD")
+        marketExposed_._isAllowedSymbol("GBPUSD")
     );
 
-    if (marketExaposed_._isDemoTrading()) {
+    if (marketExposed_._isDemoTrading()) {
         unitTest.assertTrue(
-            marketExaposed_._isAllowedSymbol("EURNOK")
+            marketExposed_._isAllowedSymbol("EURNOK")
         );
     }
 
-    marketExaposed_.accountTypeOverride();
+    marketExposed_.accountTypeOverride();
 
     unitTest.assertFalse(
-        marketExaposed_._isAllowedSymbol("EURNOK")
+        marketExposed_._isAllowedSymbol("EURNOK")
     );
 
-    marketExaposed_.accountTypeOverrideReset();
+    marketExposed_.accountTypeOverrideReset();
 
     unitTest.assertFalse(
-        marketExaposed_._isAllowedSymbol("CIAO")
+        marketExposed_._isAllowedSymbol("CIAO")
     );
 }
 
@@ -116,72 +120,72 @@ void MarketTest::isAllowedBrokerTest() {
     const string randomBrokerName = "RandomBrokerName";
 
     unitTest.assertTrue(
-        marketExaposed_._isAllowedBroker(AccountCompany())
+        marketExposed_._isAllowedBroker(AccountCompany())
     );
 
-    if (marketExaposed_._isDemoTrading()) {
+    if (marketExposed_._isDemoTrading()) {
         unitTest.assertTrue(
-            marketExaposed_._isAllowedBroker(randomBrokerName)
+            marketExposed_._isAllowedBroker(randomBrokerName)
         );
     } else {
         unitTest.assertFalse(
-            marketExaposed_._isAllowedBroker(randomBrokerName)
+            marketExposed_._isAllowedBroker(randomBrokerName)
         );
     }
 
-    marketExaposed_.accountTypeOverride();
+    marketExposed_.accountTypeOverride();
 
     unitTest.assertFalse(
-        marketExaposed_._isAllowedBroker(randomBrokerName)
+        marketExposed_._isAllowedBroker(randomBrokerName)
     );
 
-    marketExaposed_.accountTypeOverrideReset();
+    marketExposed_.accountTypeOverrideReset();
 }
 
 void MarketTest::isAllowedSymbolPeriodComboTest() {
     UnitTest unitTest("isAllowedSymbolPeriodComboTest");
 
-    marketExaposed_.accountTypeOverride();
+    marketExposed_.accountTypeOverride();
 
     unitTest.assertFalse(
-        marketExaposed_._isAllowedSymbolPeriodCombo("GBPJPY", PERIOD_M30)
+        marketExposed_._isAllowedSymbolPeriodCombo("GBPJPY", PERIOD_M30)
     );
 
     unitTest.assertFalse(
-        marketExaposed_._isAllowedSymbolPeriodCombo("EURJPY", PERIOD_M30)
+        marketExposed_._isAllowedSymbolPeriodCombo("EURJPY", PERIOD_M30)
     );
 
     unitTest.assertTrue(
-        marketExaposed_._isAllowedSymbolPeriodCombo("GBPJPY", PERIOD_H4)
+        marketExposed_._isAllowedSymbolPeriodCombo("GBPJPY", PERIOD_H4)
     );
 
     unitTest.assertTrue(
-        marketExaposed_._isAllowedSymbolPeriodCombo("EURUSD", PERIOD_M30)
+        marketExposed_._isAllowedSymbolPeriodCombo("EURUSD", PERIOD_M30)
     );
 
-    marketExaposed_.accountTypeOverrideReset();
+    marketExposed_.accountTypeOverrideReset();
 }
 
 void MarketTest::isDemoTradingTest() {
     UnitTest unitTest("isDemoTradingTest");
 
     unitTest.assertTrue(
-        marketExaposed_._isDemoTrading(2100219063)
+        marketExposed_._isDemoTrading(2100219063)
     );
 
-    marketExaposed_.accountTypeOverride();
+    marketExposed_.accountTypeOverride();
 
     unitTest.assertFalse(
-        marketExaposed_._isDemoTrading(2100219063)
+        marketExposed_._isDemoTrading(2100219063)
     );
 
-    marketExaposed_.accountTypeOverrideReset();
+    marketExposed_.accountTypeOverrideReset();
 
     unitTest.assertFalse(
-        marketExaposed_._isDemoTrading(2100175255)
+        marketExposed_._isDemoTrading(2100175255)
     );
 
     unitTest.assertFalse(
-        marketExaposed_._isDemoTrading(123)
+        marketExposed_._isDemoTrading(123)
     );
 }

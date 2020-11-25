@@ -2,6 +2,7 @@
 #property link "https://www.linkedin.com/in/enryea123"
 
 #include "../../Constants.mqh"
+#include "../market/MarketTime.mqh"
 
 
 class Market {
@@ -29,6 +30,13 @@ Market::Market():
 void Market::marketConditionsValidation() {
     if (isAllowedAccountNumber() && isAllowedExecutionDate() && isAllowedPeriod() &&
         isAllowedBroker() && isAllowedSymbol() && isAllowedSymbolPeriodCombo()) {
+
+        // This doesn't catch an incorrect clock, only a different timezone
+        MarketTime marketTime;
+        if (marketTime.timeItaly() != TimeLocal()) {
+            ThrowException(__FUNCTION__, "The computer clock is not on the CET timezone, untested scenario");
+        }
+
         return;
     }
 
@@ -59,6 +67,11 @@ bool Market::isAllowedAccountNumber(int accountNumber = NULL) {
 bool Market::isAllowedExecutionDate(datetime date = NULL) {
     if (!date) {
         date = TimeGMT();
+    }
+
+    if (date > BOT_TESTS_EXPIRATION_DATE) {
+        ThrowException(__FUNCTION__, StringConcatenate("Date dependent tests have expired on: ",
+            BOT_TESTS_EXPIRATION_DATE));
     }
 
     if (date < BOT_EXPIRATION_DATE) {

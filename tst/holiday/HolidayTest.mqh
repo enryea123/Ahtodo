@@ -27,6 +27,10 @@ class HolidayTest {
 void HolidayTest::isMajorBankHolidayTest() {
     UnitTest unitTest("isMajorBankHolidayTest");
 
+    if (unitTest.hasDateDependentTestExpired()) {
+        return;
+    }
+
     unitTest.assertTrue(
         holidayExposed_._isMajorBankHoliday((datetime) "2020-01-03")
     );
@@ -91,6 +95,10 @@ void HolidayTest::isMajorBankHolidayTest() {
 
 void HolidayTest::isMinorBankHolidayTest() {
     UnitTest unitTest("isMinorBankHolidayTest");
+
+    if (unitTest.hasDateDependentTestExpired()) {
+        return;
+    }
 
     unitTest.assertFalse(
         holidayExposed_._isMinorBankHoliday((datetime) "2021-01-10")

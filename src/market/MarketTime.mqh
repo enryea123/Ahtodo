@@ -22,8 +22,9 @@ enum MonthNumber {
 class MarketTime {
     public:
         bool isMarketOpened();
-        int marketOpenHour();
+        int marketOpenHour();   // public o protected?
         int marketCloseHour();
+        int marketCloseHourPending();
 
         datetime timeItaly();
         datetime timeBroker();
@@ -39,7 +40,7 @@ class MarketTime {
     private:
         static const string knownTimeZoneBrokers_;
 
-        int getDaysInMonth(int);
+        int getDaysInMonth(int, int);
         bool isLeapYear(int);
 };
 
@@ -62,15 +63,15 @@ bool MarketTime::isMarketOpened(datetime date) {
 }
 
 int MarketTime::marketOpenHour() {
-    const int baseMarketOpenHour = Period() != PERIOD_H4 ? MARKET_OPEN_HOUR : MARKET_OPEN_HOUR_H4;
-
-    return baseMarketOpenHour + getDaylightSavingCorrectionCET();
+    return (Period() != PERIOD_H4) ? MARKET_OPEN_HOUR : MARKET_OPEN_HOUR_H4;
 }
 
 int MarketTime::marketCloseHour() {
-    const int baseMarketCloseHour = Period() != PERIOD_H4 ? MARKET_CLOSE_HOUR : MARKET_CLOSE_HOUR_H4;
+    return (Period() != PERIOD_H4) ? MARKET_CLOSE_HOUR : MARKET_CLOSE_HOUR_H4;
+}
 
-    return baseMarketCloseHour + getDaylightSavingCorrectionCET();
+int MarketTime::marketCloseHourPending() {
+    return MARKET_CLOSE_HOUR_PENDING;
 }
 
 datetime MarketTime::timeItaly() {
@@ -109,6 +110,7 @@ int MarketTime::getDaylightSavingCorrectionCET(datetime date = NULL) {
 
     const int year = TimeYear(date);
 
+    // Changes at Midnight GMT rather than 01:00, but it doesn't matter
     const datetime lastSundayOfMarch = findDayOfWeekOccurrenceInMonth(year, MARCH, SUNDAY, -1);
     const datetime lastSundayOfOctober = findDayOfWeekOccurrenceInMonth(year, OCTOBER, SUNDAY, -1);
 
@@ -126,6 +128,7 @@ int MarketTime::getDaylightSavingCorrectionUSA(datetime date = NULL) {
 
     const int year = TimeYear(date);
 
+    // Changes at Midnight GMT rather than 01:00, but it doesn't matter
     const datetime secondSundayOfMarch = findDayOfWeekOccurrenceInMonth(year, MARCH, SUNDAY, 2);
     const datetime firstSundayOfNovember = findDayOfWeekOccurrenceInMonth(year, NOVEMBER, SUNDAY, 1);
 
@@ -140,10 +143,10 @@ int MarketTime::getDaylightSavingCorrectionUSA(datetime date = NULL) {
  * Considerata la possibilita di usare anche -1 e -2 bisogna spiegare bene e mettere constraints su occurrence
  */
 datetime MarketTime::findDayOfWeekOccurrenceInMonth(int year, int month, int dayOfWeek, int occurrence) {
-    const int daysInMonth = getDaysInMonth(month);
+    const int daysInMonth = getDaysInMonth(year, month);
 
-    if (daysInMonth < 0 || occurrence == 0) {
-        return ThrowException(-1, __FUNCTION__, StringConcatenate("Could not get days in month:",
+    if (daysInMonth < 0 || occurrence == 0 || MathAbs(TimeYear(TimeGMT()) - year) > 5) {
+        return ThrowException(-1, __FUNCTION__, StringConcatenate("Could not get days in month: ",
             month, " with occurrence: ", occurrence));
     }
 
@@ -158,7 +161,7 @@ datetime MarketTime::findDayOfWeekOccurrenceInMonth(int year, int month, int day
     }
 
     for (int day = startDay; day <= endDay; day++) {
-        const datetime date = StringToTime(StringConcatenate(year, ".", month, ".", day, " 01:00:00"));
+        const datetime date = StringToTime(StringConcatenate(year, ".", month, ".", day));
 
         if (TimeDayOfWeek(date) == dayOfWeek) {
             return date;
@@ -166,15 +169,15 @@ datetime MarketTime::findDayOfWeekOccurrenceInMonth(int year, int month, int day
     }
 
     return ThrowException(-1, __FUNCTION__, StringConcatenate(
-        "findDayOfWeekOccurrenceInMonth, could not calculate date"));
+        "Could not calculate date"));
 }
 
-int MarketTime::getDaysInMonth(int month) {
+int MarketTime::getDaysInMonth(int year, int month) {
     if (month == JANUARY) {
         return 31;
     }
     if (month == FEBRUARY) {
-        return isLeapYear() ? 29 : 28;
+        return isLeapYear(year) ? 29 : 28;
     }
     if (month == MARCH) {
         return 31;
@@ -210,11 +213,7 @@ int MarketTime::getDaysInMonth(int month) {
     return ThrowException(-1, __FUNCTION__, StringConcatenate("Could not calculate days in month: ", month));
 }
 
-bool MarketTime::isLeapYear(int year = NULL) {
-    if (!year) {
-        year = Year();
-    }
-
+bool MarketTime::isLeapYear(int year) {
     bool leapYearCondition = (year % 4 == 0) && (year % 100 != 0 || year % 400 == 0);
     return leapYearCondition ? true : false;
 }
