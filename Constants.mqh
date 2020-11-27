@@ -15,7 +15,7 @@ const int MY_SCRIPT_ID_240 = 2044240;
 const datetime BOT_EXPIRATION_DATE = (datetime) "2021-06-30";
 const datetime BOT_TESTS_EXPIRATION_DATE = (datetime) "2025-01-01";
 
-const int STARTUP_EXCEPTIONS_BUFFER_SECONDS = 10;
+const int INITIALIZATION_MAX_SECONDS = 10;
 
 const int CANDLES_VISIBLE_IN_GRAPH_2X = 940;
 const int PATTERN_MINIMUM_SIZE_PIPS = 7;
@@ -140,28 +140,25 @@ double iCandle(CandleSeriesType candleSeriesType, string symbol, int period, int
         return ThrowException(-1, __FUNCTION__, "iCandle: timeIndex < 0");
     }
 
-    const int maxAttempts = 20;
-
+    const int maxAttempts = 50;
     for (int i = 0; i < maxAttempts; i++) {
         ResetLastError();
-        RefreshRates();
 
         double value = 0;
 
         if (candleSeriesType == I_high) {
             value = iHigh(symbol, period, timeIndex);
-        }
-        if (candleSeriesType == I_low) {
+        } else if (candleSeriesType == I_low) {
             value = iLow(symbol, period, timeIndex);
-        }
-        if (candleSeriesType == I_open) {
+        } else if (candleSeriesType == I_open) {
             value = iOpen(symbol, period, timeIndex);
-        }
-        if (candleSeriesType == I_close) {
+        } else if (candleSeriesType == I_close) {
             value = iClose(symbol, period, timeIndex);
-        }
-        if (candleSeriesType == I_time) {
+        } else if (candleSeriesType == I_time) {
             value = iTime(symbol, period, timeIndex);
+        } else {
+            return ThrowException(-1, __FUNCTION__, StringConcatenate(
+                "iCandle: unsupported candleSeriesType: ", candleSeriesType));
         }
 
         int lastError = GetLastError();
@@ -170,12 +167,12 @@ double iCandle(CandleSeriesType candleSeriesType, string symbol, int period, int
             return value;
         }
 
-        if (IS_DEBUG || lastError != 4066) {
-            Print("iCandle: candleSeriesType == ", EnumToString(candleSeriesType),
-            ", lastError == ", lastError, ", value == ", value);
+        if (lastError != 4066) {
+            ThrowException(__FUNCTION__, StringConcatenate("iCandle: candleSeriesType == ",
+                EnumToString(candleSeriesType), ", lastError == ", lastError, ", value == ", value));
         }
 
-        Sleep(500);
+        RefreshRates();
     }
 
     return ThrowException(-1, __FUNCTION__, "iCandle: could not get market data");
@@ -226,22 +223,40 @@ double GetMarketSpread() {
     return NormalizeDouble(MathAbs(Ask - Bid), Digits);
 }
 
-double GetMarketVolatility() {
-    int CandlesForVolatility = 465;
-    double MarketMax = -10000, MarketMin = 10000;
+double GetMarketVolatility() { // Needs testing as well (price class with iCandle and Pips?)
+    static datetime getMarketVolatilityTimeStamp;
+    static double volatility;
 
-    for (int i = 0; i < CandlesForVolatility; i++) {
-        MarketMax = MathMax(MarketMax, iCandle(I_high, i));
-        MarketMin = MathMin(MarketMin, iCandle(I_low, i));
+    if (getMarketVolatilityTimeStamp != Time[0]) {
+        int CandlesForVolatility = 465;
+        double MarketMax = -10000, MarketMin = 10000;
+
+        for (int i = 0; i < CandlesForVolatility; i++) {
+            MarketMax = MathMax(MarketMax, iCandle(I_high, i));
+            MarketMin = MathMin(MarketMin, iCandle(I_low, i));
+        }
+
+        volatility = MathAbs(MarketMax - MarketMin);
+        getMarketVolatilityTimeStamp = Time[0];
     }
 
-    double Volatility = MathAbs(MarketMax - MarketMin);
-    return Volatility;
+    return volatility;
 }
 
 bool IsLossLimiterEnabled() {
     // Dummy function for now
     return false;
+}
+
+void FinalizeInitialization() {
+    const int initTime = TimeLocal() - STARTUP_TIME;
+    const string initMessage = StringConcatenate("Initialization completed in ", initTime, " seconds");
+
+    if (initTime > INITIALIZATION_MAX_SECONDS) {
+        ThrowException(__FUNCTION__, initMessage);
+    } else {
+        Print(initMessage);
+    }
 }
 
 bool ThrowException(bool returnValue, string function, string message) {
@@ -261,7 +276,7 @@ datetime ThrowException(datetime returnValue, string function, string message) {
 
 void ThrowException(string function, string message) {
     const string errorMessage = StringConcatenate(function, " | ThrowException invoked with message: ", message);
-    if (TimeLocal() < STARTUP_TIME + STARTUP_EXCEPTIONS_BUFFER_SECONDS) {
+    if (TimeLocal() < STARTUP_TIME + INITIALIZATION_MAX_SECONDS) {
         Print(errorMessage);
     } else {
         OptionalAlert(errorMessage);
@@ -274,13 +289,17 @@ void ThrowFatalException(string function, string message) {
     ExpertRemove();
 }
 
-void OptionalAlert(string message, bool limitOutput = false) {
+void OptionalAlert(string message, bool limitOutput = true) {
     static datetime alertTimeStamp;
+    const string fullMessage = StringConcatenate(Symbol(), NAME_SEPARATOR, Period(), " - ", message);
 
-    if (ALERT_ALLOWED && (alertTimeStamp != Time[0] || limitOutput)) {
-        Alert(message);
-        alertTimeStamp = Time[0];
+    if (ALERT_ALLOWED && alertTimeStamp != Time[0]) {
+        Alert(fullMessage);
+
+        if (limitOutput) {
+            alertTimeStamp = Time[0];
+        }
     } else {
-        Print(message);
+        Print(fullMessage);
     }
 }

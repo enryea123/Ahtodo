@@ -114,3 +114,5 @@
 // const function arguments when they don't have to change
 
 // Ora che le exception fanno alert, si possono mettere in ancora piu punti per verificare il codice
+
+// posso fare molti piu print sulle trendline per gli ordini se sono 1 volta a candela!

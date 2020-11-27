@@ -14,6 +14,9 @@ class Market {
         void marketConditionsValidation();
 
     protected:
+        static const int incorrectClockErrorSeconds_;
+        static const int spreadPipsCloseMarket_;
+
         bool forceIsLiveAccountForTesting_;
 
         bool isMarketOpened(datetime);
@@ -26,13 +29,15 @@ class Market {
         bool isDemoTrading(int);
 
     private:
-        Holiday holiday_;
         MarketTime marketTime_;
 };
 
 Market::Market():
     forceIsLiveAccountForTesting_(false) {
 }
+
+const int Market::incorrectClockErrorSeconds_ = 60;
+const int Market::spreadPipsCloseMarket_ = 5;
 
 bool Market::isMarketOpened() {
     return isMarketOpened(marketTime_.timeItaly());
@@ -47,18 +52,23 @@ bool Market::isMarketOpened(datetime date) {
         return false;
     }
 
-    if (holiday_.isMajorBankHoliday()) {
+    static bool isHoliday;
+    if (marketTime_.hasDateChanged(date)) {
+        Holiday holiday;
+        isHoliday = holiday.isMajorBankHoliday(date);
+    }
+    if (isHoliday) {
         return false;
     }
 
     const double spread = GetMarketSpread();
-    if (spread > 5 * Pips()) {
-        OptionalAlert(StringConcatenate("Market closed for spread: ", spread), true);
+    if (spread > spreadPipsCloseMarket_ * Pips()) {
+        OptionalAlert(StringConcatenate("Market closed for spread: ", spread));
         return false;
     }
 
     if (IsLossLimiterEnabled()) {
-        OptionalAlert("Market closed for loss limiter", true);
+        OptionalAlert("Market closed for loss limiter");
         return false;
     }
 
@@ -70,7 +80,7 @@ void Market::marketConditionsValidation() {
         isAllowedBroker() && isAllowedSymbol() && isAllowedSymbolPeriodCombo()) {
 
         // This doesn't catch an incorrect clock, only a different timezone
-        if (marketTime_.timeItaly() != TimeLocal()) {
+        if (MathAbs(marketTime_.timeItaly() - TimeLocal()) > incorrectClockErrorSeconds_) {
             ThrowException(__FUNCTION__, "The computer clock is not on the CET timezone, untested scenario");
         }
 

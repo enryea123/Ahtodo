@@ -18,7 +18,7 @@ class UnitTestsRunner {
 };
 
 void UnitTestsRunner::runAllUnitTests() {
-    int startTime = TimeLocal();
+    const int startTime = TimeLocal();
 
     ArrowStyleTest arrowStyleTest;
     arrowStyleTest.drawExtremeArrowTest();
@@ -38,6 +38,7 @@ void UnitTestsRunner::runAllUnitTests() {
     marketTest.isDemoTradingTest();
 
     MarketTimeTest marketTimeTest;
+    marketTimeTest.hasDateChangedTest();
     marketTimeTest.findDayOfWeekOccurrenceInMonthTest();
     marketTimeTest.getDaylightSavingCorrectionsTest();
     marketTimeTest.timeAtMidnightTest();
@@ -64,6 +65,6 @@ void UnitTestsRunner::runAllUnitTests() {
     trendLineTest.trendLineNameTest();
     trendLineTest.trendLineSetupsTest();
 
-    int endTime = TimeLocal() - startTime;
-    Print("All unit tests run in ", endTime, " seconds. StartTime: ", TimeToStr(startTime));
+    const int endTime = TimeLocal() - startTime;
+    Print("All unit tests run in ", endTime, " seconds");
 }

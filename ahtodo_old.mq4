@@ -16,7 +16,7 @@ double ErrorPips() {
     return 2 * PeriodMultiplicationFactor() * Pips();
 }
 
-double GetCurrentMarketValue() {
+double GetCurrentMarketValue() { // imprecisa
     RefreshRates();
     return NormalizeDouble((Ask + Bid) / 2, Digits);
 }

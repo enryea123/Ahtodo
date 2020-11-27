@@ -29,6 +29,8 @@ class MarketTime {
 
         datetime timeItaly();
         datetime timeBroker();
+
+        bool hasDateChanged(datetime);
         datetime timeAtMidnight(datetime);
         int timeShiftInHours(datetime, datetime);
 
@@ -46,6 +48,7 @@ class MarketTime {
         static const int marketOpenDay_;
         static const int marketCloseDay_;
 
+        static const int findDayMaxYearsRange_;
         static const string knownTimeZoneBrokers_;
 
         int getDaysInMonth(int, int);
@@ -61,6 +64,7 @@ const int MarketTime::marketCloseHourPending_ = 16;
 const int MarketTime::marketOpenDay_ = 1;
 const int MarketTime::marketCloseDay_ = 5;
 
+const int MarketTime::findDayMaxYearsRange_ = 5;
 const string MarketTime::knownTimeZoneBrokers_ = "KEY TO MARKETS";
 
 int MarketTime::marketOpenHour() {
@@ -95,6 +99,18 @@ datetime MarketTime::timeBroker() {
     }
 
     return ThrowException(-1, __FUNCTION__, StringConcatenate("timeBroker, error for broker:", broker));
+}
+
+bool MarketTime::hasDateChanged(datetime date) {
+    static datetime today;
+    const datetime newToday = timeAtMidnight(date);
+
+    if (today != newToday) {
+        today = newToday;
+        return true;
+    }
+
+    return false;
 }
 
 datetime MarketTime::timeAtMidnight(datetime date) {
@@ -154,7 +170,7 @@ int MarketTime::getDaylightSavingCorrectionUSA(datetime date = NULL) {
 datetime MarketTime::findDayOfWeekOccurrenceInMonth(int year, int month, int dayOfWeek, int occurrence) {
     const int daysInMonth = getDaysInMonth(year, month);
 
-    if (daysInMonth < 0 || occurrence == 0 || MathAbs(TimeYear(TimeGMT()) - year) > 5) {
+    if (daysInMonth < 0 || occurrence == 0 || MathAbs(TimeYear(TimeGMT()) - year) > findDayMaxYearsRange_) {
         return ThrowException(-1, __FUNCTION__, StringConcatenate("Could not get days in month: ",
             month, " with occurrence: ", occurrence));
     }

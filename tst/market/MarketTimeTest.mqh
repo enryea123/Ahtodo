@@ -19,6 +19,7 @@ class MarketTimeExposed: public MarketTime {
 
 class MarketTimeTest {
     public:
+        void hasDateChangedTest();
         void findDayOfWeekOccurrenceInMonthTest();
         void getDaylightSavingCorrectionsTest();
         void timeAtMidnightTest();
@@ -27,6 +28,26 @@ class MarketTimeTest {
     private:
         MarketTimeExposed marketTimeExposed_;
 };
+
+void MarketTimeTest::hasDateChangedTest() {
+    UnitTest unitTest("hasDateChangedTest");
+
+    unitTest.assertTrue(
+        marketTimeExposed_.hasDateChanged((datetime) "2020-04-05 12:00")
+    );
+
+    unitTest.assertFalse(
+        marketTimeExposed_.hasDateChanged((datetime) "2020-04-05 12:30")
+    );
+
+    unitTest.assertTrue(
+        marketTimeExposed_.hasDateChanged((datetime) "2020-04-06")
+    );
+
+    unitTest.assertFalse(
+        marketTimeExposed_.hasDateChanged((datetime) "2020-04-06 05:00")
+    );
+}
 
 void MarketTimeTest::findDayOfWeekOccurrenceInMonthTest() {
     UnitTest unitTest("findDayOfWeekOccurrenceInMonthTest");

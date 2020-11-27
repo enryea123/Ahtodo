@@ -90,17 +90,15 @@ bool TrendLine::areTrendLineSetupsGood(int indexI, int indexJ, Discriminator dis
     return true;
 }
 
+/**
+ * Checks if an already existing trendLine had bad setups.
+ * The validations are in the order that gives optimal performance.
+ */
 bool TrendLine::isExistingTrendLineBad(string trendLineName, Discriminator discriminator) {
-    // Broken TrendLine
-    for (int k = 0; k < getTrendLineMaxIndex(trendLineName); k++) {
-        if (ObjectGetValueByShift(trendLineName, k) > iExtreme(k, discriminator) + ErrorPips() &&
-            discriminator == Min) {
-            return true;
-        }
-        if (ObjectGetValueByShift(trendLineName, k) < iExtreme(k, discriminator) - ErrorPips() &&
-            discriminator == Max) {
-            return true;
-        }
+    // TrendLine far from current price
+    if (!IS_DEBUG && MathAbs(ObjectGetValueByShift(trendLineName, 1) - iCandle(I_close, 1)) >
+        trendLinePipsFromPriceThreshold_ * PeriodMultiplicationFactor() * Pips()) {
+        return true;
     }
 
     const double trendLineSlope = ObjectGetValueByShift(trendLineName, 1) - ObjectGetValueByShift(trendLineName, 2);
@@ -116,10 +114,16 @@ bool TrendLine::isExistingTrendLineBad(string trendLineName, Discriminator discr
         return true;
     }
 
-    // TrendLine far from current price
-    if (!IS_DEBUG && MathAbs(ObjectGetValueByShift(trendLineName, 1) - iCandle(I_close, 1)) >
-        trendLinePipsFromPriceThreshold_ * PeriodMultiplicationFactor() * Pips()) {
-        return true;
+    // Broken TrendLine
+    for (int k = 0; k < getTrendLineMaxIndex(trendLineName); k++) {
+        if (ObjectGetValueByShift(trendLineName, k) > iExtreme(k, discriminator) + ErrorPips() &&
+            discriminator == Min) {
+            return true;
+        }
+        if (ObjectGetValueByShift(trendLineName, k) < iExtreme(k, discriminator) - ErrorPips() &&
+            discriminator == Max) {
+            return true;
+        }
     }
 
     return false;

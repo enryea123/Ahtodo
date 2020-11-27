@@ -10,6 +10,8 @@
  */
 class MarketExposed: public Market {
     public:
+        int getSpreadPipsCloseMarket() {return spreadPipsCloseMarket_;}
+
         bool _isMarketOpened(datetime date) {return isMarketOpened(date);}
         bool _isAllowedAccountNumber(int account) {return isAllowedAccountNumber(account);}
         bool _isAllowedExecutionDate(datetime date) {return isAllowedExecutionDate(date);}
@@ -47,6 +49,11 @@ void MarketTest::isMarketOpenedTest() {
     UnitTest unitTest("isMarketOpenedTest");
 
     if (unitTest.hasDateDependentTestExpired()) {
+        return;
+    }
+
+    if (GetMarketSpread() > marketExposed_.getSpreadPipsCloseMarket() * Pips() || IsLossLimiterEnabled()) {
+        Print("isMarketOpenedTest skipped for spread or loss limiter..");
         return;
     }
 
@@ -92,7 +99,7 @@ void MarketTest::isMarketOpenedTest() {
     );
 
     unitTest.assertFalse(
-        marketExposed_._isMarketOpened((datetime) "2020-12-25 12:00") // Christmas
+        marketExposed_._isMarketOpened((datetime) "2020-12-24 12:00") // Vacation
     );
 }
 

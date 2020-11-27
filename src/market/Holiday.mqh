@@ -7,10 +7,6 @@
 
 class Holiday {
     public:
-        bool isMajorBankHoliday();
-        bool isMinorBankHoliday();
-
-    protected:
         bool isMajorBankHoliday(datetime);
         bool isMinorBankHoliday(datetime);
 
@@ -18,24 +14,16 @@ class Holiday {
         int easterDayOfYear(int);
 };
 
-bool Holiday::isMajorBankHoliday() {
-    return isMajorBankHoliday(TimeGMT());
-}
-
-bool Holiday::isMinorBankHoliday() {
-    return isMinorBankHoliday(TimeGMT());
-}
-
-bool Holiday::isMajorBankHoliday(datetime inputDate) {
-    if (!inputDate) {
-        inputDate = TimeGMT();
+bool Holiday::isMajorBankHoliday(datetime date) {
+    if (!date) {
+        return ThrowException(false, __FUNCTION__, StringConcatenate("isMajorBankHoliday, invalid date: ", date));
     }
 
-    const int day = TimeDay(inputDate);
-    const int month = TimeMonth(inputDate);
-    const int year = TimeYear(inputDate);
-    const int dayOfWeek = TimeDayOfWeek(inputDate);
-    const int dayOfYear = TimeDayOfYear(inputDate);
+    const int day = TimeDay(date);
+    const int month = TimeMonth(date);
+    const int year = TimeYear(date);
+    const int dayOfWeek = TimeDayOfWeek(date);
+    const int dayOfYear = TimeDayOfYear(date);
 
     if (easterDayOfYear(year) < 0) {
         return ThrowException(false, __FUNCTION__, StringConcatenate("Easter day of year ", year, " not known"));
@@ -148,14 +136,14 @@ bool Holiday::isMajorBankHoliday(datetime inputDate) {
     return false;
 }
 
-bool Holiday::isMinorBankHoliday(datetime inputDate) {
-    if (!inputDate) {
-        inputDate = TimeGMT();
+bool Holiday::isMinorBankHoliday(datetime date) {
+    if (!date) {
+        return ThrowException(false, __FUNCTION__, StringConcatenate("isMinorBankHoliday, invalid date: ", date));
     }
 
-    const int day = TimeDay(inputDate);
-    const int month = TimeMonth(inputDate);
-    const int dayOfWeek = TimeDayOfWeek(inputDate);
+    const int day = TimeDay(date);
+    const int month = TimeMonth(date);
+    const int dayOfWeek = TimeDayOfWeek(date);
 
     if (month == APRIL) {
         // IT: Liberazione
