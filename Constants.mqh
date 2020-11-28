@@ -104,7 +104,7 @@ enum Discriminator {
 };
 
 
-double iExtreme(int timeIndex, Discriminator discriminator) {
+double iExtreme(Discriminator discriminator, int timeIndex) {
     if (discriminator == Max) {
         return iCandle(I_high, timeIndex);
     }
@@ -128,6 +128,7 @@ double iCandle(CandleSeriesType candleSeriesType, int timeIndex) {
     return iCandle(candleSeriesType, Symbol(), Period(), timeIndex);
 }
 
+// Assumes DownloadHistory() has been executed before
 double iCandle(CandleSeriesType candleSeriesType, string symbol, int period, int timeIndex) { // servono unit tests su iCandle
     if (!SymbolExists(symbol)) {
         return ThrowException(-1, __FUNCTION__, "iCandle: unknown symbol");
@@ -140,42 +141,101 @@ double iCandle(CandleSeriesType candleSeriesType, string symbol, int period, int
         return ThrowException(-1, __FUNCTION__, "iCandle: timeIndex < 0");
     }
 
-    const int maxAttempts = 50;
-    for (int i = 0; i < maxAttempts; i++) {
-        ResetLastError();
+    ResetLastError();
+    double value = 0;
 
-        double value = 0;
-
-        if (candleSeriesType == I_high) {
-            value = iHigh(symbol, period, timeIndex);
-        } else if (candleSeriesType == I_low) {
-            value = iLow(symbol, period, timeIndex);
-        } else if (candleSeriesType == I_open) {
-            value = iOpen(symbol, period, timeIndex);
-        } else if (candleSeriesType == I_close) {
-            value = iClose(symbol, period, timeIndex);
-        } else if (candleSeriesType == I_time) {
-            value = iTime(symbol, period, timeIndex);
-        } else {
-            return ThrowException(-1, __FUNCTION__, StringConcatenate(
-                "iCandle: unsupported candleSeriesType: ", candleSeriesType));
-        }
-
-        int lastError = GetLastError();
-
-        if (lastError == 0 && value != 0) {
-            return value;
-        }
-
-        if (lastError != 4066) {
-            ThrowException(__FUNCTION__, StringConcatenate("iCandle: candleSeriesType == ",
-                EnumToString(candleSeriesType), ", lastError == ", lastError, ", value == ", value));
-        }
-
-        RefreshRates();
+    if (candleSeriesType == I_high) {
+        value = iHigh(symbol, period, timeIndex);
+    } else if (candleSeriesType == I_low) {
+        value = iLow(symbol, period, timeIndex);
+    } else if (candleSeriesType == I_open) {
+        value = iOpen(symbol, period, timeIndex);
+    } else if (candleSeriesType == I_close) {
+        value = iClose(symbol, period, timeIndex);
+    } else if (candleSeriesType == I_time) {
+        value = iTime(symbol, period, timeIndex);
+    } else {
+        return ThrowException(-1, __FUNCTION__, StringConcatenate(
+            "iCandle: unsupported candleSeriesType: ", candleSeriesType));
     }
 
-    return ThrowException(-1, __FUNCTION__, "iCandle: could not get market data");
+    int lastError = GetLastError();
+
+    if (lastError == 0 && value != 0) {
+        return value;
+    }
+
+    return ThrowException(value, __FUNCTION__, StringConcatenate("iCandle: candleSeriesType == ",
+        EnumToString(candleSeriesType), ", lastError == ", lastError, ", value == ", value));;
+}
+
+datetime CalculateDateByTimePeriod(int period) {
+    datetime now = TimeCurrent(); // could change with marketTime.timeBroker()
+
+    if (period <= PERIOD_D1) {
+        return now - now % (PERIOD_D1 * 60);
+    }
+
+    if (period == PERIOD_W1) {
+        datetime time = now - now % (PERIOD_D1 * 60);
+
+        while (TimeDayOfWeek(time) != SUNDAY) {
+            time -= PERIOD_D1 * 60;
+        }
+        return time;
+    }
+
+    if (period == PERIOD_MN1) {
+        int year = TimeYear(now);
+        int month = TimeMonth(now);
+
+        return StringToTime(StringConcatenate(year, ".", month, ".01"));
+    }
+
+    return ThrowException(-1, __FUNCTION__, StringConcatenate(
+        "CalculateTimePeriodStart, unsupported period: ", period));
+}
+
+bool DownloadHistory(string symbol = NULL) {
+    if (symbol == NULL) {
+        symbol = Symbol();
+    }
+
+    static const int DOWNLOAD_PERIODS [] = {
+        PERIOD_M30,
+        PERIOD_H1,
+        PERIOD_H4,
+        PERIOD_D1,
+        PERIOD_W1,
+        PERIOD_MN1
+    };
+    static const int maxAttempts = 20;
+
+    for (int attempt = 0; attempt < maxAttempts; attempt++) {
+        int totalError = 0;
+        ResetLastError();
+
+        for (int i = 0; i < ArraySize(DOWNLOAD_PERIODS); i++) {
+            int lastError = 0;
+            int period = DOWNLOAD_PERIODS[i];
+
+            iTime(symbol, period, 1);
+            lastError = GetLastError();
+
+            if (lastError != 0) {
+                totalError += lastError;
+            }
+        }
+
+        if (totalError == 0) {
+            return true;
+        } else if (attempt != maxAttempts - 1) {
+            Print("Downloading missing history data, attempt: ", attempt);
+            Sleep(200);
+        }
+    }
+
+    return ThrowException(false, __FUNCTION__, "Could not download history data");
 }
 
 /*
@@ -218,13 +278,12 @@ int PeriodMultiplicationFactor() {
     return 1;
 }
 
-double GetMarketSpread() {
-    RefreshRates();
-    return NormalizeDouble(MathAbs(Ask - Bid), Digits);
+double GetMarketSpread(string symbol = NULL) {
+    return MarketInfo(symbol, MODE_SPREAD) / 10;
 }
 
 double GetMarketVolatility() { // Needs testing as well (price class with iCandle and Pips?)
-    static datetime getMarketVolatilityTimeStamp;
+    static datetime getMarketVolatilityTimeStamp; // if they go in a class, static variables must be destroyed at the end
     static double volatility;
 
     if (getMarketVolatilityTimeStamp != Time[0]) {
@@ -232,8 +291,8 @@ double GetMarketVolatility() { // Needs testing as well (price class with iCandl
         double MarketMax = -10000, MarketMin = 10000;
 
         for (int i = 0; i < CandlesForVolatility; i++) {
-            MarketMax = MathMax(MarketMax, iCandle(I_high, i));
-            MarketMin = MathMin(MarketMin, iCandle(I_low, i));
+            MarketMax = MathMax(MarketMax, iExtreme(Max, i));
+            MarketMin = MathMin(MarketMin, iExtreme(Min, i));
         }
 
         volatility = MathAbs(MarketMax - MarketMin);
@@ -259,12 +318,18 @@ void FinalizeInitialization() {
     }
 }
 
+// You can do a template for these functions
 bool ThrowException(bool returnValue, string function, string message) {
     ThrowException(function, message);
     return returnValue;
 }
 
 int ThrowException(int returnValue, string function, string message) {
+    ThrowException(function, message);
+    return returnValue;
+}
+
+int ThrowException(double returnValue, string function, string message) {
     ThrowException(function, message);
     return returnValue;
 }
@@ -283,22 +348,22 @@ void ThrowException(string function, string message) {
     }
 }
 
+bool ThrowFatalException(bool returnValue, string function, string message) {
+    ThrowFatalException(function, message);
+    return returnValue;
+}
+
 void ThrowFatalException(string function, string message) {
     const string errorMessage = StringConcatenate(function, " | ThrowFatalException invoked with message: ", message);
     OptionalAlert(errorMessage);
     ExpertRemove();
 }
 
-void OptionalAlert(string message, bool limitOutput = true) {
-    static datetime alertTimeStamp;
+void OptionalAlert(string message) {
     const string fullMessage = StringConcatenate(Symbol(), NAME_SEPARATOR, Period(), " - ", message);
 
-    if (ALERT_ALLOWED && alertTimeStamp != Time[0]) {
+    if (ALERT_ALLOWED) {
         Alert(fullMessage);
-
-        if (limitOutput) {
-            alertTimeStamp = Time[0];
-        }
     } else {
         Print(fullMessage);
     }

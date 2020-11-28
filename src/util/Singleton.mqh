@@ -28,8 +28,8 @@ class Ciao : public Singleton<Ciao> {
         int count_;
 
     public:
-        void alertCiao() {
-            Alert("Ciao");
+        void printCiao() {
+            Print("Ciao");
             count_++;
         }
 

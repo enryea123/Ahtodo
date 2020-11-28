@@ -93,7 +93,7 @@ void Drawer::drawLastDrawingTimeSignal() {
         OBJ_ARROW_UP,
         0,
         Time[1],
-        iExtreme(1, Min) * 0.999
+        iExtreme(Min, 1) * 0.999
     );
 
     const color lastDrawingTimeSignalColor = getLastDrawingTimeSignalColor();

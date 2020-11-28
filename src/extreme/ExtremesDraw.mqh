@@ -33,8 +33,8 @@ void ExtremesDraw::calculateAllExtremes(int & allExtremes[], Discriminator discr
         bool isBeatingNeighbours = true;
 
         for (int j = -minimumCandlesBetweenExtremes_; j < minimumCandlesBetweenExtremes_ + 1; j++) {
-            if ((iExtreme(i, discriminator) > iExtreme(i + j, discriminator) + Pips() && discriminator == Min) ||
-                (iExtreme(i, discriminator) < iExtreme(i + j, discriminator) - Pips() && discriminator == Max)) {
+            if ((iExtreme(discriminator, i) > iExtreme(discriminator, i + j) + Pips() && discriminator == Min) ||
+                (iExtreme(discriminator, i) < iExtreme(discriminator, i + j) - Pips() && discriminator == Max)) {
                 isBeatingNeighbours = false;
                 break;
             }
@@ -68,8 +68,8 @@ void ExtremesDraw::calculateValidExtremes(int & validExtremes[], Discriminator d
         for (int j = i - 1; j >= 0; j--) {
             const int indexJ = allExtremes[j];
 
-            if ((iExtreme(indexI, discriminator) > iExtreme(indexJ, discriminator) && discriminator == Min) ||
-                (iExtreme(indexI, discriminator) < iExtreme(indexJ, discriminator) && discriminator == Max)) {
+            if ((iExtreme(discriminator, indexI) > iExtreme(discriminator, indexJ) && discriminator == Min) ||
+                (iExtreme(discriminator, indexI) < iExtreme(discriminator, indexJ) && discriminator == Max)) {
                 isValidExtreme = false;
                 break;
             }

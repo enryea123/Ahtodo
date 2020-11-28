@@ -16,7 +16,7 @@ double ErrorPips() {
     return 2 * PeriodMultiplicationFactor() * Pips();
 }
 
-double GetCurrentMarketValue() { // imprecisa
+double GetCurrentMarketValue() { // Imprecisa. Non usare RefreshRates, e ottieni MODE_ASK o MODE_BID a seconda del caso.
     RefreshRates();
     return NormalizeDouble((Ask + Bid) / 2, Digits);
 }
@@ -396,7 +396,7 @@ void PutPendingOrder(int StartIndexForOrder) {
     int OrderSign = 0;
     string Discriminator, AntiDiscriminator;
 
-    double Spread = GetMarketSpread();
+    double Spread = GetMarketSpread() * Pips(); // I added Pips after I refactored Spread
     double SpreadOpenPrice = 0, SpreadStopLoss = 0;
 
     if (OrderType == OP_BUYSTOP) {

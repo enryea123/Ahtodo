@@ -136,12 +136,12 @@ void TrendLineTest::trendLineSetupsTest() {
         trendLine_.areTrendLineSetupsGood(100, 98, Max)
     );
 
-    if (iExtreme(50, Min) > iExtreme(20, Min)) {
+    if (iExtreme(Min, 50) > iExtreme(Min, 20)) {
         unitTest.assertFalse(
             trendLine_.areTrendLineSetupsGood(50, 20, Min),
             "Incorrect slope test - Min"
         );
-    }else if (iExtreme(50, Max) < iExtreme(20, Max)) {
+    }else if (iExtreme(Max, 50) < iExtreme(Max, 20)) {
         unitTest.assertFalse(
             trendLine_.areTrendLineSetupsGood(50, 20, Max),
             "Incorrect slope test - Max"
@@ -150,8 +150,8 @@ void TrendLineTest::trendLineSetupsTest() {
         Print("trendLineSetupsTest(): incorrect slope test skipped..");
     }
 
-    const double slopeMin = (iExtreme(20, Min) - iExtreme(50, Min)) / (50 - 20);
-    const double slopeMax = (iExtreme(20, Max) - iExtreme(50, Max)) / (50 - 20);
+    const double slopeMin = (iExtreme(Min, 20) - iExtreme(Min, 50)) / (50 - 20);
+    const double slopeMax = (iExtreme(Max, 20) - iExtreme(Max, 50)) / (50 - 20);
 
     if (slopeMin > 0 && MathAbs(slopeMin) >
         trendLine_.trendLinePositiveSlopeVolatility_ * GetMarketVolatility()) {

@@ -21,6 +21,8 @@ enum MonthNumber {
 
 class MarketTime {
     public:
+        ~MarketTime();
+
         int marketOpenHour();
         int marketCloseHour();
         int marketCloseHourPending();
@@ -51,6 +53,8 @@ class MarketTime {
         static const int findDayMaxYearsRange_;
         static const string knownTimeZoneBrokers_;
 
+        static datetime today_;
+
         int getDaysInMonth(int, int);
         bool isLeapYear(int);
 };
@@ -66,6 +70,12 @@ const int MarketTime::marketCloseDay_ = 5;
 
 const int MarketTime::findDayMaxYearsRange_ = 5;
 const string MarketTime::knownTimeZoneBrokers_ = "KEY TO MARKETS";
+
+datetime MarketTime::today_ = -1;
+
+MarketTime::~MarketTime() {
+    today_ = -1;
+}
 
 int MarketTime::marketOpenHour() {
     return (Period() != PERIOD_H4) ? marketOpenHour_ : marketOpenHourH4_;
@@ -102,11 +112,10 @@ datetime MarketTime::timeBroker() {
 }
 
 bool MarketTime::hasDateChanged(datetime date) {
-    static datetime today;
     const datetime newToday = timeAtMidnight(date);
 
-    if (today != newToday) {
-        today = newToday;
+    if (today_ != newToday) {
+        today_ = newToday;
         return true;
     }
 

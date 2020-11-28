@@ -94,7 +94,7 @@ void PivotsDraw::drawPivotRS(PivotPeriod pivotPeriod, PivotRS pivotRS) {
     drawPivotLine(
         pivotStyle.pivotRSLineName(pivotRS),
         pivotStyle.pivotRSLabelColor(pivotRS),
-        Time[0],
+        iCandle(I_time, Symbol(), pivotPeriod, -1),
         Time[pivotRSLineLength_],
         pivot_.getPivotRS(Symbol(), pivotPeriod, pivotRS),
         pivot_.getPivotRS(Symbol(), pivotPeriod, pivotRS)

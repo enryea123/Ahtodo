@@ -9,6 +9,7 @@
 class Market {
     public:
         Market();
+        ~Market();
 
         bool isMarketOpened();
         void marketConditionsValidation();
@@ -16,6 +17,8 @@ class Market {
     protected:
         static const int incorrectClockErrorSeconds_;
         static const int spreadPipsCloseMarket_;
+
+        static bool isHoliday_;
 
         bool forceIsLiveAccountForTesting_;
 
@@ -36,8 +39,14 @@ Market::Market():
     forceIsLiveAccountForTesting_(false) {
 }
 
+Market::~Market() {
+    isHoliday_ = false;
+}
+
 const int Market::incorrectClockErrorSeconds_ = 60;
 const int Market::spreadPipsCloseMarket_ = 5;
+
+bool Market::isHoliday_ = false;
 
 bool Market::isMarketOpened() {
     return isMarketOpened(marketTime_.timeItaly());
@@ -52,17 +61,16 @@ bool Market::isMarketOpened(datetime date) {
         return false;
     }
 
-    static bool isHoliday;
     if (marketTime_.hasDateChanged(date)) {
         Holiday holiday;
-        isHoliday = holiday.isMajorBankHoliday(date);
+        isHoliday_ = holiday.isMajorBankHoliday(date);
     }
-    if (isHoliday) {
+    if (isHoliday_) {
         return false;
     }
 
     const double spread = GetMarketSpread();
-    if (spread > spreadPipsCloseMarket_ * Pips()) {
+    if (spread > spreadPipsCloseMarket_) {
         OptionalAlert(StringConcatenate("Market closed for spread: ", spread));
         return false;
     }

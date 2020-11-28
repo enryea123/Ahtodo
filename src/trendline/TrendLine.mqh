@@ -75,13 +75,13 @@ bool TrendLine::areTrendLineSetupsGood(int indexI, int indexJ, Discriminator dis
         return false;
     }
 
-    if ((iExtreme(indexI, discriminator) > iExtreme(indexJ, discriminator) && discriminator == Min) ||
-        (iExtreme(indexI, discriminator) < iExtreme(indexJ, discriminator) && discriminator == Max)) {
+    if ((iExtreme(discriminator, indexI) > iExtreme(discriminator, indexJ) && discriminator == Min) ||
+        (iExtreme(discriminator, indexI) < iExtreme(discriminator, indexJ) && discriminator == Max)) {
         return false;
     }
 
-    const double trendLineSlope = (iExtreme(indexJ, discriminator)
-        - iExtreme(indexI, discriminator)) / (indexI - indexJ);
+    const double trendLineSlope = (iExtreme(discriminator, indexJ)
+        - iExtreme(discriminator, indexI)) / (indexI - indexJ);
 
     if (MathAbs(trendLineSlope) > getMaxTrendLineSlope(trendLineSlope)) {
         return false;
@@ -116,11 +116,11 @@ bool TrendLine::isExistingTrendLineBad(string trendLineName, Discriminator discr
 
     // Broken TrendLine
     for (int k = 0; k < getTrendLineMaxIndex(trendLineName); k++) {
-        if (ObjectGetValueByShift(trendLineName, k) > iExtreme(k, discriminator) + ErrorPips() &&
+        if (ObjectGetValueByShift(trendLineName, k) > iExtreme(discriminator, k) + ErrorPips() &&
             discriminator == Min) {
             return true;
         }
-        if (ObjectGetValueByShift(trendLineName, k) < iExtreme(k, discriminator) - ErrorPips() &&
+        if (ObjectGetValueByShift(trendLineName, k) < iExtreme(discriminator, k) - ErrorPips() &&
             discriminator == Max) {
             return true;
         }

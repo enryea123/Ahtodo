@@ -52,7 +52,7 @@ void MarketTest::isMarketOpenedTest() {
         return;
     }
 
-    if (GetMarketSpread() > marketExposed_.getSpreadPipsCloseMarket() * Pips() || IsLossLimiterEnabled()) {
+    if (GetMarketSpread() > marketExposed_.getSpreadPipsCloseMarket() - 1 || IsLossLimiterEnabled()) {
         Print("isMarketOpenedTest skipped for spread or loss limiter..");
         return;
     }

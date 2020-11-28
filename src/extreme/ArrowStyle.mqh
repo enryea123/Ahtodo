@@ -30,7 +30,7 @@ void ArrowStyle::drawExtremeArrow(int timeIndex, Discriminator discriminator, bo
         getArrowObjectType(discriminator),
         0,
         Time[timeIndex],
-        iExtreme(timeIndex, discriminator)
+        iExtreme(discriminator, timeIndex)
     );
 
     ObjectSet(arrowName, OBJPROP_ANCHOR, getArrowAnchor(discriminator));

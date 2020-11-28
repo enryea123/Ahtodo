@@ -170,7 +170,7 @@ bool Pattern::pattern1(int timeIndex, Discriminator discriminator) {
         return false;
     }
 
-    if (MathAbs(iExtreme(timeIndex + 1, discriminator) - iExtreme(timeIndex, discriminator)) > 3 * ErrorPips()) {
+    if (MathAbs(iExtreme(discriminator, timeIndex + 1) - iExtreme(discriminator, timeIndex)) > 3 * ErrorPips()) {
         return false;
     }
 
@@ -207,12 +207,12 @@ bool Pattern::pattern3(int timeIndex, Discriminator discriminator) {
         return false;
     }
 
-    if (iExtreme(timeIndex + 1, Min) > candleBodyMin(timeIndex) + 2 * ErrorPips() ||
-        iExtreme(timeIndex + 1, Max) < candleBodyMax(timeIndex) - 2 * ErrorPips()) {
+    if (iExtreme(Min, timeIndex + 1) > candleBodyMin(timeIndex) + 2 * ErrorPips() ||
+        iExtreme(Max, timeIndex + 1) < candleBodyMax(timeIndex) - 2 * ErrorPips()) {
         return false;
     }
 
-    if (MathAbs(iExtreme(timeIndex + 1, discriminator) - iExtreme(timeIndex, discriminator)) > 3 * ErrorPips()) {
+    if (MathAbs(iExtreme(discriminator, timeIndex + 1) - iExtreme(discriminator, timeIndex)) > 3 * ErrorPips()) {
         return false;
     }
 

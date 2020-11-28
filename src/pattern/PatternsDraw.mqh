@@ -118,7 +118,7 @@ void PatternsDraw::drawCandleColoredDot(int timeIndex, string namePrefix, color 
         OBJ_ARROW_UP,
         0,
         Time[timeIndex],
-        iExtreme(timeIndex, Min) * shift
+        iExtreme(Min, timeIndex) * shift
     );
 
     ObjectSet(colouredDotName, OBJPROP_COLOR, inputColor);

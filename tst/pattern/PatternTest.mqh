@@ -30,7 +30,7 @@ void PatternTest::isPatternTest() {
             break;
         }
 
-        const double thisCandleSize = MathAbs(iExtreme(i, Max) - iExtreme(i, Min));
+        const double thisCandleSize = MathAbs(iExtreme(Max, i) - iExtreme(Min, i));
 
         if (!isUpPinbarTested && pattern_.upPinbar(i) &&
             thisCandleSize < PATTERN_MAXIMUM_SIZE_PIPS * PeriodMultiplicationFactor() * Pips() &&
