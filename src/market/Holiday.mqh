@@ -16,7 +16,7 @@ class Holiday {
 
 bool Holiday::isMajorBankHoliday(datetime date) {
     if (!date) {
-        return ThrowException(false, __FUNCTION__, StringConcatenate("isMajorBankHoliday, invalid date: ", date));
+        return ThrowException(false, __FUNCTION__, StringConcatenate("Invalid date: ", date));
     }
 
     const int day = TimeDay(date);
@@ -138,7 +138,7 @@ bool Holiday::isMajorBankHoliday(datetime date) {
 
 bool Holiday::isMinorBankHoliday(datetime date) {
     if (!date) {
-        return ThrowException(false, __FUNCTION__, StringConcatenate("isMinorBankHoliday, invalid date: ", date));
+        return ThrowException(false, __FUNCTION__, StringConcatenate("Invalid date: ", date));
     }
 
     const int day = TimeDay(date);

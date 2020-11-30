@@ -95,7 +95,7 @@ void Market::marketConditionsValidation() {
         return;
     }
 
-    ThrowFatalException(__FUNCTION__, "marketConditionsValidation failed");
+    ThrowFatalException(__FUNCTION__, "Market conditions validation failed");
 }
 
 bool Market::isAllowedAccountNumber(int accountNumber = NULL) {
@@ -115,8 +115,7 @@ bool Market::isAllowedAccountNumber(int accountNumber = NULL) {
         }
     }
 
-    return ThrowException(false, __FUNCTION__, StringConcatenate("isAllowedAccountNumber, ",
-        "unauthorized accountNumber: ", accountNumber));
+    return ThrowException(false, __FUNCTION__, StringConcatenate("Unauthorized accountNumber: ", accountNumber));
 }
 
 bool Market::isAllowedExecutionDate(datetime date = NULL) {
@@ -133,8 +132,7 @@ bool Market::isAllowedExecutionDate(datetime date = NULL) {
         return true;
     }
 
-    return ThrowException(false, __FUNCTION__, StringConcatenate(
-        "isAllowedExecutionDate, unauthorized execution date: ", date));
+    return ThrowException(false, __FUNCTION__, StringConcatenate("Unauthorized execution date: ", date));
 }
 
 bool Market::isAllowedPeriod(int period = NULL) {
@@ -148,7 +146,7 @@ bool Market::isAllowedPeriod(int period = NULL) {
         }
     }
 
-    return ThrowException(false, __FUNCTION__, StringConcatenate("isAllowedPeriod, unauthorized period: ", period));
+    return ThrowException(false, __FUNCTION__, StringConcatenate("Unauthorized period: ", period));
 }
 
 bool Market::isAllowedSymbol(string symbol = "") {
@@ -166,7 +164,7 @@ bool Market::isAllowedSymbol(string symbol = "") {
         }
     }
 
-    return ThrowException(false, __FUNCTION__, StringConcatenate("isAllowedSymbol, unauthorized symbol: ", symbol));
+    return ThrowException(false, __FUNCTION__, StringConcatenate("Unauthorized symbol: ", symbol));
 }
 
 bool Market::isAllowedBroker(string broker = "") {
@@ -184,7 +182,7 @@ bool Market::isAllowedBroker(string broker = "") {
         }
     }
 
-    return ThrowException(false, __FUNCTION__, StringConcatenate("isAllowedBroker, unauthorized broker: ", broker));
+    return ThrowException(false, __FUNCTION__, StringConcatenate("Unauthorized broker: ", broker));
 }
 
 bool Market::isAllowedSymbolPeriodCombo(string symbol = "", int period = NULL) {
@@ -201,8 +199,7 @@ bool Market::isAllowedSymbolPeriodCombo(string symbol = "", int period = NULL) {
 
     for (int i = 0; i < ArraySize(RESTRICTED_SYMBOL_FAMILIES_H4); i++) {
         if (StringContains(symbol, RESTRICTED_SYMBOL_FAMILIES_H4[i]) && period != PERIOD_H4) {
-            return ThrowException(false, __FUNCTION__, StringConcatenate(
-                "isAllowedSymbolPeriodCombo, unauthorized symbol ",
+            return ThrowException(false, __FUNCTION__, StringConcatenate("Unauthorized symbol ",
                 symbol, " and period ", period, " combination"));
         }
     }

@@ -1,28 +1,9 @@
 
 
-//------------------------------------------------------------------------------------------------//
-// Operational functions
-//------------------------------------------------------------------------------------------------//
-
-double Pips() {
-    return Pips(Symbol());
-}
-
-double Pips(string OrderSymbol) {
-    return 10 * MarketInfo(OrderSymbol, MODE_TICKSIZE);
-}
-
-double ErrorPips() {
-    return 2 * PeriodMultiplicationFactor() * Pips();
-}
-
 double GetCurrentMarketValue() { // Imprecisa. Non usare RefreshRates, e ottieni MODE_ASK o MODE_BID a seconda del caso.
     RefreshRates();
     return NormalizeDouble((Ask + Bid) / 2, Digits);
 }
-
-
-
 
 int GetBreakEvenPips() {
     if (Period() == PERIOD_H4) {
@@ -32,15 +13,6 @@ int GetBreakEvenPips() {
     return 6;
 }
 
-
-
-bool StringContains(string InputString, string InputSubString) {
-    if (StringFind(InputString, InputSubString) != -1) {
-        return true;
-    }
-
-    return false;
-}
 
 int BotMagicNumber() {
     return (MY_SCRIPT_ID + Period());
@@ -54,11 +26,6 @@ bool IsUnknownMagicNumber(int MagicNumber) {
     return false;
 }
 
-
-
-datetime GetTimeAtMidnight() {
-    return (TimeCurrent() - (TimeCurrent() % (PERIOD_D1 * 60)));
-}
 
 //------------------------------------------------------------------------------------------------//
 // Order placing
@@ -273,7 +240,7 @@ double GetOrderLotsModulationFactor(int OrderType, double OpenPrice, string Orde
         }
     }
 
-    return OrderLotsModulationFactor;
+    return NormalizeDouble(OrderLotsModulationFactor, 1);
 }
 
 bool VerifyGreenTimeWindow(int OrderType) {
@@ -496,7 +463,7 @@ void PutPendingOrder(int StartIndexForOrder) {
 
 void OrderTrailing() {
     PreviousOrderTicket = OrderTicket();
-    for (int order = OrdersTotal() - 1; order >= 0; order--) {
+    for (int order = OrdersTotal() - 1; order >= 0; order--) { // quello dentro il for puo essere una funzione separata dentro manageOrder
         if (!OrderSelect(order, SELECT_BY_POS, MODE_TRADES)) {
             continue;
         }
@@ -631,7 +598,7 @@ double GetGainsLastDaysThisSymbol(int Days) {
     PreviousOrderTicket = OrderTicket();
     for (int order = 0; order < OrdersHistoryTotal(); order++) {
         if (!OrderSelect(order, SELECT_BY_POS, MODE_HISTORY) || OrderProfit() == 0 ||
-            OrderCloseTime() < GetTimeAtMidnight() - (Days + 1) * 86400 ||
+            OrderCloseTime() < GetDate() - (Days + 1) * 86400 ||
             OrderSymbol() != Symbol() || IsUnknownMagicNumber(OrderMagicNumber())) {
             continue;
         }
@@ -653,7 +620,7 @@ bool LossLimiterEnabled() {
     PreviousOrderTicket = OrderTicket();
     for (int order = 0; order < OrdersHistoryTotal(); order++) {
         if (!OrderSelect(order, SELECT_BY_POS, MODE_HISTORY) || OrderProfit() == 0 ||
-            OrderCloseTime() < GetTimeAtMidnight() - (Days + 1) * 86400 || IsUnknownMagicNumber(OrderMagicNumber())) {
+            OrderCloseTime() < GetDate() - (Days + 1) * 86400 || IsUnknownMagicNumber(OrderMagicNumber())) {
             continue;
         }
 

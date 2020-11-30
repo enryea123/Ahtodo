@@ -27,10 +27,10 @@ class Pivot {
 
 double Pivot::getPivot(string symbol, PivotPeriod pivotPeriod, int timeIndex) {
     if (!SymbolExists(symbol)) {
-        return ThrowException(-1, __FUNCTION__, StringConcatenate("getPivot, unexistent symbol: ", symbol));
+        return ThrowException(-1, __FUNCTION__, StringConcatenate("Unexistent symbol: ", symbol));
     }
     if (timeIndex < 0) {
-        return ThrowException(-1, __FUNCTION__, "getPivot, timeIndex < 0");
+        return ThrowException(-1, __FUNCTION__, "timeIndex < 0");
     }
 
     const double pivot = (iCandle(I_high, symbol, pivotPeriod, timeIndex + 1)
@@ -46,7 +46,7 @@ double Pivot::getPivot(string symbol, PivotPeriod pivotPeriod, int timeIndex) {
 
 double Pivot::getPivotRS(string symbol, PivotPeriod pivotPeriod, PivotRS pivotRS) {
     if (!SymbolExists(symbol)) {
-        return ThrowException(-1, __FUNCTION__, StringConcatenate("getPivotRS, unexistent symbol: ", symbol));
+        return ThrowException(-1, __FUNCTION__, StringConcatenate("Unexistent symbol: ", symbol));
     }
 
     const int timeIndex = 0;
@@ -85,5 +85,5 @@ double Pivot::getPivotRS(string symbol, PivotPeriod pivotPeriod, PivotRS pivotRS
             - 2 * iCandle(I_high, symbol, pivotPeriod, timeIndex + 1));
     }
 
-    return ThrowException(-1, __FUNCTION__, "getPivotRS: could not get value");
+    return ThrowException(-1, __FUNCTION__, "Could not get value");
 }

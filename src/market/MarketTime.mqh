@@ -108,7 +108,7 @@ datetime MarketTime::timeBroker() {
         return TimeGMT() + 3600 * (2 + getDaylightSavingCorrectionUSA());
     }
 
-    return ThrowException(-1, __FUNCTION__, StringConcatenate("timeBroker, error for broker:", broker));
+    return ThrowException(-1, __FUNCTION__, StringConcatenate("Error for broker:", broker));
 }
 
 bool MarketTime::hasDateChanged(datetime date) {

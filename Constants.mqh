@@ -87,7 +87,7 @@ bool SymbolExists(string symbol) {
         return true;
     }
 
-    return ThrowException(false, __FUNCTION__, StringConcatenate("SymbolExists, uknown symbol: ", symbol));
+    return ThrowException(false, __FUNCTION__, StringConcatenate("Unexistent symbol: ", symbol));
 }
 
 /*
@@ -113,7 +113,7 @@ double iExtreme(Discriminator discriminator, int timeIndex) {
         return iCandle(I_low, timeIndex);
     }
 
-    return ThrowException(-1, __FUNCTION__, "iExtreme: could not get value");
+    return ThrowException(-1, __FUNCTION__, "Could not get value");
 }
 
 enum CandleSeriesType {
@@ -131,14 +131,14 @@ double iCandle(CandleSeriesType candleSeriesType, int timeIndex) {
 // Assumes DownloadHistory() has been executed before
 double iCandle(CandleSeriesType candleSeriesType, string symbol, int period, int timeIndex) { // servono unit tests su iCandle
     if (!SymbolExists(symbol)) {
-        return ThrowException(-1, __FUNCTION__, "iCandle: unknown symbol");
+        return ThrowException(-1, __FUNCTION__, "Unknown symbol");
     }
 
     if (timeIndex < 0) {
         if (candleSeriesType == I_time) {
             return TimeCurrent();
         }
-        return ThrowException(-1, __FUNCTION__, "iCandle: timeIndex < 0");
+        return ThrowException(-1, __FUNCTION__, "timeIndex < 0");
     }
 
     ResetLastError();
@@ -155,8 +155,7 @@ double iCandle(CandleSeriesType candleSeriesType, string symbol, int period, int
     } else if (candleSeriesType == I_time) {
         value = iTime(symbol, period, timeIndex);
     } else {
-        return ThrowException(-1, __FUNCTION__, StringConcatenate(
-            "iCandle: unsupported candleSeriesType: ", candleSeriesType));
+        return ThrowException(-1, __FUNCTION__, StringConcatenate("Unsupported candleSeriesType: ", candleSeriesType));
     }
 
     int lastError = GetLastError();
@@ -165,8 +164,12 @@ double iCandle(CandleSeriesType candleSeriesType, string symbol, int period, int
         return value;
     }
 
-    return ThrowException(value, __FUNCTION__, StringConcatenate("iCandle: candleSeriesType == ",
+    return ThrowException(value, __FUNCTION__, StringConcatenate("candleSeriesType == ",
         EnumToString(candleSeriesType), ", lastError == ", lastError, ", value == ", value));;
+}
+
+datetime GetDate() { // MarketTime::timeAtMidnight(datetime)
+    return CalculateDateByTimePeriod(PERIOD_D1);
 }
 
 datetime CalculateDateByTimePeriod(int period) {
@@ -192,8 +195,7 @@ datetime CalculateDateByTimePeriod(int period) {
         return StringToTime(StringConcatenate(year, ".", month, ".01"));
     }
 
-    return ThrowException(-1, __FUNCTION__, StringConcatenate(
-        "CalculateTimePeriodStart, unsupported period: ", period));
+    return ThrowException(-1, __FUNCTION__, StringConcatenate("Unsupported period: ", period));
 }
 
 bool DownloadHistory(string symbol = NULL) {
@@ -209,6 +211,7 @@ bool DownloadHistory(string symbol = NULL) {
         PERIOD_W1,
         PERIOD_MN1
     };
+    static const int attemptSleepMilliseconds = 200;
     static const int maxAttempts = 20;
 
     for (int attempt = 0; attempt < maxAttempts; attempt++) {
@@ -231,7 +234,7 @@ bool DownloadHistory(string symbol = NULL) {
             return true;
         } else if (attempt != maxAttempts - 1) {
             Print("Downloading missing history data, attempt: ", attempt);
-            Sleep(200);
+            Sleep(attemptSleepMilliseconds);
         }
     }
 
