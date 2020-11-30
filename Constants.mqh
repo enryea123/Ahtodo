@@ -321,6 +321,19 @@ void FinalizeInitialization() {
     }
 }
 
+template <typename T> void ArrayRemoveOrdered(T & array[], int index) { // maybe unit test
+    for(int last = ArraySize(array) - 1; index < last; index++) {
+        array[index] = array[index + 1];
+    }
+    ArrayResize(array, last);
+}
+
+template <typename T> void ArrayRemove(T & array[], int index) {
+   int last = ArraySize(array) - 1;
+   array[index] = array[last];
+   ArrayResize(array, last);
+}
+
 // You can do a template for these functions
 bool ThrowException(bool returnValue, string function, string message) {
     ThrowException(function, message);
