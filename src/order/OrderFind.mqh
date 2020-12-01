@@ -5,7 +5,7 @@
 #include "Order.mqh"
 
 
-class OrderFinder {
+class OrderFind {
     public:
         void getOrdersList(Order & [], bool);
         void getFilteredOrdersList(Order & [], OrderFilter &);
@@ -16,7 +16,7 @@ class OrderFinder {
         // Or maybe the destructor is called after every method? IDK
 };
 
-void OrderFinder::getOrdersList(Order & orders[], bool isModeTrades = true) {
+void OrderFind::getOrdersList(Order & orders[], bool isModeTrades = true) {
     const int previouslySelectedOrder = OrderTicket();
 
     const int pool = isModeTrades ? MODE_TRADES : MODE_HISTORY;
@@ -49,7 +49,7 @@ void OrderFinder::getOrdersList(Order & orders[], bool isModeTrades = true) {
     }
 }
 
-void OrderFinder::getFilteredOrdersList(Order & orders[], OrderFilter & filter) {
+void OrderFind::getFilteredOrdersList(Order & orders[], OrderFilter & filter) {
     for (int i = ArraySize(orders) - 1; i >= 0; i--) {
         if (filter.byMagicNumber(orders[i].magicNumber) ||
             filter.byTicket(orders[i].ticket) ||
@@ -66,29 +66,29 @@ void OrderFinder::getFilteredOrdersList(Order & orders[], OrderFilter & filter) 
 }
 
 //#include "src/order/Order.mqh"
-//#include "src/order/OrderFinder.mqh"
+//#include "src/order/OrderFind.mqh"
 //void OnInit() {
-//    OrderFinder orderFinder;
+//    OrderFind orderFind;
 //
 //    Order ordersHistory[];
-//    orderFinder.getOrdersList(ordersHistory, false);
-//    Alert("MODE_HISTORY ArraySize(orders) = ", ArraySize(ordersHistory));
+//    orderFind.getOrdersList(ordersHistory, false);
+//    Alert("MODE_HISTORY: ", ArraySize(ordersHistory));
 //
 //    Order orders[];
-//    orderFinder.getOrdersList(orders);
-//    Alert("MODE_TRADES ArraySize(orders) = ", ArraySize(orders));
+//    orderFind.getOrdersList(orders);
+//    Alert("MODE_TRADES: ", ArraySize(orders));
 //    for (int order = 0; order < ArraySize(orders); order++) {
-//        Alert("OPENED orders[", order, "] = ", orders[order].ticket);
+//        Alert("orders[", order, "] = ", orders[order].ticket);
 //    }
 //
 //    OrderFilter filter;
 //    filter.symbol("EURUSD");
 //    filter.symbol("EURJPY", "AUDUSD");
-//    filter.type(OP_SELL, OP_BUYSTOP, OP_BUYLIMIT);
+//    filter.type(OP_SELL, OP_BUYSTOP, OP_BUYLIMIT); // OP_SELLSTOP
 //
-//    orderFinder.getFilteredOrdersList(orders, filter);
-//    Alert("MODE_TRADES ArraySize(orders) = ", ArraySize(orders));
+//    orderFind.getFilteredOrdersList(orders, filter);
+//    Alert("MODE_TRADES: ", ArraySize(orders));
 //    for (order = 0; order < ArraySize(orders); order++) { // int order
-//        Alert("OPENED orders[", order, "] = ", orders[order].ticket);
+//        Alert("orders[", order, "] = ", orders[order].ticket);
 //    }
 //}
