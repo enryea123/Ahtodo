@@ -1,5 +1,4 @@
 
-
 double GetCurrentMarketValue() { // Imprecisa. Non usare RefreshRates, e ottieni MODE_ASK o MODE_BID a seconda del caso.
     RefreshRates();
     return NormalizeDouble((Ask + Bid) / 2, Digits);
@@ -13,52 +12,7 @@ int GetBreakEvenPips() {
     return 6;
 }
 
-
-int BotMagicNumber() {
-    return (MY_SCRIPT_ID + Period());
-}
-
-bool IsUnknownMagicNumber(int MagicNumber) {
-    if (MagicNumber != MY_SCRIPT_ID_030 && MagicNumber != MY_SCRIPT_ID_060 && MagicNumber != MY_SCRIPT_ID_240) {
-        return true;
-    }
-
-    return false;
-}
-
-
-//------------------------------------------------------------------------------------------------//
-// Order placing
-//------------------------------------------------------------------------------------------------//
-
-
-bool AreThereOpenOrders() {
-    bool OpenOrderFound = false;
-
-    PreviousOrderTicket = OrderTicket();
-    for (int order = OrdersTotal() - 1; order >= 0; order--) {
-        if (!OrderSelect(order, SELECT_BY_POS, MODE_TRADES) || !AreSymbolsCorrelated(OrderSymbol(), Symbol())) {
-            continue;
-        }
-
-        if (IsUnknownMagicNumber(OrderMagicNumber())) {
-            Print("Emergency switchoff");
-            CloseAllPositions();
-            ExpertRemove();
-        }
-
-        if (OrderType() == OP_BUY || OrderType() == OP_SELL) {
-            OpenOrderFound = true;
-        }else if (FoundAntiPattern(1) && OrderSymbol() == Symbol() && OrderMagicNumber() == BotMagicNumber()) {
-            Print("Found AntiPattern, deleting pending order OrderTicket(): ", OrderTicket());
-            SelectedOrder = OrderDelete(OrderTicket());
-        }
-    }
-    SelectedOrder = OrderSelect(PreviousOrderTicket, SELECT_BY_TICKET);
-    return OpenOrderFound;
-}
-
-bool AreSymbolsCorrelated(string SymbolOne, string SymbolTwo) {
+bool AreSymbolsCorrelated(string SymbolOne, string SymbolTwo) { // replace with SymbolFamily
     if ((StringContains(SymbolOne, "GBP") && StringContains(SymbolTwo, "GBP")) ||
         (StringContains(SymbolOne, "EUR") && StringContains(SymbolTwo, "EUR"))) {
         return true;
@@ -707,30 +661,3 @@ void DeletePendingOrdersThisSymbolThisPeriod() {
     }
     SelectedOrder = OrderSelect(PreviousOrderTicket, SELECT_BY_TICKET);
 }
-
-void CloseAllPositions() {
-    Print("CloseAllPositions() invoked");
-
-    PreviousOrderTicket = OrderTicket();
-    for (int order = OrdersTotal() - 1; order >= 0; order--) {
-        if (!OrderSelect(order, SELECT_BY_POS, MODE_TRADES)) {
-            continue;
-        }
-
-        if (OrderSymbol() != Symbol() || OrderMagicNumber() != BotMagicNumber()) {
-            continue;
-        }
-
-        if (OrderType() != OP_BUY && OrderType() != OP_SELL) {
-            SelectedOrder = OrderDelete(OrderTicket());
-        } else {
-            SelectedOrder = OrderClose(OrderTicket(), OrderLots(), OrderClosePrice(), 3);
-        }
-    }
-    SelectedOrder = OrderSelect(PreviousOrderTicket, SELECT_BY_TICKET);
-}
-
-// dentro OnTick, ma non serve
-//    if (IsUnknownMagicNumber(BotMagicNumber())) {
-//        return;
-//    }

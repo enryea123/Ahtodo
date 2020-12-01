@@ -8,12 +8,11 @@
 
 
 void OnInit() {
-    Sleep(500);
-
     if (!DownloadHistory()) {
         ThrowFatalException(__FUNCTION__, "Could not download history data, retry or download it manually");
         return;
     }
+    Sleep(2000);
 
     STARTUP_TIME = TimeLocal();
 
@@ -36,8 +35,8 @@ void OnInit() {
 }
 
 void OnTick() {
-    Sleep(500);
     DownloadHistory();
+    Sleep(500);
 
     Drawer drawer;
     Market market;

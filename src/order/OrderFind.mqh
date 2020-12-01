@@ -8,7 +8,7 @@
 class OrderFind {
     public:
         void getOrdersList(Order & [], bool);
-        void getFilteredOrdersList(Order & [], OrderFilter &);
+        void getFilteredOrdersList(Order & [], OrderFilter &, bool);
 
         // static previouslySelectedOrder? Need to reset selected position every time?
         // Small class that does it in the constructor and destructor? Dangerous, should be after every method.
@@ -34,7 +34,9 @@ void OrderFind::getOrdersList(Order & orders[], bool isModeTrades = true) {
         orders[index].magicNumber = OrderMagicNumber();
         orders[index].ticket = OrderTicket();
         orders[index].type = OrderType();
+        orders[index].lots = OrderLots();
         orders[index].openPrice = OrderOpenPrice();
+        orders[index].closePrice = OrderClosePrice();
         orders[index].profit = OrderProfit();
         orders[index].commment = OrderComment();
         orders[index].symbol = OrderSymbol();
@@ -49,7 +51,9 @@ void OrderFind::getOrdersList(Order & orders[], bool isModeTrades = true) {
     }
 }
 
-void OrderFind::getFilteredOrdersList(Order & orders[], OrderFilter & filter) {
+void OrderFind::getFilteredOrdersList(Order & orders[], OrderFilter & filter, bool isModeTrades = true) {
+    getOrdersList(orders, isModeTrades);
+
     for (int i = ArraySize(orders) - 1; i >= 0; i--) {
         if (filter.byMagicNumber(orders[i].magicNumber) ||
             filter.byTicket(orders[i].ticket) ||
@@ -58,37 +62,10 @@ void OrderFind::getFilteredOrdersList(Order & orders[], OrderFilter & filter) {
             filter.byProfit(orders[i].profit) ||
             filter.byCommment(orders[i].commment) ||
             filter.bySymbol(orders[i].symbol) || // later correlated symbols by passing and checking only EUR
+            filter.bySymbolFamily(SymbolFamily(orders[i].symbol)) ||
             filter.byCloseTime(orders[i].closeTime)) {
 
             ArrayRemove(orders, i);
         }
     }
 }
-
-//#include "src/order/Order.mqh"
-//#include "src/order/OrderFind.mqh"
-//void OnInit() {
-//    OrderFind orderFind;
-//
-//    Order ordersHistory[];
-//    orderFind.getOrdersList(ordersHistory, false);
-//    Alert("MODE_HISTORY: ", ArraySize(ordersHistory));
-//
-//    Order orders[];
-//    orderFind.getOrdersList(orders);
-//    Alert("MODE_TRADES: ", ArraySize(orders));
-//    for (int order = 0; order < ArraySize(orders); order++) {
-//        Alert("orders[", order, "] = ", orders[order].ticket);
-//    }
-//
-//    OrderFilter filter;
-//    filter.symbol("EURUSD");
-//    filter.symbol("EURJPY", "AUDUSD");
-//    filter.type(OP_SELL, OP_BUYSTOP, OP_BUYLIMIT); // OP_SELLSTOP
-//
-//    orderFind.getFilteredOrdersList(orders, filter);
-//    Alert("MODE_TRADES: ", ArraySize(orders));
-//    for (order = 0; order < ArraySize(orders); order++) { // int order
-//        Alert("orders[", order, "] = ", orders[order].ticket);
-//    }
-//}

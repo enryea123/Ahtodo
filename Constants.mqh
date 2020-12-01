@@ -285,6 +285,24 @@ double GetMarketSpread(string symbol = NULL) {
     return MarketInfo(symbol, MODE_SPREAD) / 10;
 }
 
+
+// dentro OnTick, ma non serve
+//    if (IsUnknownMagicNumber(BotMagicNumber())) {
+//        return;
+//    }
+
+int BotMagicNumber() {
+    return (MY_SCRIPT_ID + Period()); // migliorabile e cambiabile
+}
+
+bool IsUnknownMagicNumber(int MagicNumber) { // migliorabile e cambiabile
+    if (MagicNumber != MY_SCRIPT_ID_030 && MagicNumber != MY_SCRIPT_ID_060 && MagicNumber != MY_SCRIPT_ID_240) {
+        return true;
+    }
+
+    return false;
+}
+
 double GetMarketVolatility() { // Needs testing as well (price class with iCandle and Pips?)
     static datetime getMarketVolatilityTimeStamp; // if they go in a class, static variables must be destroyed at the end
     static double volatility;
@@ -305,8 +323,32 @@ double GetMarketVolatility() { // Needs testing as well (price class with iCandl
     return volatility;
 }
 
+string SymbolFamily(string symbol = NULL) {
+    if (symbol == NULL) {
+        symbol = Symbol();
+    }
+
+    if (StringContains(symbol, "EUR")) {
+        return "EUR";
+    } else if (StringContains(symbol, "GBP")) {
+        return "GBP";
+    } else if (StringContains(symbol, "USD")) {
+        return "USD";
+    } else if (StringContains(symbol, "AUD")) {
+        return "AUD";
+    } else if (StringContains(symbol, "NZD")) {
+        return "NZD";
+    } else {
+        return StringSubstr(symbol, 0, 3);
+    }
+}
+
 bool IsLossLimiterEnabled() {
     // Dummy function for now
+    return false;
+}
+
+bool FoundAntiPattern(int index) {
     return false;
 }
 
