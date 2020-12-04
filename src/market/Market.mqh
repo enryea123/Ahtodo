@@ -71,12 +71,12 @@ bool Market::isMarketOpened(datetime date) {
 
     const double spread = GetMarketSpread();
     if (spread > spreadPipsCloseMarket_) {
-        OptionalAlert(StringConcatenate("Market closed for spread: ", spread));
+        OptionalAlert(StringConcatenate("Market closed for spread: ", spread)); // alert con static timestamp
         return false;
     }
 
     if (IsLossLimiterEnabled()) {
-        OptionalAlert("Market closed for loss limiter");
+        OptionalAlert("Market closed for loss limiter"); // alert con static timestamp
         return false;
     }
 

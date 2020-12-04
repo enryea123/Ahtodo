@@ -8,84 +8,136 @@
 
 class OrderManage {
     public:
-        bool areThereOpenOrders(); // these 3 to be run in order by the manager, before the if(Put vs Trail)
+        bool areThereOpenOrders(); // 1. these 3 to be run in order by the manager, before the if(Put vs Trail)
+        bool lossLimiterEnabled();
+
+        //void deletePendingOrdersIfAntipattern(); // 2
+        void emergencySwitchOff(); // 3
+
+    protected:
         void deleteAllOrders();
-        void deletePendingOrdersIfAntipattern();
-        void emergencySwitchOff();
+        void deletePendingOrders(int, string);
+        void deletePendingOrders(int & [], string);
+
+    private:
+        void deleteOrdersFromList(Order & []);
 };
 
 bool OrderManage::areThereOpenOrders() {
+    OrderFilter orderFilter;
+    orderFilter.magicNumber.add(ALLOWED_MAGIC_NUMBERS);
+    orderFilter.symbolFamily.add(SymbolFamily());
+    orderFilter.type.add(OP_BUY, OP_SELL);
+
     Order orders[];
-    OrderFilter filter;
     OrderFind orderFind;
-
-    filter.type(OP_BUY, OP_SELL);
-    filter.symbolFamily(SymbolFamily());
-
-    orderFind.getFilteredOrdersList(orders, filter);
+    orderFind.getFilteredOrdersList(orders, orderFilter);
 
     return (ArraySize(orders) > 0) ? true : false;
 }
 
-void OrderManage::emergencySwitchOff() {
+bool OrderManage::lossLimiterEnabled() {
+    OrderFilter orderFilter;
+    orderFilter.magicNumber.add(ALLOWED_MAGIC_NUMBERS);
+
+    orderFilter.profit.setFilterType(Exclude);
+    orderFilter.profit.add(0);
+
+    orderFilter.closeTime.setFilterType(Greater);
+    orderFilter.closeTime.add(GetDate() - (5 + 1) * 86400); // lossLimiterDays = 5;
+
     Order orders[];
     OrderFind orderFind;
+    orderFind.getFilteredOrdersList(orders, orderFilter, MODE_HISTORY);
 
-    orderFind.getOrdersList(orders);
+    double maximumPercentLoss = 0.05;
+    double totalGains = 0;
 
     for (int order = 0; order < ArraySize(orders); order++) {
-        const int magicNumber = orders[order].magicNumber;
-        if (IsUnknownMagicNumber(magicNumber)) {
+        totalGains += orders[order].profit;
+
+        if (totalGains <= - AccountEquity() * maximumPercentLoss) {
             deleteAllOrders();
-
-            ThrowFatalException(__FUNCTION__, StringConcatenate(
-                "Emergency switchOff invoked for magicNumber: ", magicNumber));
+            return true;
         }
     }
+
+    return false;
 }
 
-void OrderManage::deletePendingOrdersIfAntipattern() {
-    if (!FoundAntiPattern(1)) {
-        return;
-    }
+void OrderManage::emergencySwitchOff() {
+    OrderFilter orderFilter;
+    orderFilter.magicNumber.setFilterType(Exclude);
+    orderFilter.magicNumber.add(ALLOWED_MAGIC_NUMBERS);
 
     Order orders[];
-    OrderFilter filter;
     OrderFind orderFind;
-
-    filter.type(OP_BUYLIMIT, OP_BUYSTOP, OP_SELLLIMIT, OP_SELLSTOP);
-    filter.magicNumber(BotMagicNumber());
-    filter.symbol(Symbol());
-
-    orderFind.getFilteredOrdersList(orders, filter);
-
-    for (int order = 0; order < ArraySize(orders); order++) {
-        const int ticket = orders[order].ticket;
-        const bool deletedOrder = OrderDelete(ticket);
-
-        if (deletedOrder) {
-            Print("Deleted order ", ticket, " for AntiPattern");
-        } else {
-            ThrowException(__FUNCTION__, StringConcatenate("Failed to delete order: ", ticket));
-        }
-    }
-}
-
-void OrderManage::deleteAllOrders() {
-    Order orders[];
-    OrderFilter filter;
-    OrderFind orderFind;
-
-    filter.magicNumber(BotMagicNumber());
-    filter.symbol(Symbol());
-
-    orderFind.getFilteredOrdersList(orders, filter);
+    orderFind.getFilteredOrdersList(orders, orderFilter);
 
     if (ArraySize(orders) > 0) {
-        Print("Deleting all ", ArraySize(orders), " orders..");
+        deleteAllOrders();
+
+        ThrowFatalException(__FUNCTION__, StringConcatenate(
+            "Emergency switchOff invoked for magicNumber: ", orders[0].magicNumber));
+    }
+}
+
+// Not necessary to have a specific function for this now. There are actually a few different deletePending functions
+//void OrderManage::deletePendingOrdersIfAntipattern() {
+//    if (FoundAntiPattern(1)) {
+//        deletePendingOrders(ALLOWED_MAGIC_NUMBERS, Symbol());
+//    }
+//}
+
+void OrderManage::deleteAllOrders() {
+    OrderFilter orderFilter;
+    orderFilter.magicNumber.add(BotMagicNumber());
+    orderFilter.symbol.add(Symbol());
+
+    Order orders[];
+    OrderFind orderFind;
+    orderFind.getFilteredOrdersList(orders, orderFilter);
+
+    deleteOrdersFromList(orders);
+}
+
+void OrderManage::deletePendingOrders(int magicNumber = NULL, string symbolOrFamily = NULL) {
+    int magicNumbers[];
+    if (magicNumber != NULL) {
+        ArrayResize(magicNumbers, 1);
+        magicNumbers[0] = NULL;
     }
 
-    for (int order = 0; order < ArraySize(orders); order++) {
+    deletePendingOrders(magicNumbers, symbolOrFamily);
+}
+
+void OrderManage::deletePendingOrders(int & magicNumbers[], string symbolOrFamily = NULL) {
+    if (symbolOrFamily == NULL) {
+        symbolOrFamily = Symbol();
+    }
+
+    OrderFilter orderFilter;
+    orderFilter.type.setFilterType(Exclude);
+    orderFilter.type.add(OP_BUY, OP_SELL);
+
+    if (ArraySize(magicNumbers) > 0 && magicNumbers[0] != NULL) { // could change once I understand the usages
+        orderFilter.magicNumber.add(magicNumbers);
+    }
+    if (StringLen(symbolOrFamily) == 3) {
+        orderFilter.symbolFamily.add(symbolOrFamily);
+    } else {
+        orderFilter.symbol.add(symbolOrFamily);
+    }
+
+    Order orders[];
+    OrderFind orderFind;
+    orderFind.getFilteredOrdersList(orders, orderFilter);
+
+    deleteOrdersFromList(orders);
+}
+
+void OrderManage::deleteOrdersFromList(Order & orders[]) {
+    for (int order = 0; order < ArraySize(orders); order++) { // should be fine to increment, but check it
         const int ticket = orders[order].ticket;
         bool deletedOrder = false;
 
@@ -95,7 +147,9 @@ void OrderManage::deleteAllOrders() {
             deletedOrder = OrderDelete(ticket);
         }
 
-        if (!deletedOrder) {
+        if (deletedOrder) {
+            Print(__FUNCTION__, " | Deleted order: ", ticket);
+        } else {
             ThrowException(__FUNCTION__, StringConcatenate("Failed to delete order: ", ticket));
         }
     }

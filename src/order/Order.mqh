@@ -15,35 +15,73 @@ class Order {
         double profit;
         string commment;
         string symbol;
+        string symbolFamily;
         datetime closeTime;
 };
 
-#define SET(T, V, V_) void V(T V) {V_ = (V_ == NULL) ? V : StringConcatenate(V_, "|", V);}
-#define SET_OL2(T, V) void V(T V1, T V2) {V(V1); V(V2);}
-#define SET_OL3(T, V) void V(T V1, T V2, T V3) {V(V1); V(V2); V(V3);}
-#define SET_OL4(T, V) void V(T V1, T V2, T V3, T V4) {V(V1); V(V2); V(V3); V(V4);}
-#define SET_OL5(T, V) void V(T V1, T V2, T V3, T V4, T V5) {V(V1); V(V2); V(V3); V(V4); V(V5);}
-#define SET_OVERLOADS(T, V) SET_OL2(T, V) SET_OL3(T, V) SET_OL4(T, V) SET_OL5(T, V)
-#define GET(N, T, V, V_) T V() {return V_;} bool N(T V) {return (V_ == NULL || StringContains(V_, V)) ? false : true;}
-#define FILTER(N, T, V, V_) private: string V_; public: SET(T, V, V_) SET_OVERLOADS(T, V) GET(N, T, V, V_)
-
-class OrderFilter {
-    FILTER(byMagicNumber, int, magicNumber, magicNumber_);
-    FILTER(byTicket, int, ticket, ticket_);
-    FILTER(byType, int, type, type_);
-    FILTER(byOpenPrice, double, openPrice, openPrice_);
-    FILTER(byProfit, double, profit, profit_);
-    FILTER(byCommment, string, commment, commment_);
-    FILTER(bySymbol, string, symbol, symbol_);
-    FILTER(bySymbolFamily, string, symbolFamily, symbolFamily_);
-    FILTER(byCloseTime, datetime, closeTime, closeTime_);
+enum FilterType {
+    Include,
+    Exclude,
+    Greater,
+    Smaller,
 };
 
-#undef SET
-#undef SET_OL2
-#undef SET_OL3
-#undef SET_OL4
-#undef SET_OL5
-#undef SET_OVERLOADS
-#undef GET
-#undef FILTER
+class Filter {
+    public:
+        Filter(): values_(NULL), filterType_(Include) {}
+
+        void setFilterType(FilterType filterType) {
+            filterType_ = filterType;
+            values_ = NULL;
+        }
+
+        // Setter
+        template <typename T> void add(T v) {
+            if (filterType_ == Include || filterType_ == Exclude) {
+                values_ = StringConcatenate(values_, separator_, v, separator_);
+            }
+            if (filterType_ == Greater || filterType_ == Smaller) {
+                values_ = v;
+            }
+        }
+        template <typename T> void add(T v1, T v2) {add(v1); add(v2);}
+        template <typename T> void add(T v1, T v2, T v3) {add(v1); add(v2); add(v3);}
+        template <typename T> void add(T v1, T v2, T v3, T v4) {add(v1); add(v2); add(v3); add(v4);}
+        template <typename T> void add(T & v[]) {for (int i = 0; i < ArraySize(v); i++) {add(v[i]);}}
+
+        // Getter
+        template <typename T> bool get(T v) {
+            if (values_ == NULL) {
+                return false;
+            }
+
+            if (filterType_ == Include || filterType_ == Exclude) {
+                return StringContains(values_, StringConcatenate(separator_, v, separator_)) ?
+                    !(filterType_ == Include) : (filterType_ == Include);
+            }
+            if (filterType_ == Greater || filterType_ == Smaller) {
+                return (v > values_) ?
+                    !(filterType_ == Greater) : (filterType_ == Greater);
+            }
+
+            return false;
+        }
+
+    private:
+        static const string separator_;
+
+        string values_;
+        FilterType filterType_;
+};
+
+const string Filter::separator_ = "|";
+
+class OrderFilter {
+    public:
+        Filter closeTime;
+        Filter magicNumber;
+        Filter profit;
+        Filter symbol;
+        Filter symbolFamily;
+        Filter type;
+};

@@ -7,19 +7,37 @@
 
 class OrderFind {
     public:
-        void getOrdersList(Order & [], bool);
-        void getFilteredOrdersList(Order & [], OrderFilter &, bool);
+        void getFilteredOrdersList(Order & [], OrderFilter &, int);
 
-        // static previouslySelectedOrder? Need to reset selected position every time?
-        // Small class that does it in the constructor and destructor? Dangerous, should be after every method.
-        // What if there can be only 1 method call per instance, and after that isSpoiled_ or isUsed_ = true?
-        // Or maybe the destructor is called after every method? IDK
+    private:
+        void getOrdersList(Order & [], int);
 };
 
-void OrderFind::getOrdersList(Order & orders[], bool isModeTrades = true) {
+void OrderFind::getFilteredOrdersList(Order & orders[], OrderFilter & orderFilter, int pool = MODE_TRADES) {
+    getOrdersList(orders, pool);
+
+    for (int i = ArraySize(orders) - 1; i >= 0; i--) {
+        if (orderFilter.closeTime.get(orders[i].closeTime) ||
+            orderFilter.magicNumber.get(orders[i].magicNumber) ||
+            orderFilter.profit.get(orders[i].profit) ||
+            orderFilter.symbol.get(orders[i].symbol) ||
+            orderFilter.symbolFamily.get(SymbolFamily(orders[i].symbolFamily)) ||
+            orderFilter.type.get(orders[i].type)) {
+            ArrayRemove(orders, i);
+        }
+    }
+}
+
+void OrderFind::getOrdersList(Order & orders[], int pool = MODE_TRADES) {
     const int previouslySelectedOrder = OrderTicket();
 
-    const int pool = isModeTrades ? MODE_TRADES : MODE_HISTORY;
+    if (pool != MODE_TRADES && pool != MODE_HISTORY) {
+        ThrowException(__FUNCTION__, StringConcatenate("Unsupported pool: ", pool));
+        return;
+    }
+
+    const bool isModeTrades = (pool == MODE_TRADES) ? true : false;
+
     const int poolOrders = isModeTrades ? OrdersTotal() : OrdersHistoryTotal();
     const int baseArraySize = isModeTrades ? 10 : 500;
     ArrayResize(orders, baseArraySize, baseArraySize);
@@ -48,24 +66,5 @@ void OrderFind::getOrdersList(Order & orders[], bool isModeTrades = true) {
 
     if (previouslySelectedOrder != 0 && !OrderSelect(previouslySelectedOrder, SELECT_BY_TICKET)) {
         ThrowException(__FUNCTION__, "Could not select back previous order");
-    }
-}
-
-void OrderFind::getFilteredOrdersList(Order & orders[], OrderFilter & filter, bool isModeTrades = true) {
-    getOrdersList(orders, isModeTrades);
-
-    for (int i = ArraySize(orders) - 1; i >= 0; i--) {
-        if (filter.byMagicNumber(orders[i].magicNumber) ||
-            filter.byTicket(orders[i].ticket) ||
-            filter.byType(orders[i].type) ||
-            filter.byOpenPrice(orders[i].openPrice) ||
-            filter.byProfit(orders[i].profit) ||
-            filter.byCommment(orders[i].commment) ||
-            filter.bySymbol(orders[i].symbol) || // later correlated symbols by passing and checking only EUR
-            filter.bySymbolFamily(SymbolFamily(orders[i].symbol)) ||
-            filter.byCloseTime(orders[i].closeTime)) {
-
-            ArrayRemove(orders, i);
-        }
     }
 }

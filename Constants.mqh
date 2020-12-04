@@ -7,10 +7,7 @@ input bool IS_DEBUG = false;
 
 datetime STARTUP_TIME = NULL;
 
-const int MY_SCRIPT_ID = 2044000;
-const int MY_SCRIPT_ID_030 = 2044030;
-const int MY_SCRIPT_ID_060 = 2044060;
-const int MY_SCRIPT_ID_240 = 2044240;
+const int BOT_MAGIC_NUMBER = 2044000; // then pass a different bot base number to each strategy Order's thing
 
 const datetime BOT_EXPIRATION_DATE = (datetime) "2021-06-30";
 const datetime BOT_TESTS_EXPIRATION_DATE = (datetime) "2025-01-01";
@@ -39,6 +36,12 @@ const int ALLOWED_PERIODS [] = {
     PERIOD_M30,
     PERIOD_H1,
     PERIOD_H4
+};
+
+const int ALLOWED_MAGIC_NUMBERS [] = { // shouldn't be here, should be inside the code used by each strategy
+    2044030,
+    2044060,
+    2044240
 };
 
 const string ALLOWED_BROKERS [] = {
@@ -292,12 +295,14 @@ double GetMarketSpread(string symbol = NULL) {
 //    }
 
 int BotMagicNumber() {
-    return (MY_SCRIPT_ID + Period()); // migliorabile e cambiabile
+    return (BOT_MAGIC_NUMBER + Period());
 }
 
-bool IsUnknownMagicNumber(int MagicNumber) { // migliorabile e cambiabile
-    if (MagicNumber != MY_SCRIPT_ID_030 && MagicNumber != MY_SCRIPT_ID_060 && MagicNumber != MY_SCRIPT_ID_240) {
-        return true;
+bool IsUnknownMagicNumber(int magicNumber) {
+    for (int i = 0; i < ArraySize(ALLOWED_MAGIC_NUMBERS); i++) {
+        if (magicNumber == ALLOWED_MAGIC_NUMBERS[i]) {
+            return true;
+        }
     }
 
     return false;
