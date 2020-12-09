@@ -7,6 +7,7 @@
 class Order {
     public:
         int magicNumber;
+        int period;
         int ticket;
         int type;
         double closePrice;

@@ -7,7 +7,7 @@
 
 class TrendLineTest {
     public:
-        void isTrendLineGoodForPendingOrderTest();
+        void isGoodTrendLineFromNameTest();
         void getTrendLineIndexesTest();
         void trendLineNameTest();
         void trendLineSetupsTest();
@@ -16,31 +16,31 @@ class TrendLineTest {
         TrendLine trendLine_;
 };
 
-void TrendLineTest::isTrendLineGoodForPendingOrderTest() {
-    UnitTest unitTest("isTrendLineGoodForPendingOrderTest");
+void TrendLineTest::isGoodTrendLineFromNameTest() {
+    UnitTest unitTest("isGoodTrendLineFromNameTest");
 
     unitTest.assertTrue(
-        trendLine_.isTrendLineGoodForPendingOrder(trendLine_.buildTrendLineName(50, 30, 0, Max), 1)
+        trendLine_.isGoodTrendLineFromName(trendLine_.buildTrendLineName(50, 30, 0, Max))
     );
 
     unitTest.assertFalse(
-        trendLine_.isTrendLineGoodForPendingOrder(trendLine_.buildBadTrendLineName(50, 30, 0, Max), 1)
+        trendLine_.isGoodTrendLineFromName(trendLine_.buildBadTrendLineName(50, 30, 0, Max), 1)
     );
 
     unitTest.assertFalse(
-        trendLine_.isTrendLineGoodForPendingOrder("randomString", 1)
+        trendLine_.isGoodTrendLineFromName("randomString", 1)
     );
 
     const int timeIndex = 1;
     const int bigTimeIndex = trendLine_.trendLineMinExtremesDistance_ - timeIndex;
 
     unitTest.assertTrue(
-        trendLine_.isTrendLineGoodForPendingOrder(trendLine_.buildTrendLineName(
+        trendLine_.isGoodTrendLineFromName(trendLine_.buildTrendLineName(
             20, trendLine_.trendLineMinExtremesDistance_ + timeIndex, 0, Max), timeIndex)
     );
 
     unitTest.assertFalse(
-        trendLine_.isTrendLineGoodForPendingOrder(trendLine_.buildTrendLineName(
+        trendLine_.isGoodTrendLineFromName(trendLine_.buildTrendLineName(
             20, trendLine_.trendLineMinExtremesDistance_ + timeIndex, 0, Max), bigTimeIndex)
     );
 }

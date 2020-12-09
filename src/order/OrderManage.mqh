@@ -9,10 +9,12 @@
 class OrderManage {
     public:
         bool areThereOpenOrders(); // 1. these 3 to be run in order by the manager, before the if(Put vs Trail)
-        bool lossLimiterEnabled();
+        bool isLossLimiterEnabled();
 
         //void deletePendingOrdersIfAntipattern(); // 2
         void emergencySwitchOff(); // 3
+
+        void deleteSingleOrder(Order); // per ora pubblico
 
     protected:
         void deleteAllOrders();
@@ -33,10 +35,10 @@ bool OrderManage::areThereOpenOrders() {
     OrderFind orderFind;
     orderFind.getFilteredOrdersList(orders, orderFilter);
 
-    return (ArraySize(orders) > 0) ? true : false;
+    return (ArraySize(orders) > 0);
 }
 
-bool OrderManage::lossLimiterEnabled() {
+bool OrderManage::isLossLimiterEnabled() {
     OrderFilter orderFilter;
     orderFilter.magicNumber.add(ALLOWED_MAGIC_NUMBERS);
 
@@ -137,20 +139,25 @@ void OrderManage::deletePendingOrders(int & magicNumbers[], string symbolOrFamil
 }
 
 void OrderManage::deleteOrdersFromList(Order & orders[]) {
-    for (int order = 0; order < ArraySize(orders); order++) { // should be fine to increment, but check it
-        const int ticket = orders[order].ticket;
-        bool deletedOrder = false;
+    for (int i = ArraySize(orders) - 1; i >= 0; i--) {
+        deleteSingleOrder(orders[i]);
+    }
+}
 
-        if (orders[order].type == OP_BUY || orders[order].type == OP_SELL) {
-            deletedOrder = OrderClose(ticket, orders[order].lots, orders[order].closePrice, 3);
-        } else {
-            deletedOrder = OrderDelete(ticket);
-        }
+void OrderManage::deleteSingleOrder(Order order) {
+    const int ticket = order.ticket;
 
-        if (deletedOrder) {
-            Print(__FUNCTION__, " | Deleted order: ", ticket);
-        } else {
-            ThrowException(__FUNCTION__, StringConcatenate("Failed to delete order: ", ticket));
-        }
+    bool deletedOrder = false;
+
+    if (order.type == OP_BUY || order.type == OP_SELL) {
+        deletedOrder = OrderClose(ticket, order.lots, order.closePrice, 3);
+    } else {
+        deletedOrder = OrderDelete(ticket);
+    }
+
+    if (deletedOrder) {
+        Print(__FUNCTION__, " | Deleted order: ", ticket);
+    } else {
+        ThrowException(__FUNCTION__, StringConcatenate("Failed to delete order: ", ticket));
     }
 }

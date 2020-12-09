@@ -65,7 +65,6 @@ const string RESTRICTED_SYMBOL_FAMILIES_H4 [] = {
 /*
 const bool SelectedOrder;
 const int PreviousOrderTicket;
-const int OrderCandlesDuration = 6;
 const bool PositionSplit = true;
 const double BaseTakeProfitFactor = 3.0;
 */
@@ -255,10 +254,6 @@ int MathSign(double inputValue) {
     }
 }
 
-string AntiDiscriminator(string Discriminator) {
-    return Discriminator == "Min" ? "Max" : "Min";
-}
-
 string GetDiscriminatorFromSign(double inputValue) {
     if (inputValue >= 0) {
         return "Max";
@@ -276,8 +271,12 @@ double ErrorPips() {
     return 2 * PeriodMultiplicationFactor() * Pips();
 }
 
-int PeriodMultiplicationFactor() {
-    if (Period() == PERIOD_H4) {
+int PeriodMultiplicationFactor(int period = NULL) {
+    if (period == NULL) {
+        period = Period();
+    }
+
+    if (period == PERIOD_H4) {
         return 2;
     }
 
@@ -348,6 +347,20 @@ string SymbolFamily(string symbol = NULL) {
     }
 }
 
+bool IsFirstRankSymbolFamily(string symbol = NULL) {
+    if (symbol == NULL) {
+        symbol = Symbol();
+    }
+
+    const string family = SymbolFamily(symbol);
+
+    if (family == "EUR" || family == "GBP" || family == "USD") {
+        return true;
+    }
+
+    return false;
+}
+
 bool IsLossLimiterEnabled() {
     // Dummy function for now
     return false;
@@ -381,25 +394,13 @@ template <typename T> void ArrayRemove(T & array[], int index) {
    ArrayResize(array, last);
 }
 
-// You can do a template for these functions
-bool ThrowException(bool returnValue, string function, string message) {
+template <typename T> T ThrowException(T returnValue, string function, string message) {
     ThrowException(function, message);
     return returnValue;
 }
 
-int ThrowException(int returnValue, string function, string message) {
-    ThrowException(function, message);
-    return returnValue;
-}
-
-int ThrowException(double returnValue, string function, string message) {
-    ThrowException(function, message);
-    return returnValue;
-}
-
-datetime ThrowException(datetime returnValue, string function, string message) {
-    ThrowException(function, message);
-    return returnValue;
+template <typename T> T ThrowException(T returnValue, string function, string message1, string message2) {
+    return ThrowException(returnValue, function, StringConcatenate(message1, message2));
 }
 
 void ThrowException(string function, string message) {
@@ -411,7 +412,7 @@ void ThrowException(string function, string message) {
     }
 }
 
-bool ThrowFatalException(bool returnValue, string function, string message) {
+template <typename T> T ThrowFatalException(T returnValue, string function, string message) {
     ThrowFatalException(function, message);
     return returnValue;
 }
@@ -422,7 +423,41 @@ void ThrowFatalException(string function, string message) {
     ExpertRemove();
 }
 
-void OptionalAlert(string message) {
+datetime PrintTimer(datetime timeStamp, string message) {
+    if (timeStamp != Time[0]) {
+        Print(message);
+        timeStamp = Time[0];
+    }
+
+    return timeStamp;
+}
+
+datetime PrintTimer(datetime timeStamp, string message1, string message2) {
+    return PrintTimer(timeStamp, StringConcatenate(message1, message2));
+}
+
+datetime PrintTimer(datetime timeStamp, string message1, string message2, string message3) {
+    return PrintTimer(timeStamp, StringConcatenate(message1, message2, message3));
+}
+
+datetime PrintTimer(datetime timeStamp, string message1, string message2, string message3, string message4) {
+    return PrintTimer(timeStamp, StringConcatenate(message1, message2, message3, message4));
+}
+
+datetime AlertTimer(datetime timeStamp, string message) {
+    if (timeStamp != Time[0]) {
+        OptionalAlert(message);
+        timeStamp = Time[0];
+    }
+
+    return timeStamp;
+}
+
+datetime AlertTimer(datetime timeStamp, string message1, string message2) {
+    return AlertTimer(timeStamp, StringConcatenate(message1, message2));
+}
+
+void OptionalAlert(string message) { // should be private if it goes in a class
     const string fullMessage = StringConcatenate(Symbol(), NAME_SEPARATOR, Period(), " - ", message);
 
     if (ALERT_ALLOWED) {

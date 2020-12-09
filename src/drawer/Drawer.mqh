@@ -82,7 +82,7 @@ void Drawer::setChartMarketClosedColors() {
 }
 
 bool Drawer::areDrawingsUpdated() {
-    return (ObjectFind(getLastDrawingTimeSignalName()) >= 0) ? true : false;
+    return (ObjectFind(getLastDrawingTimeSignalName()) >= 0);
 }
 
 void Drawer::drawLastDrawingTimeSignal() {

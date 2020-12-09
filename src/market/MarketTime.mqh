@@ -248,5 +248,5 @@ int MarketTime::getDaysInMonth(int year, int month) {
 
 bool MarketTime::isLeapYear(int year) {
     bool leapYearCondition = (year % 4 == 0) && (year % 100 != 0 || year % 400 == 0);
-    return leapYearCondition ? true : false;
+    return leapYearCondition;
 }

@@ -60,7 +60,7 @@ void UnitTestsRunner::runAllUnitTests() {
     pivotStyleTest.pivotRSLabelNameTest();
 
     TrendLineTest trendLineTest;
-    trendLineTest.isTrendLineGoodForPendingOrderTest();
+    trendLineTest.isGoodTrendLineFromNameTest();
     trendLineTest.getTrendLineIndexesTest();
     trendLineTest.trendLineNameTest();
     trendLineTest.trendLineSetupsTest();

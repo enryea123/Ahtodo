@@ -65,49 +65,49 @@ bool Pattern::isAntiPattern(int timeIndex) {
  * Low doji followed by big bull bar
  */
 bool Pattern::sellPattern1(int timeIndex) {
-    return pattern1(timeIndex, Min) ? true : false;
+    return pattern1(timeIndex, Min);
 }
 
 /**
  * High doji followed by big bear bar
  */
 bool Pattern::buyPattern1(int timeIndex) {
-    return pattern1(timeIndex, Max) ? true : false;
+    return pattern1(timeIndex, Max);
 }
 
 /**
  * Down pinbar
  */
 bool Pattern::sellPattern2(int timeIndex) {
-    return downPinbar(timeIndex) ? true : false;
+    return downPinbar(timeIndex);
 }
 
 /**
  * Up pinbar
  */
 bool Pattern::buyPattern2(int timeIndex) {
-    return upPinbar(timeIndex) ? true : false;
+    return upPinbar(timeIndex);
 }
 
 /**
  * High doji followed by big bear bar and then big bull bar
  */
 bool Pattern::sellPattern3(int timeIndex) {
-    return pattern3(timeIndex, Min) ? true : false;
+    return pattern3(timeIndex, Min);
 }
 
 /**
  * Low doji followed by big bull bar and then big bear bar
  */
 bool Pattern::buyPattern3(int timeIndex) {
-    return pattern3(timeIndex, Max) ? true : false;
+    return pattern3(timeIndex, Max);
 }
 
 /**
  * slimDoji, only for H4
  */
 bool Pattern::sellBuyPattern4(int timeIndex) {
-    return (slimDoji(timeIndex) && Period() == PERIOD_H4) ? true : false;
+    return (slimDoji(timeIndex) && Period() == PERIOD_H4);
 }
 
 /**
@@ -147,7 +147,7 @@ bool Pattern::isPatternSizeGood(int timeIndex) {
 }
 
 bool Pattern::pattern1(int timeIndex, Discriminator discriminator) {
-    bool isBuyPattern = (discriminator == Max) ? true : false;
+    bool isBuyPattern = (discriminator == Max);
 
     if (!bigBar(timeIndex) || !isSupportCandle(timeIndex + 1)) {
         return false;
@@ -178,7 +178,7 @@ bool Pattern::pattern1(int timeIndex, Discriminator discriminator) {
 }
 
 bool Pattern::pattern3(int timeIndex, Discriminator discriminator) {
-    bool isBuyPattern = (discriminator == Max) ? true : false;
+    bool isBuyPattern = (discriminator == Max);
 
     if (!bigBar(timeIndex) || !bigBar(timeIndex + 1) || !isSupportCandle(timeIndex + 2)) {
         return false;

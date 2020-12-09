@@ -9,7 +9,7 @@ class TrendLine {
         bool areTrendLineSetupsGood(int, int, Discriminator);
         bool isExistingTrendLineBad(string, Discriminator);
         bool isBadTrendLineFromName(string);
-        bool isTrendLineGoodForPendingOrder(string, int);
+        bool isGoodTrendLineFromName(string, int);
         int getTrendLineMaxIndex(string);
         int getTrendLineMinIndex(string);
         string buildTrendLineName(int, int, int, Discriminator);
@@ -138,7 +138,7 @@ bool TrendLine::isBadTrendLineFromName(string trendLineName) {
     return false;
 }
 
-bool TrendLine::isTrendLineGoodForPendingOrder(string trendLineName, int timeIndex) {
+bool TrendLine::isGoodTrendLineFromName(string trendLineName, int timeIndex = 1) {
     if (!StringContains(trendLineName, trendLineNamePrefix_) ||
         StringContains(trendLineName, trendLineBadNameSuffix_)) {
         return false;

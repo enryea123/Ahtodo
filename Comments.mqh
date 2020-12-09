@@ -118,3 +118,10 @@
 // posso fare molti piu print sulle trendline per gli ordini se sono 1 volta a candela!
 
 // controllare in tutti i file se Constants.mqh è usato, altrimenti togliere l'import
+
+// throwexception con argomenti multiple per non dover usare stringconcat?
+
+// implementa take profit che guarda i livelli orizzontali precedenti
+// implementa stoploss trailing sotto al minimo precedente
+
+// aprire sessione alle 8?

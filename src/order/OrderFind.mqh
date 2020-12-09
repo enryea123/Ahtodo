@@ -36,7 +36,7 @@ void OrderFind::getOrdersList(Order & orders[], int pool = MODE_TRADES) {
         return;
     }
 
-    const bool isModeTrades = (pool == MODE_TRADES) ? true : false;
+    const bool isModeTrades = (pool == MODE_TRADES);
 
     const int poolOrders = isModeTrades ? OrdersTotal() : OrdersHistoryTotal();
     const int baseArraySize = isModeTrades ? 10 : 500;
@@ -50,6 +50,7 @@ void OrderFind::getOrdersList(Order & orders[], int pool = MODE_TRADES) {
 
         ArrayResize(orders, index + 1, baseArraySize);
         orders[index].magicNumber = OrderMagicNumber();
+        orders[index].period = OrderMagicNumber() - BOT_MAGIC_NUMBER;
         orders[index].ticket = OrderTicket();
         orders[index].type = OrderType();
         orders[index].lots = OrderLots();
@@ -65,6 +66,6 @@ void OrderFind::getOrdersList(Order & orders[], int pool = MODE_TRADES) {
     ArrayResize(orders, index);
 
     if (previouslySelectedOrder != 0 && !OrderSelect(previouslySelectedOrder, SELECT_BY_TICKET)) {
-        ThrowException(__FUNCTION__, "Could not select back previous order");
+        ThrowException(__FUNCTION__, "Could not select back previous order: ", previouslySelectedOrder);
     }
 }

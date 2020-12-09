@@ -47,10 +47,6 @@ void OnTick() {
     if (market.isMarketOpened()) {
         drawer.setChartMarketOpenedColors();
 
-        if (!IsTradeAllowed()) {
-            return;
-        }
-
 //        if (!AreThereOpenOrders()) {
 //            if (Hour() >= MARKET_CLOSE_HOUR_PENDING) {
 //                DeletePendingOrdersThisSymbolThisPeriod();
