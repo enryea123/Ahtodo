@@ -105,7 +105,7 @@ void OrderCreate::createNewOrder(int startIndexForOrder) {
     const double takeProfit = openPrice + discriminator * stopLossSize * takeProfitFactor;
 
     const double sizeFactor = calculateSizeFactor(orderType, openPrice, Symbol());
-    const double orderLots = orderLotsCalculator(openPrice, stopLoss, sizeFactor);
+    const double orderLots = calculateOrderLots(openPrice, stopLoss, sizeFactor);
 
     const int magicNumber = BotMagicNumber();
     const datetime expirationTime = Time[0] + (orderCandlesDuration_ + 1 - startIndexForOrder) * Period() * 60;
@@ -254,9 +254,15 @@ bool OrderCreate::areThereRecentOrders() { // qui o OrderManage? Meglio #2?
 }
 
 
-bool OrderCreate::areThereBetterOrders(int orderType, double stopLossSize, double sizeFactor) { // rename function and params. creare funzione simile senza parametri che compara tutti gli ordini? come fare ad estenderla per usarla a di là di order create // NAME: deduplicateOrders
-    if (Period() == PERIOD_H4 || !IsFirstRankSymbolFamily()) {
+bool OrderCreate::areThereBetterOrders(int orderType, double stopLossSize, double sizeFactor) {
+    if (!IsFirstRankSymbolFamily()) {
         Sleep(500);
+    }
+    if (Period() == PERIOD_H1) { // necessario? abbastanza tempo?
+        Sleep(500);
+    }
+    if (Period() == PERIOD_H4) {
+        Sleep(1000);
     }
 
     OrderFilter orderFilter;
@@ -272,15 +278,14 @@ bool OrderCreate::areThereBetterOrders(int orderType, double stopLossSize, doubl
         OrderManage orderManage;
 
         for (int order = 0; order < ArraySize(orders); order++) {
-            const int period = orders[order].period;
-            const double openPrice = orders[order].openPrice;
-            const double stopLoss = orders[order].stopLoss;
-            const string symbol = orders[order].symbol;
-
-            if (Period() == PERIOD_H4 && period != PERIOD_H4) {
+            if (Period() == PERIOD_H4 && orders[order].period != PERIOD_H4) {
                 // Shorter timeframes are prioritized over H4
                 continue;
             }
+
+            const double openPrice = orders[order].openPrice;
+            const double stopLoss = orders[order].stopLoss;
+            const string symbol = orders[order].symbol;
 
             const double oldSizeFactor = calculateSizeFactor(orderType, openPrice, symbol);
             const double oldStopLossSize = MathAbs(openPrice - stopLoss) / Pips(symbol);
@@ -294,7 +299,7 @@ bool OrderCreate::areThereBetterOrders(int orderType, double stopLossSize, doubl
         }
     }
 
-// SEPARARE IN 2 FUNZIONI forse, MA PENSARE A COME
+// could be split in 2
 
     orderFilter.type.add(OP_BUY, OP_SELL);
     ArrayFree(orders);
@@ -308,8 +313,15 @@ bool OrderCreate::areThereBetterOrders(int orderType, double stopLossSize, doubl
 }
 
 double OrderCreate::calculateSizeFactor(int orderType, double openPrice, string orderSymbol) {
-
-// exception per input strani
+    if (orderType != OP_BUYSTOP && orderType != OP_SELLSTOP) {
+        return ThrowException(0, __FUNCTION__, StringConcatenate("Unsupported orderType:", orderType));
+    }
+    if (openPrice == 0) {
+        return ThrowException(0, __FUNCTION__, StringConcatenate("Wrong openPrice:", openPrice));
+    }
+    if (!SymbolExists(symbol)) {
+        return ThrowException(0, __FUNCTION__, "Unknown symbol");
+    }
 
     double sizeFactor = 1.0;
 
@@ -387,28 +399,25 @@ int OrderCreate::morningLookBackCandles(int period = NULL) {
         return 1;
     } else if (period == PERIOD_H1) {
         return 1;
-    } else if (period == PERIOD_M30) { // estract variables? Separate class?
+    } else if (period == PERIOD_M30) {
         return 2;
     } else {
         return 0;
     }
 }
 
-// still not in class
-double OrderLotsCalculator(double OpenPrice, double StopLoss, double OrderLotsModulationFactor) {
-    double YenConversionFactor = MarketInfo(Symbol(), MODE_TICKSIZE) / 0.00001;
-
-    double StopLossDistance = MathAbs(OpenPrice - StopLoss)
-        * MarketInfo(Symbol(), MODE_TICKVALUE) / YenConversionFactor;
-
-    double AbsoluteRisk = AccountEquity() * PercentRisk / 100;
-    double RawOrderLots = AbsoluteRisk / StopLossDistance / 100000;
-
-    double OrderLots = 2 * NormalizeDouble(RawOrderLots * OrderLotsModulationFactor / 2, 2);
-
-    if (OrderLots < 0.02) {
-        OrderLots = 0.02;
+double OrderCreate::calculateOrderLots(double openPrice, double stopLoss, double sizeFactor) {
+    if (sizeFactor == 0) {
+        return 0;
     }
 
-    return NormalizeDouble(OrderLots, 2);
+    const double absoluteRisk = (PERCENT_RISK / 100) * AccountEquity() / MarketInfo(Symbol(), MODE_TICKVALUE);
+    const double stopLossTicks = MathAbs(openPrice - stopLoss) / MarketInfo(Symbol(), MODE_TICKSIZE);
+    const double rawOrderLots = absoluteRisk / stopLossTicks;
+
+    double orderLots = 2 * NormalizeDouble(rawOrderLots * sizeFactor / 2, 2);
+
+    orderLots = MathMax(orderLots, 0.02);
+
+    return NormalizeDouble(orderLots, 2);
 }

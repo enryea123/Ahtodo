@@ -44,6 +44,7 @@ void OnTick() {
 
     market.marketConditionsValidation();
     drawer.drawEverything();
+    orderManage.emergencySwitchOff();
 
     if (market.isMarketOpened()) {
         drawer.setChartMarketOpenedColors();
@@ -53,20 +54,20 @@ void OnTick() {
             orderCreate.newOrder();
         } else {
             OrderTrail orderTrail;
-            orderTrail.manageOpenedOrders();
+            orderTrail.manageOpenOrders();
         }
+
+        Pattern pattern;
+        if (pattern.isAntiPattern(1) || market.isMarketCloseNoPendingTimeWindow()) {
+            orderManage.deletePendingOrders();
+        }
+
+        orderManage.lossLimiter();
+        orderManage.deduplicateOrders();
     } else {
         drawer.setChartMarketClosedColors();
         orderManage.deleteAllOrders();
     }
-
-    Pattern pattern;
-    if (pattern.isAntiPattern(1) || market.isMarketCloseNoPendingTimeWindow()) {
-        orderManage.deletePendingOrders();
-    }
-
-    orderManage.emergencySwitchOff();
-    orderManage.deduplicateOrders();
 }
 
 void OnDeinit(const int reason) {
@@ -74,3 +75,5 @@ void OnDeinit(const int reason) {
     drawer.setChartDefaultColors();
     ObjectsDeleteAll();
 }
+
+// FARE FUNZIONE PER? MathRound(MathAbs(order.openPrice - newStopLoss) / Pips())

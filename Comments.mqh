@@ -129,3 +129,5 @@
 // refactor drawing folders in a nested way???
 
 // creare classe hashmap? In quali punti può essere usata? in tanti. Pensa ai refactoring possibili
+
+// static const SHOULD_BE_LIKE_THIS? probably not.

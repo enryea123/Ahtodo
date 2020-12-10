@@ -10,7 +10,7 @@
 
 class OrderTrail {
     public:
-        void manageOpenedOrders();
+        void manageOpenOrders();
 
     protected: // or public ?
         static const bool positionSplit_;
@@ -31,7 +31,7 @@ const int OrderTrail::stopLossPips_[] = {breakEvenPips_, 0} * PeriodMultiplicati
 //    return ThrowException(0, __FUNCTION__, "Incorrect break even steps");
 //}
 
-void OrderTrail::manageOpenedOrders() {
+void OrderTrail::manageOpenOrders() {
     OrderFilter orderFilter;
     orderFilter.magicNumber.add(BotMagicNumber());
     orderFilter.symbol.add(Symbol());

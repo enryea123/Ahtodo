@@ -8,28 +8,33 @@
 
 class OrderManage {
     public:
-        bool areThereOpenOrders(); // 1. these 3 to be run in order by the manager, before the if(Put vs Trail)
-        bool isLossLimiterEnabled();
+        bool areThereOpenOrders();
 
-        void emergencySwitchOff(); // 3
+        void deduplicateOrders();
+        void emergencySwitchOff();
+        void lossLimiter();
 
-        void deleteSingleOrder(Order); // per ora pubblico
-
-    protected:
         void deleteAllOrders();
-        void deletePendingOrders(int, string);
-        void deletePendingOrders(int & [], string);
+        void deletePendingOrders();
+        void deleteOrdersFromList(Order & []);
+        void deleteSingleOrder(Order);
 
     private:
+        static const int lossLimiterHours_;
+        static const int lossLimiterMaxPercentLoss_;
         static const int maximumOpenedOrders_;
         static const int maximumCorrelatedPendingOrders_;
-
-        void deleteOrdersFromList(Order & []);
 };
 
+const int OrderManage::lossLimiterHours_ = 8;
+const int OrderManage::lossLimiterMaxPercentLoss_ = 5;
 const int OrderManage::maximumOpenedOrders_ = 1;
 const int OrderManage::maximumCorrelatedPendingOrders_ = 1;
 
+/**
+ * Checks if there are any already opened orders,
+ * across all timeframes and correlated symbols.
+ */
 bool OrderManage::areThereOpenOrders() {
     OrderFilter orderFilter;
     orderFilter.magicNumber.add(ALLOWED_MAGIC_NUMBERS);
@@ -41,35 +46,6 @@ bool OrderManage::areThereOpenOrders() {
     orderFind.getFilteredOrdersList(orders, orderFilter);
 
     return (ArraySize(orders) > 0);
-}
-
-bool OrderManage::isLossLimiterEnabled() {
-    OrderFilter orderFilter;
-    orderFilter.magicNumber.add(ALLOWED_MAGIC_NUMBERS);
-
-    orderFilter.profit.setFilterType(Exclude);
-    orderFilter.profit.add(0);
-
-    orderFilter.closeTime.setFilterType(Greater);
-    orderFilter.closeTime.add(GetDate() - (5 + 1) * 86400); // lossLimiterDays = 5;
-
-    Order orders[];
-    OrderFind orderFind;
-    orderFind.getFilteredOrdersList(orders, orderFilter, MODE_HISTORY);
-
-    double maximumPercentLoss = 0.05;
-    double totalGains = 0;
-
-    for (int order = 0; order < ArraySize(orders); order++) {
-        totalGains += orders[order].profit;
-
-        if (totalGains <= - AccountEquity() * maximumPercentLoss) {
-            deleteAllOrders();
-            return true;
-        }
-    }
-
-    return false;
 }
 
 /**
@@ -117,6 +93,10 @@ void OrderManage::deduplicateOrders() {
     }
 }
 
+/**
+ * Checks if an order with an unknown magicNumber exists.
+ * In that case, it deletes all the orders and removes the bot.
+ */
 void OrderManage::emergencySwitchOff() {
     OrderFilter orderFilter;
     orderFilter.magicNumber.setFilterType(Exclude);
@@ -134,6 +114,43 @@ void OrderManage::emergencySwitchOff() {
     }
 }
 
+/**
+ * Checks if the recent losses of the bot have been too high,
+ * and in that case deletes all the orders and removes the bot.
+ */
+void OrderManage::lossLimiter() {
+    OrderFilter orderFilter;
+    orderFilter.magicNumber.add(ALLOWED_MAGIC_NUMBERS);
+
+    orderFilter.profit.setFilterType(Exclude);
+    orderFilter.profit.add(0);
+
+    orderFilter.closeTime.setFilterType(Greater);
+    orderFilter.closeTime.add(TimeCurrent() - lossLimiterHours_ * 3600);
+
+    Order orders[];
+    OrderFind orderFind;
+    orderFind.getFilteredOrdersList(orders, orderFilter, MODE_HISTORY);
+
+    const double maxAllowedLosses = AccountEquity() * lossLimiterMaxPercentLoss_ * PERCENT_RISK / 100;
+
+    double totalLosses = 0;
+
+    for (int order = 0; order < ArraySize(orders); order++) {
+        totalLosses -= orders[order].profit;
+
+        if (totalLosses > maxAllowedLosses) {
+            deleteAllOrders();
+            ThrowFatalException(__FUNCTION__, StringConcatenate(
+                "Emergency switchOff invoked for total losses: ", totalLosses));
+            return;
+        }
+    }
+}
+
+/**
+ * Delete all the orders of the current symbol and period.
+ */
 void OrderManage::deleteAllOrders() {
     OrderFilter orderFilter;
     orderFilter.magicNumber.add(BotMagicNumber());
@@ -146,34 +163,16 @@ void OrderManage::deleteAllOrders() {
     deleteOrdersFromList(orders);
 }
 
-void OrderManage::deletePendingOrders(int magicNumber = NULL, string symbolOrFamily = NULL) {
-    if (magicNumber == NULL) {
-        magicNumber = BotMagicNumber();
-    }
-
-    int magicNumbers[];
-    ArrayResize(magicNumbers, 1);
-    magicNumbers[0] = magicNumber;
-
-    deletePendingOrders(magicNumbers, symbolOrFamily);
-}
-
-void OrderManage::deletePendingOrders(int & magicNumbers[], string symbolOrFamily = NULL) { // forse togliere funzionalita di eliminare ordini di altri simboli?
-    if (symbolOrFamily == NULL) {
-        symbolOrFamily = Symbol();
-    }
-
+/**
+ * Delete all the pending orders of the current symbol and period.
+ */
+void OrderManage::deletePendingOrders() {
     OrderFilter orderFilter;
+    orderFilter.magicNumber.add(BotMagicNumber());
+    orderFilter.symbol.add(Symbol());
+
     orderFilter.type.setFilterType(Exclude);
     orderFilter.type.add(OP_BUY, OP_SELL);
-
-    orderFilter.magicNumber.add(magicNumbers);
-
-    if (StringLen(symbolOrFamily) == 3) {
-        orderFilter.symbolFamily.add(symbolOrFamily);
-    } else {
-        orderFilter.symbol.add(symbolOrFamily);
-    }
 
     Order orders[];
     OrderFind orderFind;
@@ -182,12 +181,18 @@ void OrderManage::deletePendingOrders(int & magicNumbers[], string symbolOrFamil
     deleteOrdersFromList(orders);
 }
 
+/**
+ * Delete all the orders from a list.
+ */
 void OrderManage::deleteOrdersFromList(Order & orders[]) {
     for (int i = ArraySize(orders) - 1; i >= 0; i--) {
         deleteSingleOrder(orders[i]);
     }
 }
 
+/**
+ * Delete a single order.
+ */
 void OrderManage::deleteSingleOrder(Order order) {
     const int ticket = order.ticket;
 

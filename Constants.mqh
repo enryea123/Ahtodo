@@ -212,7 +212,7 @@ bool DownloadHistory(string symbol = NULL) {
         PERIOD_W1,
         PERIOD_MN1
     };
-    static const int attemptSleepMilliseconds = 200;
+    static const int attemptSleepTime = 200;
     static const int maxAttempts = 20;
 
     for (int attempt = 0; attempt < maxAttempts; attempt++) {
@@ -235,7 +235,7 @@ bool DownloadHistory(string symbol = NULL) {
             return true;
         } else if (attempt != maxAttempts - 1) {
             Print("Downloading missing history data, attempt: ", attempt);
-            Sleep(attemptSleepMilliseconds);
+            Sleep(attemptSleepTime);
         }
     }
 
@@ -357,11 +357,6 @@ bool IsFirstRankSymbolFamily(string symbol = NULL) {
         return true;
     }
 
-    return false;
-}
-
-bool IsLossLimiterEnabled() {
-    // Dummy function for now
     return false;
 }
 

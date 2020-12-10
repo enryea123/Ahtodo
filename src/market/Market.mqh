@@ -35,7 +35,6 @@ class Market {
 
         static bool isHoliday_;
         static datetime spreadTimeStamp_;
-        static datetime lossLimiterTimeStamp_;
 
         MarketTime marketTime_;
 };
@@ -47,7 +46,6 @@ Market::Market():
 Market::~Market() {
     isHoliday_ = false;
     spreadTimeStamp_ = -1;
-    lossLimiterTimeStamp_ = -1;
 }
 
 const int Market::spreadPipsCloseMarket_ = 5;
@@ -57,7 +55,6 @@ const int Market::openMarketLookBackMinutes_ = 15;
 
 bool Market::isHoliday_ = false;
 datetime Market::spreadTimeStamp_ = -1;
-datetime Market::lossLimiterTimeStamp_ = -1;
 
 bool Market::isMarketOpened() {
     return isMarketOpened(marketTime_.timeItaly());
@@ -83,11 +80,6 @@ bool Market::isMarketOpened(datetime date) {
     const double spread = GetMarketSpread();
     if (spread > spreadPipsCloseMarket_) {
         spreadTimeStamp_ = AlertTimer(spreadTimeStamp_, "Market closed for spread: ", spread);
-        return false;
-    }
-
-    if (IsLossLimiterEnabled()) {
-        lossLimiterTimeStamp_ = AlertTimer(lossLimiterTimeStamp_, "Market closed for loss limiter");
         return false;
     }
 
