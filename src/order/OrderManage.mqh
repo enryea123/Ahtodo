@@ -11,7 +11,6 @@ class OrderManage {
         bool areThereOpenOrders(); // 1. these 3 to be run in order by the manager, before the if(Put vs Trail)
         bool isLossLimiterEnabled();
 
-        //void deletePendingOrdersIfAntipattern(); // 2
         void emergencySwitchOff(); // 3
 
         void deleteSingleOrder(Order); // per ora pubblico
@@ -22,8 +21,14 @@ class OrderManage {
         void deletePendingOrders(int & [], string);
 
     private:
+        static const int maximumOpenedOrders_;
+        static const int maximumCorrelatedPendingOrders_;
+
         void deleteOrdersFromList(Order & []);
 };
+
+const int OrderManage::maximumOpenedOrders_ = 1;
+const int OrderManage::maximumCorrelatedPendingOrders_ = 1;
 
 bool OrderManage::areThereOpenOrders() {
     OrderFilter orderFilter;
@@ -67,6 +72,51 @@ bool OrderManage::isLossLimiterEnabled() {
     return false;
 }
 
+/**
+ * Ensures that only one open or correlated pending order at a time is present.
+ * If it finds more orders, it deletes the duplicated ones, starting from the newests.
+ */
+void OrderManage::deduplicateOrders() {
+    OrderFilter orderFilter;
+    orderFilter.magicNumber.add(ALLOWED_MAGIC_NUMBERS);
+    orderFilter.symbolFamily.add(SymbolFamily());
+
+    Order orders[];
+    OrderFind orderFind;
+    orderFind.getFilteredOrdersList(orders, orderFilter);
+
+    int pendingOrdersBuy = 0;
+    int pendingOrdersSell = 0;
+
+    for (int order = 0; order < ArraySize(orders); order++) {
+        const int type = orders[order].type;
+
+        if (type == OP_BUY || type == OP_SELL) {
+            if (ArraySize(orders) != maximumOpenedOrders_) {
+                ArrayRemove(orders, order);
+                deleteOrdersFromList(orders);
+            }
+            return;
+        }
+
+        if (type == OP_BUYSTOP || type = OP_BUYLIMIT) {
+            pendingOrdersBuy++;
+
+            if (pendingOrdersBuy > maximumCorrelatedPendingOrders_) {
+                deleteSingleOrder(orders[order]);
+                pendingOrdersBuy--;
+            }
+        } else if (type == OP_SELLSTOP || type = OP_SELLLIMIT) {
+            pendingOrdersSell++;
+
+            if (pendingOrdersSell > maximumCorrelatedPendingOrders_) {
+                deleteSingleOrder(orders[order]);
+                pendingOrdersSell--;
+            }
+        }
+    }
+}
+
 void OrderManage::emergencySwitchOff() {
     OrderFilter orderFilter;
     orderFilter.magicNumber.setFilterType(Exclude);
@@ -84,13 +134,6 @@ void OrderManage::emergencySwitchOff() {
     }
 }
 
-// Not necessary to have a specific function for this now. There are actually a few different deletePending functions
-//void OrderManage::deletePendingOrdersIfAntipattern() {
-//    if (FoundAntiPattern(1)) {
-//        deletePendingOrders(ALLOWED_MAGIC_NUMBERS, Symbol());
-//    }
-//}
-
 void OrderManage::deleteAllOrders() {
     OrderFilter orderFilter;
     orderFilter.magicNumber.add(BotMagicNumber());
@@ -104,16 +147,18 @@ void OrderManage::deleteAllOrders() {
 }
 
 void OrderManage::deletePendingOrders(int magicNumber = NULL, string symbolOrFamily = NULL) {
-    int magicNumbers[];
-    if (magicNumber != NULL) {
-        ArrayResize(magicNumbers, 1);
-        magicNumbers[0] = NULL;
+    if (magicNumber == NULL) {
+        magicNumber = BotMagicNumber();
     }
+
+    int magicNumbers[];
+    ArrayResize(magicNumbers, 1);
+    magicNumbers[0] = magicNumber;
 
     deletePendingOrders(magicNumbers, symbolOrFamily);
 }
 
-void OrderManage::deletePendingOrders(int & magicNumbers[], string symbolOrFamily = NULL) {
+void OrderManage::deletePendingOrders(int & magicNumbers[], string symbolOrFamily = NULL) { // forse togliere funzionalita di eliminare ordini di altri simboli?
     if (symbolOrFamily == NULL) {
         symbolOrFamily = Symbol();
     }
@@ -122,9 +167,8 @@ void OrderManage::deletePendingOrders(int & magicNumbers[], string symbolOrFamil
     orderFilter.type.setFilterType(Exclude);
     orderFilter.type.add(OP_BUY, OP_SELL);
 
-    if (ArraySize(magicNumbers) > 0 && magicNumbers[0] != NULL) { // could change once I understand the usages
-        orderFilter.magicNumber.add(magicNumbers);
-    }
+    orderFilter.magicNumber.add(magicNumbers);
+
     if (StringLen(symbolOrFamily) == 3) {
         orderFilter.symbolFamily.add(symbolOrFamily);
     } else {

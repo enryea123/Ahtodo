@@ -14,6 +14,8 @@ class Order {
         double openPrice;
         double lots;
         double profit;
+        double stopLoss;
+        double takeProfit;
         string commment;
         string symbol;
         string symbolFamily;

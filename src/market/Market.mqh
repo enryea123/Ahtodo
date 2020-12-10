@@ -12,7 +12,8 @@ class Market {
         ~Market();
 
         bool isMarketOpened();
-        bool isMarketOpeningLookBackTimeWindow();
+        bool isMarketOpenLookBackTimeWindow();
+        bool isMarketCloseNoPendingTimeWindow();
         void marketConditionsValidation();
 
     protected:
@@ -93,9 +94,13 @@ bool Market::isMarketOpened(datetime date) {
     return true;
 }
 
-bool Market::isMarketOpeningLookBackTimeWindow() {
+bool Market::isMarketOpenLookBackTimeWindow() {
     return (TimeHour(marketTime_.timeItaly()) == marketTime_.marketOpenHour() &&
         TimeMinute(marketTime_.timeItaly()) < openMarketLookBackMinutes_);
+}
+
+bool Market::isMarketCloseNoPendingTimeWindow() {
+    return (TimeHour(marketTime_.timeItaly()) >= marketTime_.marketCloseHourPending());
 }
 
 void Market::marketConditionsValidation() {

@@ -11,10 +11,10 @@
 class OrderCreate {
     public:
         ~OrderCreate();
-        //void newOrder();
+        void newOrder();
 
     protected:
-        void newOrder(int);
+        void createNewOrder(int);
         int calculateOrderTypeFromSetups(int);
         string buildOrderComment(double, double, double);
 
@@ -51,8 +51,11 @@ OrderCreate::~OrderCreate() {
 }
 
 void OrderCreate::newOrder() {
-    DeleteCorrelatedPendingOrders(); // QUI????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+    Market market;
 
+    if (market.isMarketCloseNoPendingTimeWindow()) {
+        return;
+    }
     if (!IsTradeAllowed()) {
         return;
     }
@@ -63,18 +66,17 @@ void OrderCreate::newOrder() {
         return;
     }
 
-    newOrder(1);
+    createNewOrder(1);
 
     // At the opening of the market, search for patterns in the past
-    Market market;
-    if (market.isMarketOpeningLookBackTimeWindow()) {
+    if (market.isMarketOpenLookBackTimeWindow()) {
         for(int time = 1; time < morningLookBackCandles() + 1; time++){
-            newOrder(time);
+            createNewOrder(time);
         }
     }
 }
 
-void OrderCreate::newOrder(int startIndexForOrder) {
+void OrderCreate::createNewOrder(int startIndexForOrder) {
     if (startIndexForOrder < 1) {
         ThrowException(__FUNCTION__, StringConcatenate("Unprocessable startIndexForOrder: ", startIndexForOrder));
         return;
@@ -112,7 +114,7 @@ void OrderCreate::newOrder(int startIndexForOrder) {
     if (sizeFactor == 0) { // sizefactor è passato dentro l'altro, si puo fare check setups come nome ad esempio
         return;
     }
-    if (!CompareTwinOrders(orderType, stopLossSize, sizeFactor)) { // rinomina! magari estrai? prima o dopo come cleaner?
+    if (!areThereBetterOrders(orderType, stopLossSize, sizeFactor)) { // rinomina! magari estrai? prima o dopo come cleaner?
         return;
     }
 
@@ -187,12 +189,11 @@ int OrderCreate::calculateOrderTypeFromSetups(int timeIndex) {
         return ThrowException(-1, __FUNCTION__, StringConcatenate("Unprocessable timeIndex: ", timeIndex));
     }
 
+    Pattern pattern;
     for (int t = 1; t < timeIndex + 1; t++) {
-        if (FoundAntiPattern(t)) {
+        if (pattern.isAntiPattern(t)) {
             antiPatternTimeStamp_ = PrintTimer(antiPatternTimeStamp_,
                 "AntiPattern found at time: ", TimeToStr(Time[t]));
-
-            // delete pending orders here?
             return -1;
         }
     }
@@ -253,7 +254,7 @@ bool OrderCreate::areThereRecentOrders() { // qui o OrderManage? Meglio #2?
 }
 
 
-bool OrderCreate::CompareTwinOrders(int orderType, double stopLossSize, double sizeFactor) { // rename function and params. creare funzione simile senza parametri che compara tutti gli ordini? come fare ad estenderla per usarla a di là di order create // NAME: deduplicateOrders
+bool OrderCreate::areThereBetterOrders(int orderType, double stopLossSize, double sizeFactor) { // rename function and params. creare funzione simile senza parametri che compara tutti gli ordini? come fare ad estenderla per usarla a di là di order create // NAME: deduplicateOrders
     if (Period() == PERIOD_H4 || !IsFirstRankSymbolFamily()) {
         Sleep(500);
     }
@@ -293,13 +294,11 @@ bool OrderCreate::CompareTwinOrders(int orderType, double stopLossSize, double s
         }
     }
 
-// SEPARARE IN 2 FUNZIONI SICURAMENTE, MA PENSARE A COME
+// SEPARARE IN 2 FUNZIONI forse, MA PENSARE A COME
 
     orderFilter.type.add(OP_BUY, OP_SELL);
     ArrayFree(orders);
     orderFind.getFilteredOrdersList(orders, orderFilter);
-
-    bool PutNewOrder = true;
 
     if (ArraySize(orders) > 0) {
         return false;
@@ -393,4 +392,23 @@ int OrderCreate::morningLookBackCandles(int period = NULL) {
     } else {
         return 0;
     }
+}
+
+// still not in class
+double OrderLotsCalculator(double OpenPrice, double StopLoss, double OrderLotsModulationFactor) {
+    double YenConversionFactor = MarketInfo(Symbol(), MODE_TICKSIZE) / 0.00001;
+
+    double StopLossDistance = MathAbs(OpenPrice - StopLoss)
+        * MarketInfo(Symbol(), MODE_TICKVALUE) / YenConversionFactor;
+
+    double AbsoluteRisk = AccountEquity() * PercentRisk / 100;
+    double RawOrderLots = AbsoluteRisk / StopLossDistance / 100000;
+
+    double OrderLots = 2 * NormalizeDouble(RawOrderLots * OrderLotsModulationFactor / 2, 2);
+
+    if (OrderLots < 0.02) {
+        OrderLots = 0.02;
+    }
+
+    return NormalizeDouble(OrderLots, 2);
 }

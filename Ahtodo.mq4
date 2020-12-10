@@ -40,6 +40,7 @@ void OnTick() {
 
     Drawer drawer;
     Market market;
+    OrderManage orderManage;
 
     market.marketConditionsValidation();
     drawer.drawEverything();
@@ -47,20 +48,25 @@ void OnTick() {
     if (market.isMarketOpened()) {
         drawer.setChartMarketOpenedColors();
 
-//        if (!AreThereOpenOrders()) {
-//            if (Hour() >= MARKET_CLOSE_HOUR_PENDING) {
-//                DeletePendingOrdersThisSymbolThisPeriod();
-//                return;
-//            }
-//
-//            PutPendingOrder(); // order.putNewOrder();
-//        } else {
-//            OrderTrailing(); // order.manageOpenedOrders();
-//        }
+        if (!orderManage.areThereOpenOrders()) {
+            OrderCreate orderCreate;
+            orderCreate.newOrder();
+        } else {
+            OrderTrail orderTrail;
+            orderTrail.manageOpenedOrders();
+        }
     } else {
         drawer.setChartMarketClosedColors();
-        // CloseAllPositions(); // order.closeAllOrders();
+        orderManage.deleteAllOrders();
     }
+
+    Pattern pattern;
+    if (pattern.isAntiPattern(1) || market.isMarketCloseNoPendingTimeWindow()) {
+        orderManage.deletePendingOrders();
+    }
+
+    orderManage.emergencySwitchOff();
+    orderManage.deduplicateOrders();
 }
 
 void OnDeinit(const int reason) {

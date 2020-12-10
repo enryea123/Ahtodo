@@ -65,7 +65,6 @@ const string RESTRICTED_SYMBOL_FAMILIES_H4 [] = {
 /*
 const bool SelectedOrder;
 const int PreviousOrderTicket;
-const bool PositionSplit = true;
 const double BaseTakeProfitFactor = 3.0;
 */
 
@@ -363,10 +362,6 @@ bool IsFirstRankSymbolFamily(string symbol = NULL) {
 
 bool IsLossLimiterEnabled() {
     // Dummy function for now
-    return false;
-}
-
-bool FoundAntiPattern(int index) {
     return false;
 }
 

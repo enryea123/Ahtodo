@@ -19,7 +19,7 @@
 // Senza lo sleep si possono creare ordini contemporanei, fare che il bot controlla
 // sempre ed elimina 1 ordine a caso (o il peggiore) se ne trova +1 correlati.
 // Tra l'altro si può creare una funzione specifica che compara ordini per trovare
-// il migliore, che poi viene usata in CompareTwinOrders forse.
+// il migliore, che poi viene usata in areThereBetterOrders forse.
 
 // quando si mette startindexfororder controllare candele piu recenti con tolleranza minore
 
@@ -125,3 +125,7 @@
 // implementa stoploss trailing sotto al minimo precedente
 
 // aprire sessione alle 8?
+
+// refactor drawing folders in a nested way???
+
+// creare classe hashmap? In quali punti può essere usata? in tanti. Pensa ai refactoring possibili
