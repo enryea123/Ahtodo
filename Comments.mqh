@@ -131,3 +131,7 @@
 // creare classe hashmap? In quali punti può essere usata? in tanti. Pensa ai refactoring possibili
 
 // static const SHOULD_BE_LIKE_THIS? probably not.
+
+// check tutti i "if (!period) {" vs "if (period == NULL) {". Uguale per altre variabili
+
+// separa order e orderfilter in files diversi

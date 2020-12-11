@@ -14,9 +14,10 @@ class Holiday {
         int easterDayOfYear(int);
 };
 
-bool Holiday::isMajorBankHoliday(datetime date) {
-    if (!date) {
-        return ThrowException(false, __FUNCTION__, StringConcatenate("Invalid date: ", date));
+bool Holiday::isMajorBankHoliday(datetime date = NULL) {
+    if (date == NULL) {
+        MarketTime marketTime;
+        date = marketTime.timeItaly();
     }
 
     const int day = TimeDay(date);
@@ -136,9 +137,10 @@ bool Holiday::isMajorBankHoliday(datetime date) {
     return false;
 }
 
-bool Holiday::isMinorBankHoliday(datetime date) {
-    if (!date) {
-        return ThrowException(false, __FUNCTION__, StringConcatenate("Invalid date: ", date));
+bool Holiday::isMinorBankHoliday(datetime date = NULL) {
+    if (date == NULL) {
+        MarketTime marketTime;
+        date = marketTime.timeItaly();
     }
 
     const int day = TimeDay(date);

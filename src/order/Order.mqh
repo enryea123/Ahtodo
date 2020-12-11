@@ -16,7 +16,7 @@ class Order {
         double profit;
         double stopLoss;
         double takeProfit;
-        string commment;
+        string comment;
         string symbol;
         string symbolFamily;
         datetime closeTime;

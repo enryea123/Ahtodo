@@ -59,7 +59,7 @@ void OrderFind::getOrdersList(Order & orders[], int pool = MODE_TRADES) {
         orders[index].profit = OrderProfit();
         orders[index].stopLoss = OrderStopLoss();
         orders[index].takeProfit = OrderTakeProfit();
-        orders[index].commment = OrderComment();
+        orders[index].comment = OrderComment();
         orders[index].symbol = OrderSymbol();
         orders[index].closeTime = OrderCloseTime();
         index++;

@@ -4,6 +4,9 @@
 
 #include "src/drawer/Drawer.mqh"
 #include "src/market/Market.mqh"
+#include "src/order/OrderCreate.mqh"
+#include "src/order/OrderManage.mqh"
+#include "src/order/OrderTrail.mqh"
 #include "tst/UnitTestsRunner.mqh"
 
 
@@ -49,7 +52,7 @@ void OnTick() {
     if (market.isMarketOpened()) {
         drawer.setChartMarketOpenedColors();
 
-        if (!orderManage.areThereOpenOrders()) {
+        if (!orderManage.areThereOpenOrders()) { /// could be split better between classes? Some preconditions here, some there..
             OrderCreate orderCreate;
             orderCreate.newOrder();
         } else {

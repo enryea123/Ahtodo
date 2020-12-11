@@ -17,7 +17,7 @@ class OrderManage {
         void deleteAllOrders();
         void deletePendingOrders();
         void deleteOrdersFromList(Order & []);
-        void deleteSingleOrder(Order);
+        void deleteSingleOrder(Order &);
 
     private:
         static const int lossLimiterHours_;
@@ -75,14 +75,14 @@ void OrderManage::deduplicateOrders() {
             return;
         }
 
-        if (type == OP_BUYSTOP || type = OP_BUYLIMIT) {
+        if (type == OP_BUYSTOP || type == OP_BUYLIMIT) {
             pendingOrdersBuy++;
 
             if (pendingOrdersBuy > maximumCorrelatedPendingOrders_) {
                 deleteSingleOrder(orders[order]);
                 pendingOrdersBuy--;
             }
-        } else if (type == OP_SELLSTOP || type = OP_SELLLIMIT) {
+        } else if (type == OP_SELLSTOP || type == OP_SELLLIMIT) {
             pendingOrdersSell++;
 
             if (pendingOrdersSell > maximumCorrelatedPendingOrders_) {
@@ -193,7 +193,7 @@ void OrderManage::deleteOrdersFromList(Order & orders[]) {
 /**
  * Delete a single order.
  */
-void OrderManage::deleteSingleOrder(Order order) {
+void OrderManage::deleteSingleOrder(Order & order) {
     const int ticket = order.ticket;
 
     bool deletedOrder = false;

@@ -2,7 +2,7 @@
 #property link "https://www.linkedin.com/in/enryea123"
 
 #include "../../Constants.mqh"
-#include "../holiday/Holiday.mqh"
+#include "../market/Holiday.mqh"
 #include "../order/Order.mqh"
 #include "../order/OrderFind.mqh"
 #include "../pivot/Pivot.mqh"
@@ -11,25 +11,30 @@
 class OrderTrail {
     public:
         void manageOpenOrders();
+        void manageOpenedOrder(Order &);
 
-    protected: // or public ?
+        void updateOrder(Order &, double, double);
+        void splitPosition(Order &, double);
+        double breakEvenStopLoss(int, double, double);
+        double trailer(double, double, double);
+
+    private:
+        int getBreakEvenPips(int);
+        int getBreakEvenPoint(int);
+
+    protected: /// or public ? or private?
         static const bool positionSplit_;
+        static const int breakEvenSteps_;
         static const int breakEvenPips_;
         static const int commissionPips_;
-        static const int pointPips_[];
-        static const int stopLossPips_[];
+        static const int takeProfitOneSaverPips_;
 };
 
 const bool OrderTrail::positionSplit_ = true;
+const int OrderTrail::breakEvenSteps_ = 2;
 const int OrderTrail::breakEvenPips_ = 6;
 const int OrderTrail::commissionPips_ = 2;
-const int OrderTrail::pointPips_[] = {breakEvenPips_, 25} * PeriodMultiplicationFactor();
-const int OrderTrail::stopLossPips_[] = {breakEvenPips_, 0} * PeriodMultiplicationFactor();
-
-// put in unit tests
-//if (ArraySize(pointPips_) != ArraySize(stopLossPips_)) {
-//    return ThrowException(0, __FUNCTION__, "Incorrect break even steps");
-//}
+const int OrderTrail::takeProfitOneSaverPips_ = 25;
 
 void OrderTrail::manageOpenOrders() {
     OrderFilter orderFilter;
@@ -46,14 +51,14 @@ void OrderTrail::manageOpenOrders() {
     }
 }
 
-void OrderTrail::manageOpenedOrder(Order order) {
-    double newStopLoss = breakEvenStopLoss(order.orderType, order.openPrice, order.stopLoss);
+void OrderTrail::manageOpenedOrder(Order & order) {
+    double newStopLoss = breakEvenStopLoss(order.type, order.openPrice, order.stopLoss);
 
     updateOrder(order, newStopLoss);
     splitPosition(order, newStopLoss);
 }
 
-void OrderTrail::updateOrder(Order order, double newStopLoss, double newTakeProfit = NULL) {
+void OrderTrail::updateOrder(Order & order, double newStopLoss, double newTakeProfit = NULL) {
     if (newTakeProfit == NULL) {
         newTakeProfit = order.takeProfit;
     }
@@ -82,11 +87,11 @@ void OrderTrail::updateOrder(Order order, double newStopLoss, double newTakeProf
     }
 }
 
-double OrderTrail::splitPosition(Order order, double newStopLoss) { // testable because I can build on Order object with custom values (use ordercomment builder)
+void OrderTrail::splitPosition(Order & order, double newStopLoss) { /// testable because I can build on Order object with custom values (use ordercomment builder)
     const int newStopLossPips = MathRound(MathAbs(order.openPrice - newStopLoss) / Pips());
 
-    if (positionSplit_ && StringContains(order.comment, StringConcatenate("P", Period())) && // test to make sure comment is not changed
-        newStopLossPips == breakEvenPips_ - commissionPips_) {
+    if (positionSplit_ && StringContains(order.comment, StringConcatenate("P", Period())) && /// test to make sure comment is not changed
+        newStopLossPips == getBreakEvenPips(0)) {
 
         const bool splitOrder = OrderClose(order.ticket, order.lots / 2, order.closePrice, 3);
 
@@ -100,9 +105,9 @@ double OrderTrail::breakEvenStopLoss(int orderType, double openPrice, double sto
     const Discriminator discriminator = (orderType == OP_BUY) ? Max : Min;
     const double currentExtreme = iExtreme(discriminator, 0);
 
-    for (int i = 0; i < ArraySize(pointPips_); i++) {
-        double breakEvenPoint = openPrice + discriminator * pointPips_[i] * Pips();
-        double breakEvenStopLoss = openPrice - discriminator * (stopLossPips_[i] - commissionPips_) * Pips();
+    for (int i = 0; i < breakEvenSteps_; i++) {
+        double breakEvenPoint = openPrice + discriminator * getBreakEvenPoint(i) * Pips();
+        double breakEvenStopLoss = openPrice - discriminator * getBreakEvenPips(i) * Pips();
 
         if (discriminator == Max && currentExtreme > breakEvenPoint) {
             stopLoss = MathMax(stopLoss, breakEvenStopLoss);
@@ -116,28 +121,59 @@ double OrderTrail::breakEvenStopLoss(int orderType, double openPrice, double sto
 }
 
 double OrderTrail::trailer(double openPrice, double stopLoss, double takeProfit) {
-    double TrailerInitialDistance = 2.0;
-    double TrailerPercent = 0.0;
+    const Discriminator discriminator = (takeProfit > openPrice) ? Max : Min;
+    const double currentExtreme = iExtreme(discriminator, 0);
+    const double currentExtremeToOpenDistance = currentExtreme - openPrice;
+    const double profitToOpenDistance = takeProfit - openPrice;
 
-    double Trailer = TrailerInitialDistance - TrailerPercent
-        * CurrentExtremeToOpenDistance / profitToOpenDistance;
+    const double trailerBaseDistance = 2.0;
+    const double trailerPercent = 0.0;
 
-    double InitialStopLossDistance = profitToOpenDistance / GetTakeProfitFactor();
-    double TrailerStopLoss = CurrentExtreme - InitialStopLossDistance * Trailer;
+    const double trailer = trailerBaseDistance - trailerPercent * currentExtremeToOpenDistance / profitToOpenDistance;
+
+    const double takeProfitFactor_ = 3; // not defined here, assumed as constant
+    double initialStopLossDistance = profitToOpenDistance / takeProfitFactor_;
+    double trailerStopLoss = currentExtreme - initialStopLossDistance * trailer;
 
     // Trailing StopLoss
-    if(OrderSign > 0){
-        StopLoss = MathMax(StopLoss, TrailerStopLoss);
+    if(discriminator > 0){
+        stopLoss = MathMax(stopLoss, trailerStopLoss);
     }else{
-        StopLoss = MathMin(StopLoss, TrailerStopLoss);
+        stopLoss = MathMin(stopLoss, trailerStopLoss);
     }
+
+    return stopLoss;
 
     /*
-    // Update TakeProfit
-    if((CurrentToOpenDistance > 0.95 * ProfitToOpenDistance && ProfitToOpenDistance > 0)
-    || (CurrentToOpenDistance < 0.95 * ProfitToOpenDistance && ProfitToOpenDistance < 0)){
-        TakeProfit += ProfitToOpenDistance * 0.05;
-    }
-    */
+    // Trailing TakeProfit
+    const double takeProfitPercentUpdate = 0.95;
 
+    if ((discriminator > 0 && currentExtremeToOpenDistance > takeProfitPercentUpdate * profitToOpenDistance) ||
+        (discriminator < 0 && currentExtremeToOpenDistance < takeProfitPercentUpdate * profitToOpenDistance)) {
+        takeProfit += profitToOpenDistance * (1 - takeProfitPercentUpdate);
+    }
+    return takeProfit;
+    */
+}
+
+int OrderTrail::getBreakEvenPoint(int step) { /// test extensively. maybe implement hashmap
+    if (step == 0) {
+        return breakEvenPips_ * PeriodMultiplicationFactor();
+    }
+    if (step == 1) {
+        return takeProfitOneSaverPips_ * PeriodMultiplicationFactor();
+    }
+
+    return ThrowException(-100, __FUNCTION__, StringConcatenate("Invalid break even step: ", step));
+}
+
+int OrderTrail::getBreakEvenPips(int step) {
+    if (step == 0) {
+        return breakEvenPips_ * PeriodMultiplicationFactor() - commissionPips_;
+    }
+    if (step == 1) {
+        return 0;
+    }
+
+    return ThrowException(-100, __FUNCTION__, StringConcatenate("Invalid break even step: ", step));
 }

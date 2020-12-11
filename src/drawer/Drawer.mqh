@@ -109,12 +109,11 @@ string Drawer::getLastDrawingTimeSignalName() {
 
 color Drawer::getLastDrawingTimeSignalColor() {
     Holiday holiday;
-    MarketTime marketTime;
 
-    if (holiday.isMajorBankHoliday(marketTime.timeItaly())) {
+    if (holiday.isMajorBankHoliday()) {
         return clrCrimson;
     }
-    if (holiday.isMinorBankHoliday(marketTime.timeItaly())) {
+    if (holiday.isMinorBankHoliday()) {
         return clrGold;
     }
     return clrForestGreen;

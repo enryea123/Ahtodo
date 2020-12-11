@@ -61,14 +61,6 @@ const string RESTRICTED_SYMBOL_FAMILIES_H4 [] = {
     "JPY"
 };
 
-
-/*
-const bool SelectedOrder;
-const int PreviousOrderTicket;
-const double BaseTakeProfitFactor = 3.0;
-*/
-
-
 // Sotto ci sono funzioni da migrare in classi o in file util
 
 bool StringContains(string inputString, string inputSubString) {

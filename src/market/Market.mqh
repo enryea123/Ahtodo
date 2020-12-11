@@ -11,7 +11,7 @@ class Market {
         Market();
         ~Market();
 
-        bool isMarketOpened();
+        bool isMarketOpened(datetime);
         bool isMarketOpenLookBackTimeWindow();
         bool isMarketCloseNoPendingTimeWindow();
         void marketConditionsValidation();
@@ -20,7 +20,6 @@ class Market {
         static const int spreadPipsCloseMarket_;
         bool forceIsLiveAccountForTesting_;
 
-        bool isMarketOpened(datetime);
         bool isAllowedAccountNumber(int);
         bool isAllowedExecutionDate(datetime);
         bool isAllowedPeriod(int);
@@ -56,11 +55,11 @@ const int Market::openMarketLookBackMinutes_ = 15;
 bool Market::isHoliday_ = false;
 datetime Market::spreadTimeStamp_ = -1;
 
-bool Market::isMarketOpened() {
-    return isMarketOpened(marketTime_.timeItaly());
-}
+bool Market::isMarketOpened(datetime date = NULL) {
+    if (date == NULL) {
+        date = marketTime_.timeItaly();
+    }
 
-bool Market::isMarketOpened(datetime date) {
     const int hour = TimeHour(date);
     const int dayOfWeek = TimeDayOfWeek(date);
 
