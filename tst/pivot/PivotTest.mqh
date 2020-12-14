@@ -41,7 +41,7 @@ void PivotTest::getPivotNegativeTimeIndexTest() {
     UnitTest unitTest("getPivotNegativeTimeIndexTest");
 
     unitTest.assertEquals(
-        -1,
+        -1.0,
         pivot_.getPivot(Symbol(), D1, -5)
     );
 }
@@ -50,7 +50,7 @@ void PivotTest::getPivotUnexistestSymbolTest() {
     UnitTest unitTest("getPivotUnexistestSymbolTest");
 
     unitTest.assertEquals(
-        -1,
+        -1.0,
         pivot_.getPivot("CIAO", D1, 0)
     );
 }
@@ -66,7 +66,8 @@ void PivotTest::getPivotRSHappyPathTest() {
         pivot_.getPivotRS(Symbol(), D1, R1) < 2 * iCandle(I_high, Symbol(), D1, 0)
     );
 
-    unitTest.assertNotNull(
+    unitTest.assertNotEquals(
+        -1.0,
         pivot_.getPivotRS(Symbol(), D1, R1)
     );
 }
@@ -75,7 +76,7 @@ void PivotTest::getPivotRSUnexistestSymbolTest() {
     UnitTest unitTest("getPivotRSUnexistestSymbolTest");
 
     unitTest.assertEquals(
-        -1,
+        -1.0,
         pivot_.getPivotRS("CIAO", D1, R1)
     );
 }

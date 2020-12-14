@@ -25,7 +25,7 @@ void ArrowStyleTest::drawExtremeArrowTest() {
 
     unitTest.assertEquals(
         clrOrange,
-        ObjectGet("Arrow_10_Max_Valid", OBJPROP_COLOR)
+        (color) ObjectGet("Arrow_10_Max_Valid", OBJPROP_COLOR)
     );
 
     unitTest.assertTrue(
@@ -34,7 +34,7 @@ void ArrowStyleTest::drawExtremeArrowTest() {
 
     unitTest.assertEquals(
         clrRed,
-        ObjectGet("Arrow_5_Min", OBJPROP_COLOR)
+        (color) ObjectGet("Arrow_5_Min", OBJPROP_COLOR)
     );
 
     ObjectDelete("Arrow_10_Max_Valid");

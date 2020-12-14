@@ -34,7 +34,7 @@ void OnInit() {
     market.marketConditionsValidation();
     drawer.drawEverything();
 
-    FinalizeInitialization();
+    OptionalAlert(StringConcatenate("Initialization completed in ", TimeLocal() - STARTUP_TIME, " seconds"));
 }
 
 void OnTick() {
@@ -78,5 +78,3 @@ void OnDeinit(const int reason) {
     drawer.setChartDefaultColors();
     ObjectsDeleteAll();
 }
-
-// FARE FUNZIONE PER? MathRound(MathAbs(order.openPrice - newStopLoss) / Pips())

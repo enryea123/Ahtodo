@@ -6,6 +6,7 @@
 #include "market/HolidayTest.mqh"
 #include "market/MarketTest.mqh"
 #include "market/MarketTimeTest.mqh"
+#include "order/OrderFindTest.mqh"
 #include "pattern/PatternTest.mqh"
 #include "pivot/PivotTest.mqh"
 #include "pivot/PivotStyleTest.mqh"
@@ -43,6 +44,10 @@ void UnitTestsRunner::runAllUnitTests() {
     marketTimeTest.getDaylightSavingCorrectionsTest();
     marketTimeTest.timeAtMidnightTest();
     marketTimeTest.timeShiftInHoursTest();
+
+    OrderFindTest orderFindTest;
+    orderFindTest.getOrdersListTest();
+    orderFindTest.getFilteredOrdersListTest();
 
     PatternTest patternTest;
     patternTest.isPatternTest();

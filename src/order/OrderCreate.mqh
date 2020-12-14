@@ -5,6 +5,7 @@
 #include "../market/Holiday.mqh"
 #include "../market/Market.mqh"
 #include "../order/Order.mqh"
+#include "../order/OrderFilter.mqh"
 #include "../order/OrderFind.mqh"
 #include "../order/OrderManage.mqh"
 #include "../pattern/Pattern.mqh"
@@ -346,7 +347,7 @@ double OrderCreate::calculateSizeFactor(int orderType, double openPrice, string 
     if (orderType != OP_BUYSTOP && orderType != OP_SELLSTOP) {
         return ThrowException(0, __FUNCTION__, StringConcatenate("Unsupported orderType:", orderType));
     }
-    if (openPrice == 0) {
+    if (openPrice <= 0) {
         return ThrowException(0, __FUNCTION__, StringConcatenate("Wrong openPrice:", openPrice));
     }
     if (!SymbolExists(orderSymbol)) {

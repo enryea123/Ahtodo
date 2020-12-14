@@ -3,6 +3,7 @@
 
 #include "../../Constants.mqh"
 #include "Order.mqh"
+#include "OrderFilter.mqh"
 #include "OrderFind.mqh"
 
 
@@ -201,7 +202,7 @@ void OrderManage::deleteSingleOrder(Order & order) {
     if (order.type == OP_BUY || order.type == OP_SELL) {
         deletedOrder = OrderClose(ticket, order.lots, order.closePrice, 3);
     } else {
-        deletedOrder = OrderDelete(ticket);
+        deletedOrder = OrderDelete(ticket); /// fare che non funziona davvero nei primi 10 secondi di esecuzione (unit test), usando funzione bool gia creata
     }
 
     if (deletedOrder) {

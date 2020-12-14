@@ -9,14 +9,8 @@ class UnitTest {
         UnitTest(string);
         ~UnitTest();
 
-        void assertEquals(color, color, string);
-        void assertEquals(datetime, datetime, string);
-        void assertEquals(int, int, string);
-        void assertEquals(string, string, string);
-
-        //void assertNotEquals(int, int);
-
-        void assertNotNull(double, string);
+        template <typename T> void assertEquals(T, T, string);
+        template <typename T> void assertNotEquals(T, T, string);
         void assertTrue(bool, string);
         void assertFalse(bool, string);
 
@@ -27,11 +21,9 @@ class UnitTest {
         uint totalAssertions_;
         string testName_;
 
-        void setSuccess(string);
+        template <typename T> void setFailure(T, T, string);
         void setFailure(string);
-        void setFailure(datetime, datetime, string);
-        void setFailure(int, int, string);
-        void setFailure(string, string, string);
+        void setSuccess(string);
         void getTestResult();
 };
 
@@ -45,15 +37,7 @@ UnitTest::~UnitTest() {
     getTestResult();
 }
 
-void UnitTest::assertEquals(color expected, color actual, string message = NULL) {
-    if (expected == actual) {
-        setSuccess(message);
-    } else {
-        setFailure(message);
-    }
-}
-
-void UnitTest::assertEquals(datetime expected, datetime actual, string message = NULL) {
+template <typename T> void UnitTest::assertEquals(T expected, T actual, string message = NULL) {
     if (expected == actual) {
         setSuccess(message);
     } else {
@@ -61,25 +45,11 @@ void UnitTest::assertEquals(datetime expected, datetime actual, string message =
     }
 }
 
-void UnitTest::assertEquals(int expected, int actual, string message = NULL) {
-    if (expected == actual) {
+template <typename T> void UnitTest::assertNotEquals(T expected, T actual, string message = NULL) {
+    if (expected != actual) {
         setSuccess(message);
     } else {
         setFailure(expected, actual, message);
-    }
-}
-
-void UnitTest::assertEquals(string expected, string actual, string message = NULL) {
-    if (expected == actual) {
-        setSuccess(message);
-    } else {
-        setFailure(expected, actual, message);
-    }
-}
-
-void UnitTest::assertNotNull(double value, string message = NULL) {
-    if (value == NULL) {
-        setFailure(message);
     }
 }
 
@@ -92,11 +62,7 @@ void UnitTest::assertTrue(bool condition, string message = NULL) {
 }
 
 void UnitTest::assertFalse(bool condition, string message = NULL) {
-    if (condition) {
-        setFailure(message);
-    } else {
-        setSuccess(message);
-    }
+    assertTrue(!condition, message);
 }
 
 bool UnitTest::hasDateDependentTestExpired() {
@@ -107,13 +73,9 @@ bool UnitTest::hasDateDependentTestExpired() {
     return false;
 }
 
-void UnitTest::setSuccess(string message = NULL) {
-    passedAssertions_++;
-    totalAssertions_++;
-
-    if (IS_DEBUG && message != NULL && message != "") {
-        Print("Assertion succeeded: ", message);
-    }
+template <typename T> void UnitTest::setFailure(T expected, T actual, string message = NULL) {
+    setFailure(message);
+    Print("Expected <", expected, "> Actual <", actual, ">");
 }
 
 void UnitTest::setFailure(string message = NULL) {
@@ -125,19 +87,13 @@ void UnitTest::setFailure(string message = NULL) {
     }
 }
 
-void UnitTest::setFailure(datetime expected, datetime actual, string message = NULL) {
-    setFailure(message);
-    Print("Expected <", expected, "> Actual <", actual, ">");
-}
+void UnitTest::setSuccess(string message = NULL) {
+    passedAssertions_++;
+    totalAssertions_++;
 
-void UnitTest::setFailure(int expected, int actual, string message = NULL) {
-    setFailure(message);
-    Print("Expected <", expected, "> Actual <", actual, ">");
-}
-
-void UnitTest::setFailure(string expected, string actual, string message = NULL) {
-    setFailure(message);
-    Print("Expected <", expected, "> Actual <", actual, ">");
+    if (IS_DEBUG && message != NULL && message != "") {
+        Print("Assertion succeeded: ", message);
+    }
 }
 
 void UnitTest::getTestResult() {

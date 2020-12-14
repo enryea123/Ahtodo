@@ -4,6 +4,7 @@
 #include "../../Constants.mqh"
 #include "../market/Holiday.mqh"
 #include "../order/Order.mqh"
+#include "../order/OrderFilter.mqh"
 #include "../order/OrderFind.mqh"
 #include "../pivot/Pivot.mqh"
 

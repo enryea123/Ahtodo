@@ -3,18 +3,19 @@
 
 #include "../../Constants.mqh"
 #include "Order.mqh"
+#include "OrderFilter.mqh"
 
 
 class OrderFind {
     public:
         void getFilteredOrdersList(Order & [], OrderFilter &, int);
-
-    private:
         void getOrdersList(Order & [], int);
 };
 
 void OrderFind::getFilteredOrdersList(Order & orders[], OrderFilter & orderFilter, int pool = MODE_TRADES) {
-    getOrdersList(orders, pool);
+    if (ArraySize(orders) == 0) {
+        getOrdersList(orders, pool);
+    }
 
     for (int i = ArraySize(orders) - 1; i >= 0; i--) {
         if (orderFilter.closeTime.get(orders[i].closeTime) ||

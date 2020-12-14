@@ -12,12 +12,12 @@ const int BOT_MAGIC_NUMBER = 2044000; // then pass a different bot base number t
 const datetime BOT_EXPIRATION_DATE = (datetime) "2021-06-30";
 const datetime BOT_TESTS_EXPIRATION_DATE = (datetime) "2025-01-01";
 
-const int INITIALIZATION_MAX_SECONDS = 10;
-
-const int CANDLES_VISIBLE_IN_GRAPH_2X = 940;
+const int CANDLES_VISIBLE_IN_GRAPH_2X = 940; /// questa non dovrebbe essere un config pero
 const int PATTERN_MINIMUM_SIZE_PIPS = 7;
 const int PATTERN_MAXIMUM_SIZE_PIPS = 22;
 const string NAME_SEPARATOR = "_";
+
+/// credo che le variabili qui mi piacciano, devo spostarne di piu allora
 
 const int ALLOWED_DEMO_ACCOUNT_NUMBERS [] = {
     2100219063, // Enrico
@@ -196,7 +196,7 @@ bool DownloadHistory(string symbol = NULL) {
         symbol = Symbol();
     }
 
-    static const int DOWNLOAD_PERIODS [] = {
+    static const int HISTORY_DOWNLOAD_PERIODS [] = { /// estrarre
         PERIOD_M30,
         PERIOD_H1,
         PERIOD_H4,
@@ -211,9 +211,9 @@ bool DownloadHistory(string symbol = NULL) {
         int totalError = 0;
         ResetLastError();
 
-        for (int i = 0; i < ArraySize(DOWNLOAD_PERIODS); i++) {
+        for (int i = 0; i < ArraySize(HISTORY_DOWNLOAD_PERIODS); i++) {
             int lastError = 0;
-            int period = DOWNLOAD_PERIODS[i];
+            int period = HISTORY_DOWNLOAD_PERIODS[i];
 
             iTime(symbol, period, 1);
             lastError = GetLastError();
@@ -234,28 +234,8 @@ bool DownloadHistory(string symbol = NULL) {
     return ThrowException(false, __FUNCTION__, "Could not download history data");
 }
 
-/*
-int MathSign(double inputValue) {
-    if (inputValue > 0) {
-        return 1;
-    } else if (inputValue < 0) {
-        return -1;
-    } else {
-        return 0;
-    }
-}
-
-string GetDiscriminatorFromSign(double inputValue) {
-    if (inputValue >= 0) {
-        return "Max";
-    } else {
-        return "Min";
-    }
-}
-*/
-
-double Pips(string symbol = NULL) {
-    return 10 * MarketInfo(symbol, MODE_TICKSIZE); // serve unittest, non è pensabile altrimenti. ad esempio cambio broker a diverse digit (oppure niente classe ma comunque test)
+double Pips(string symbol = NULL) { /// rename pip?
+    return 10 * MarketInfo(symbol, MODE_TICKSIZE); /// serve unittest, non è pensabile altrimenti. ad esempio cambio broker a diverse digit (oppure niente classe ma comunque test)
 }
 
 double ErrorPips() {
@@ -274,15 +254,13 @@ int PeriodMultiplicationFactor(int period = NULL) {
     return 1;
 }
 
-double GetMarketSpread(string symbol = NULL) {
+double GetMarketSpread(string symbol = NULL) { /// rename GetSpread
     return MarketInfo(symbol, MODE_SPREAD) / 10;
 }
 
-
-// dentro OnTick, ma non serve
-//    if (IsUnknownMagicNumber(BotMagicNumber())) {
-//        return;
-//    }
+double GetAsk(string symbol = NULL) { /// to be used for pips setups
+    return MarketInfo(symbol, MODE_ASK); /// check where used and replace
+}
 
 int BotMagicNumber() {
     return (BOT_MAGIC_NUMBER + Period());
@@ -299,7 +277,7 @@ bool IsUnknownMagicNumber(int magicNumber) {
 }
 
 double GetMarketVolatility() { // Needs testing as well (price class with iCandle and Pips?)
-    static datetime getMarketVolatilityTimeStamp; // if they go in a class, static variables must be destroyed at the end
+    static datetime getMarketVolatilityTimeStamp; // if they go in a class, static variables must be destroyed at the end. Goes in trendline
     static double volatility;
 
     if (getMarketVolatilityTimeStamp != Time[0]) {
@@ -345,22 +323,23 @@ bool IsFirstRankSymbolFamily(string symbol = NULL) {
 
     const string family = SymbolFamily(symbol);
 
-    if (family == "EUR" || family == "GBP" || family == "USD") {
+    if (family == "EUR" || family == "GBP" || family == "USD") { /// fare array variabile, e mettere sta funzione in OrderQualcosa
         return true;
     }
 
     return false;
 }
 
-void FinalizeInitialization() {
-    const int initTime = TimeLocal() - STARTUP_TIME;
-    const string initMessage = StringConcatenate("Initialization completed in ", initTime, " seconds");
+bool IsInitializationTime() {
+    static const int initializationSeconds = 10;
 
-    if (initTime > INITIALIZATION_MAX_SECONDS) {
-        ThrowException(__FUNCTION__, initMessage);
-    } else {
-        Print(initMessage);
+    const int time = TimeLocal() - STARTUP_TIME;
+
+    if (time < initializationSeconds) {
+        return true;
     }
+
+    return false;
 }
 
 template <typename T> void ArrayRemoveOrdered(T & array[], int index) { // maybe unit test
@@ -386,12 +365,7 @@ template <typename T> T ThrowException(T returnValue, string function, string me
 }
 
 void ThrowException(string function, string message) {
-    const string errorMessage = StringConcatenate(function, " | ThrowException invoked with message: ", message);
-    if (TimeLocal() < STARTUP_TIME + INITIALIZATION_MAX_SECONDS) {
-        Print(errorMessage);
-    } else {
-        OptionalAlert(errorMessage);
-    }
+    OptionalAlert(StringConcatenate(function, " | ThrowException invoked with message: ", message));
 }
 
 template <typename T> T ThrowFatalException(T returnValue, string function, string message) {
@@ -400,8 +374,7 @@ template <typename T> T ThrowFatalException(T returnValue, string function, stri
 }
 
 void ThrowFatalException(string function, string message) {
-    const string errorMessage = StringConcatenate(function, " | ThrowFatalException invoked with message: ", message);
-    OptionalAlert(errorMessage);
+    Alert(buildAlertMessage(StringConcatenate(function, " | ThrowFatalException invoked with message: ", message)));
     ExpertRemove();
 }
 
@@ -440,11 +413,15 @@ datetime AlertTimer(datetime timeStamp, string message1, string message2) {
 }
 
 void OptionalAlert(string message) { // should be private if it goes in a class
-    const string fullMessage = StringConcatenate(Symbol(), NAME_SEPARATOR, Period(), " - ", message);
+    const string fullMessage = buildAlertMessage(message);
 
-    if (ALERT_ALLOWED) {
+    if (ALERT_ALLOWED && !IsInitializationTime()) {
         Alert(fullMessage);
     } else {
         Print(fullMessage);
     }
+}
+
+string buildAlertMessage(string message) {
+    return StringConcatenate(Symbol(), NAME_SEPARATOR, Period(), " - ", message);
 }
