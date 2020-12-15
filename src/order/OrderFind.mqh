@@ -10,12 +10,18 @@ class OrderFind {
     public:
         void getFilteredOrdersList(Order & [], OrderFilter &, int);
         void getOrdersList(Order & [], int);
+
+        void deleteMockedOrder(Order &);
+        void setMockedOrders();
+        void setMockedOrders(Order & []);
+        void getMockedOrders(Order & []);
+
+    private:
+        Order mockedOrders_[];
 };
 
 void OrderFind::getFilteredOrdersList(Order & orders[], OrderFilter & orderFilter, int pool = MODE_TRADES) {
-    if (ArraySize(orders) == 0) {
-        getOrdersList(orders, pool);
-    }
+    getOrdersList(orders, pool);
 
     for (int i = ArraySize(orders) - 1; i >= 0; i--) {
         if (orderFilter.closeTime.get(orders[i].closeTime) ||
@@ -30,6 +36,11 @@ void OrderFind::getFilteredOrdersList(Order & orders[], OrderFilter & orderFilte
 }
 
 void OrderFind::getOrdersList(Order & orders[], int pool = MODE_TRADES) {
+    if (ArraySize(mockedOrders_) > 0 && !INITIALIZATION_COMPLETED) {
+        getMockedOrders(orders);
+        return;
+    }
+
     const int previouslySelectedOrder = OrderTicket();
 
     if (pool != MODE_TRADES && pool != MODE_HISTORY) {
@@ -51,7 +62,6 @@ void OrderFind::getOrdersList(Order & orders[], int pool = MODE_TRADES) {
 
         ArrayResize(orders, index + 1, baseArraySize);
         orders[index].magicNumber = OrderMagicNumber();
-        orders[index].period = OrderMagicNumber() - BOT_MAGIC_NUMBER;
         orders[index].ticket = OrderTicket();
         orders[index].type = OrderType();
         orders[index].lots = OrderLots();
@@ -71,4 +81,25 @@ void OrderFind::getOrdersList(Order & orders[], int pool = MODE_TRADES) {
     if (previouslySelectedOrder != 0 && !OrderSelect(previouslySelectedOrder, SELECT_BY_TICKET)) {
         ThrowException(__FUNCTION__, "Could not select back previous order: ", previouslySelectedOrder);
     }
+}
+
+void OrderFind::deleteMockedOrder(Order & order) {
+    for (int i = 0; i < ArraySize(mockedOrders_); i++) {
+        if (order.ticket != 0 && mockedOrders_[i].ticket == order.ticket) {
+            ArrayRemove(mockedOrders_, i);
+            return;
+        }
+    }
+}
+
+void OrderFind::setMockedOrders() {
+    ArrayFree(mockedOrders_);
+}
+
+void OrderFind::setMockedOrders(Order & orders[]) {
+    ArrayCopyClass(mockedOrders_, orders);
+}
+
+void OrderFind::getMockedOrders(Order & orders[]) {
+    ArrayCopyClass(orders, mockedOrders_);
 }

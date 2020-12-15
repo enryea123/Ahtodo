@@ -97,7 +97,7 @@ bool TrendLine::areTrendLineSetupsGood(int indexI, int indexJ, Discriminator dis
 bool TrendLine::isExistingTrendLineBad(string trendLineName, Discriminator discriminator) {
     // TrendLine far from current price
     if (!IS_DEBUG && MathAbs(ObjectGetValueByShift(trendLineName, 1) - iCandle(I_close, 1)) >
-        trendLinePipsFromPriceThreshold_ * PeriodMultiplicationFactor() * Pips()) {
+        trendLinePipsFromPriceThreshold_ * PeriodFactor() * Pips()) {
         return true;
     }
 

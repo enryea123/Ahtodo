@@ -129,7 +129,7 @@ bool Pattern::antiPattern1(int timeIndex) {
         (upPinbar(timeIndex) && downPinbar(timeIndex + 1) && doji(timeIndex + 2))) {
 
         if (candleSize(timeIndex) + candleSize(timeIndex + 1) + candleSize(timeIndex + 2) >
-            antiPatternMinSizeSumPips_ * PeriodMultiplicationFactor() * Pips()) {
+            antiPatternMinSizeSumPips_ * PeriodFactor() * Pips()) {
             return true;
         }
     }
@@ -138,8 +138,8 @@ bool Pattern::antiPattern1(int timeIndex) {
 }
 
 bool Pattern::isPatternSizeGood(int timeIndex) {
-    if (candleSize(timeIndex) >= PATTERN_MINIMUM_SIZE_PIPS * PeriodMultiplicationFactor() * Pips() &&
-        candleSize(timeIndex) <= PATTERN_MAXIMUM_SIZE_PIPS * PeriodMultiplicationFactor() * Pips()) {
+    if (candleSize(timeIndex) >= PATTERN_MINIMUM_SIZE_PIPS * PeriodFactor() * Pips() &&
+        candleSize(timeIndex) <= PATTERN_MAXIMUM_SIZE_PIPS * PeriodFactor() * Pips()) {
         return true;
     }
 

@@ -20,7 +20,14 @@ class OrderManage {
         void deleteOrdersFromList(Order & []);
         void deleteSingleOrder(Order &);
 
+    protected:
+        void deleteMockedOrder(Order &);
+        void setMockedOrders();
+        void setMockedOrders(Order & []);
+
     private:
+        OrderFind orderFind_;
+
         static const int lossLimiterHours_;
         static const int lossLimiterMaxPercentLoss_;
         static const int maximumOpenedOrders_;
@@ -43,8 +50,7 @@ bool OrderManage::areThereOpenOrders() {
     orderFilter.type.add(OP_BUY, OP_SELL);
 
     Order orders[];
-    OrderFind orderFind;
-    orderFind.getFilteredOrdersList(orders, orderFilter);
+    orderFind_.getFilteredOrdersList(orders, orderFilter);
 
     return (ArraySize(orders) > 0);
 }
@@ -59,8 +65,7 @@ void OrderManage::deduplicateOrders() {
     orderFilter.symbolFamily.add(SymbolFamily());
 
     Order orders[];
-    OrderFind orderFind;
-    orderFind.getFilteredOrdersList(orders, orderFilter);
+    orderFind_.getFilteredOrdersList(orders, orderFilter);
 
     int pendingOrdersBuy = 0;
     int pendingOrdersSell = 0;
@@ -104,8 +109,7 @@ void OrderManage::emergencySwitchOff() {
     orderFilter.magicNumber.add(ALLOWED_MAGIC_NUMBERS);
 
     Order orders[];
-    OrderFind orderFind;
-    orderFind.getFilteredOrdersList(orders, orderFilter);
+    orderFind_.getFilteredOrdersList(orders, orderFilter);
 
     if (ArraySize(orders) > 0) {
         deleteAllOrders();
@@ -130,8 +134,7 @@ void OrderManage::lossLimiter() {
     orderFilter.closeTime.add(TimeCurrent() - lossLimiterHours_ * 3600);
 
     Order orders[];
-    OrderFind orderFind;
-    orderFind.getFilteredOrdersList(orders, orderFilter, MODE_HISTORY);
+    orderFind_.getFilteredOrdersList(orders, orderFilter, MODE_HISTORY);
 
     const double maxAllowedLosses = AccountEquity() * lossLimiterMaxPercentLoss_ * PERCENT_RISK / 100;
 
@@ -158,8 +161,7 @@ void OrderManage::deleteAllOrders() {
     orderFilter.symbol.add(Symbol());
 
     Order orders[];
-    OrderFind orderFind;
-    orderFind.getFilteredOrdersList(orders, orderFilter);
+    orderFind_.getFilteredOrdersList(orders, orderFilter);
 
     deleteOrdersFromList(orders);
 }
@@ -176,8 +178,7 @@ void OrderManage::deletePendingOrders() {
     orderFilter.type.add(OP_BUY, OP_SELL);
 
     Order orders[];
-    OrderFind orderFind;
-    orderFind.getFilteredOrdersList(orders, orderFilter);
+    orderFind_.getFilteredOrdersList(orders, orderFilter);
 
     deleteOrdersFromList(orders);
 }
@@ -199,10 +200,14 @@ void OrderManage::deleteSingleOrder(Order & order) {
 
     bool deletedOrder = false;
 
-    if (order.type == OP_BUY || order.type == OP_SELL) {
-        deletedOrder = OrderClose(ticket, order.lots, order.closePrice, 3);
+    if (INITIALIZATION_COMPLETED) {
+        if (order.type == OP_BUY || order.type == OP_SELL) {
+            deletedOrder = OrderClose(ticket, order.lots, order.closePrice, 3);
+        } else {
+            deletedOrder = OrderDelete(ticket);
+        }
     } else {
-        deletedOrder = OrderDelete(ticket); /// fare che non funziona davvero nei primi 10 secondi di esecuzione (unit test), usando funzione bool gia creata
+        deleteMockedOrder(order);
     }
 
     if (deletedOrder) {
@@ -210,4 +215,16 @@ void OrderManage::deleteSingleOrder(Order & order) {
     } else {
         ThrowException(__FUNCTION__, StringConcatenate("Failed to delete order: ", ticket));
     }
+}
+
+void OrderManage::deleteMockedOrder(Order & order) {
+    orderFind_.deleteMockedOrder(order);
+}
+
+void OrderManage::setMockedOrders() {
+    orderFind_.setMockedOrders();
+}
+
+void OrderManage::setMockedOrders(Order & orders[]) {
+    orderFind_.setMockedOrders(orders);
 }

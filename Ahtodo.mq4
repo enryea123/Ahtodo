@@ -11,13 +11,13 @@
 
 
 void OnInit() {
+    const int startTime = TimeLocal();
+
     if (!DownloadHistory()) {
         ThrowFatalException(__FUNCTION__, "Could not download history data, retry or download it manually");
         return;
     }
     Sleep(2000);
-
-    STARTUP_TIME = TimeLocal();
 
     UnitTestsRunner unitTestsRunner;
     unitTestsRunner.runAllUnitTests();
@@ -34,7 +34,8 @@ void OnInit() {
     market.marketConditionsValidation();
     drawer.drawEverything();
 
-    OptionalAlert(StringConcatenate("Initialization completed in ", TimeLocal() - STARTUP_TIME, " seconds"));
+    Print("Initialization completed in ", TimeLocal() - startTime, " seconds");
+    INITIALIZATION_COMPLETED = true;
 }
 
 void OnTick() {
@@ -45,9 +46,9 @@ void OnTick() {
     Market market;
     OrderManage orderManage;
 
+    orderManage.emergencySwitchOff();
     market.marketConditionsValidation();
     drawer.drawEverything();
-    orderManage.emergencySwitchOff();
 
     if (market.isMarketOpened()) {
         drawer.setChartMarketOpenedColors();
@@ -76,5 +77,7 @@ void OnTick() {
 void OnDeinit(const int reason) {
     Drawer drawer;
     drawer.setChartDefaultColors();
+
     ObjectsDeleteAll();
+    INITIALIZATION_COMPLETED = false;
 }

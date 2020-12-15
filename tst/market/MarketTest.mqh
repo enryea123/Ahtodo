@@ -12,17 +12,17 @@ class MarketExposed: public Market {
     public:
         int getSpreadPipsCloseMarket() {return spreadPipsCloseMarket_;}
 
-        bool _isMarketOpened(datetime date) {return isMarketOpened(date);}
-        bool _isAllowedAccountNumber(int account) {return isAllowedAccountNumber(account);}
-        bool _isAllowedExecutionDate(datetime date) {return isAllowedExecutionDate(date);}
+        bool _isMarketOpened(datetime v) {return isMarketOpened(v);}
+        bool _isAllowedAccountNumber(int v) {return isAllowedAccountNumber(v);}
+        bool _isAllowedExecutionDate(datetime v) {return isAllowedExecutionDate(v);}
         bool _isAllowedPeriod() {return isAllowedPeriod();}
-        bool _isAllowedPeriod(int period) {return isAllowedPeriod(period);}
-        bool _isAllowedBroker(string broker) {return isAllowedBroker(broker);}
+        bool _isAllowedPeriod(int v) {return isAllowedPeriod(v);}
+        bool _isAllowedBroker(string v) {return isAllowedBroker(v);}
         bool _isAllowedSymbol() {return isAllowedSymbol();}
-        bool _isAllowedSymbol(string symbol) {return isAllowedSymbol(symbol);}
-        bool _isAllowedSymbolPeriodCombo(string symbol, int period) {return isAllowedSymbolPeriodCombo(symbol, period);}
+        bool _isAllowedSymbol(string v) {return isAllowedSymbol(v);}
+        bool _isAllowedSymbolPeriodCombo(string v1, int v2) {return isAllowedSymbolPeriodCombo(v1, v2);}
         bool _isDemoTrading() {return isDemoTrading();}
-        bool _isDemoTrading(int account) {return isDemoTrading(account);}
+        bool _isDemoTrading(int v) {return isDemoTrading(v);}
 
         void accountTypeOverride() {forceIsLiveAccountForTesting_ = true;};
         void accountTypeOverrideReset() {forceIsLiveAccountForTesting_ = false;};

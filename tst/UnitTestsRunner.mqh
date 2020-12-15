@@ -7,6 +7,8 @@
 #include "market/MarketTest.mqh"
 #include "market/MarketTimeTest.mqh"
 #include "order/OrderFindTest.mqh"
+#include "order/OrderCreateTest.mqh"
+#include "order/OrderManageTest.mqh"
 #include "pattern/PatternTest.mqh"
 #include "pivot/PivotTest.mqh"
 #include "pivot/PivotStyleTest.mqh"
@@ -45,9 +47,16 @@ void UnitTestsRunner::runAllUnitTests() {
     marketTimeTest.timeAtMidnightTest();
     marketTimeTest.timeShiftInHoursTest();
 
+    OrderCreateTest orderCreateTest;
+    orderCreateTest.areThereRecentOrdersTest();
+    orderCreateTest.areThereBetterOrdersTest();
+
     OrderFindTest orderFindTest;
     orderFindTest.getOrdersListTest();
     orderFindTest.getFilteredOrdersListTest();
+
+    OrderManageTest orderManageTest;
+    orderManageTest.areThereOpenOrdersTest();
 
     PatternTest patternTest;
     patternTest.isPatternTest();
@@ -70,6 +79,5 @@ void UnitTestsRunner::runAllUnitTests() {
     trendLineTest.trendLineNameTest();
     trendLineTest.trendLineSetupsTest();
 
-    const int endTime = TimeLocal() - startTime;
-    Print("All unit tests run in ", endTime, " seconds");
+    Print("All unit tests run in ", TimeLocal() - startTime, " seconds");
 }

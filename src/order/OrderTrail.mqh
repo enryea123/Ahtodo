@@ -94,7 +94,11 @@ void OrderTrail::splitPosition(Order & order, double newStopLoss) { /// testable
     if (positionSplit_ && StringContains(order.comment, StringConcatenate("P", Period())) && /// test to make sure comment is not changed
         newStopLossPips == getBreakEvenPips(0)) {
 
-        const bool splitOrder = OrderClose(order.ticket, order.lots / 2, order.closePrice, 3);
+        const bool splitOrder = false;
+
+        if (INITIALIZATION_COMPLETED) {
+            OrderClose(order.ticket, order.lots / 2, order.closePrice, 3);
+        }
 
         if (!splitOrder) {
             ThrowException(__FUNCTION__, StringConcatenate("Failed to split order: ", order.ticket));
@@ -159,10 +163,10 @@ double OrderTrail::trailer(double openPrice, double stopLoss, double takeProfit)
 
 int OrderTrail::getBreakEvenPoint(int step) { /// test extensively. maybe implement hashmap
     if (step == 0) {
-        return breakEvenPips_ * PeriodMultiplicationFactor();
+        return breakEvenPips_ * PeriodFactor();
     }
     if (step == 1) {
-        return takeProfitOneSaverPips_ * PeriodMultiplicationFactor();
+        return takeProfitOneSaverPips_ * PeriodFactor();
     }
 
     return ThrowException(-100, __FUNCTION__, StringConcatenate("Invalid break even step: ", step));
@@ -170,7 +174,7 @@ int OrderTrail::getBreakEvenPoint(int step) { /// test extensively. maybe implem
 
 int OrderTrail::getBreakEvenPips(int step) {
     if (step == 0) {
-        return breakEvenPips_ * PeriodMultiplicationFactor() - commissionPips_;
+        return breakEvenPips_ * PeriodFactor() - commissionPips_;
     }
     if (step == 1) {
         return 0;

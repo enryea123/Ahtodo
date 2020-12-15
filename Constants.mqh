@@ -1,11 +1,11 @@
 #property copyright "2020 Enrico Albano"
 #property link "https://www.linkedin.com/in/enryea123"
 
-input double PERCENT_RISK = 1.0; // getPercentRisk: if !PercentRisk -> get from list of account owners
-input bool ALERT_ALLOWED = true;
-input bool IS_DEBUG = false;
+input double PERCENT_RISK = 1.0; /// getPercentRisk: if !PercentRisk -> get from list of account owners
 
-datetime STARTUP_TIME = NULL;
+const bool IS_DEBUG = false;
+
+bool INITIALIZATION_COMPLETED = false; // oppure dovrebbe chiamarsi UNIT_TESTS_FINISHED
 
 const int BOT_MAGIC_NUMBER = 2044000; // then pass a different bot base number to each strategy Order's thing
 
@@ -239,10 +239,10 @@ double Pips(string symbol = NULL) { /// rename pip?
 }
 
 double ErrorPips() {
-    return 2 * PeriodMultiplicationFactor() * Pips();
+    return 2 * PeriodFactor() * Pips();
 }
 
-int PeriodMultiplicationFactor(int period = NULL) {
+int PeriodFactor(int period = NULL) {
     if (period == NULL) {
         period = Period();
     }
@@ -323,6 +323,7 @@ bool IsFirstRankSymbolFamily(string symbol = NULL) {
 
     const string family = SymbolFamily(symbol);
 
+/// SI MA NON DISTINGUE TRA GBPUSD E GBPCHF PER ESEMPIO
     if (family == "EUR" || family == "GBP" || family == "USD") { /// fare array variabile, e mettere sta funzione in OrderQualcosa
         return true;
     }
@@ -330,16 +331,12 @@ bool IsFirstRankSymbolFamily(string symbol = NULL) {
     return false;
 }
 
-bool IsInitializationTime() {
-    static const int initializationSeconds = 10;
+template <typename T> void ArrayCopyClass(T & destination[], T & source[]) {
+    ArrayResize(destination, ArraySize(source));
 
-    const int time = TimeLocal() - STARTUP_TIME;
-
-    if (time < initializationSeconds) {
-        return true;
+    for (int i = 0; i < ArraySize(source); i++) {
+        destination[i] = source[i];
     }
-
-    return false;
 }
 
 template <typename T> void ArrayRemoveOrdered(T & array[], int index) { // maybe unit test
@@ -415,7 +412,7 @@ datetime AlertTimer(datetime timeStamp, string message1, string message2) {
 void OptionalAlert(string message) { // should be private if it goes in a class
     const string fullMessage = buildAlertMessage(message);
 
-    if (ALERT_ALLOWED && !IsInitializationTime()) {
+    if (INITIALIZATION_COMPLETED) {
         Alert(fullMessage);
     } else {
         Print(fullMessage);
@@ -423,5 +420,5 @@ void OptionalAlert(string message) { // should be private if it goes in a class
 }
 
 string buildAlertMessage(string message) {
-    return StringConcatenate(Symbol(), NAME_SEPARATOR, Period(), " - ", message);
+    return StringConcatenate(Symbol(), NAME_SEPARATOR, Period(), " | ", message);
 }

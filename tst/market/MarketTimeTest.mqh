@@ -10,10 +10,10 @@
  */
 class MarketTimeExposed: public MarketTime {
     public:
-        datetime _findDayOfWeekOccurrenceInMonth(int year, int month, int dayOfWeek, int occurrence) {
-            return findDayOfWeekOccurrenceInMonth(year, month, dayOfWeek, occurrence);}
-        int _getDaylightSavingCorrectionCET(datetime date) {return getDaylightSavingCorrectionCET(date);}
-        int _getDaylightSavingCorrectionUSA(datetime date) {return getDaylightSavingCorrectionUSA(date);}
+        datetime _findDayOfWeekOccurrenceInMonth(int v1, int v2, int v3, int v4)
+            {return findDayOfWeekOccurrenceInMonth(v1, v2, v3, v4);}
+        int _getDaylightSavingCorrectionCET(datetime v) {return getDaylightSavingCorrectionCET(v);}
+        int _getDaylightSavingCorrectionUSA(datetime v) {return getDaylightSavingCorrectionUSA(v);}
 };
 
 

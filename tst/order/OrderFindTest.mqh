@@ -15,11 +15,14 @@ class OrderFindTest {
     private:
         OrderFind orderFind_;
 
-        void mockOrders(Order & []);
+        void buildOrderMocks(Order & []);
 };
 
 void OrderFindTest::getOrdersListTest() {
     UnitTest unitTest("getOrdersListTest");
+
+    // This test checks the real functionality of orderFind
+    orderFind_.setMockedOrders();
 
     const int randomOrderPos = 5;
 
@@ -92,14 +95,16 @@ void OrderFindTest::getOrdersListTest() {
 void OrderFindTest::getFilteredOrdersListTest() {
     UnitTest unitTest("getFilteredOrdersListTest");
 
-    Order orders[];
-    mockOrders(orders);
-    int totalOrders = ArraySize(orders);
-
     const datetime filterDate = (datetime) "2020-09-01";
+
+    Order orders[];
+    buildOrderMocks(orders);
+    orderFind_.setMockedOrders(orders);
 
     OrderFilter orderFilter;
     orderFind_.getFilteredOrdersList(orders, orderFilter);
+
+    int totalOrders = ArraySize(orders);
 
     unitTest.assertEquals(
         totalOrders,
@@ -188,7 +193,7 @@ void OrderFindTest::getFilteredOrdersListTest() {
     }
 }
 
-void OrderFindTest::mockOrders(Order & orders[]) {
+void OrderFindTest::buildOrderMocks(Order & orders[]) {
     const int initialOrders = 7;
     ArrayResize(orders, initialOrders);
 
