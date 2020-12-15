@@ -94,10 +94,10 @@ void OrderTrail::splitPosition(Order & order, double newStopLoss) { /// testable
     if (positionSplit_ && StringContains(order.comment, StringConcatenate("P", Period())) && /// test to make sure comment is not changed
         newStopLossPips == getBreakEvenPips(0)) {
 
-        const bool splitOrder = false;
+        bool splitOrder = false;
 
         if (INITIALIZATION_COMPLETED) {
-            OrderClose(order.ticket, order.lots / 2, order.closePrice, 3);
+            splitOrder = OrderClose(order.ticket, order.lots / 2, order.closePrice, 3);
         }
 
         if (!splitOrder) {

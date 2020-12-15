@@ -22,7 +22,6 @@ class UnitTest {
         string testName_;
 
         template <typename T> void setFailure(T, T, string);
-        void setFailure(string);
         void setSuccess(string);
         void getTestResult();
 };
@@ -57,12 +56,16 @@ void UnitTest::assertTrue(bool condition, string message = NULL) {
     if (condition) {
         setSuccess(message);
     } else {
-        setFailure(message);
+        setFailure(true, condition, message);
     }
 }
 
 void UnitTest::assertFalse(bool condition, string message = NULL) {
-    assertTrue(!condition, message);
+    if (!condition) {
+        setSuccess(message);
+    } else {
+        setFailure(false, condition, message);
+    }
 }
 
 bool UnitTest::hasDateDependentTestExpired() {
@@ -74,17 +77,14 @@ bool UnitTest::hasDateDependentTestExpired() {
 }
 
 template <typename T> void UnitTest::setFailure(T expected, T actual, string message = NULL) {
-    setFailure(message);
-    Print("Expected <", expected, "> Actual <", actual, ">");
-}
-
-void UnitTest::setFailure(string message = NULL) {
     totalAssertions_++;
     Print("Assertion failed");
 
     if (message != NULL && message != "") {
         Print("Assertion failure message: ", message);
     }
+
+    Print("Expected <", expected, "> Actual <", actual, ">");
 }
 
 void UnitTest::setSuccess(string message = NULL) {

@@ -9,7 +9,12 @@
 
 class OrderManage {
     public:
+        OrderManage();
+        OrderManage(OrderFind &);
+
         bool areThereOpenOrders();
+        bool areThereRecentOrders(datetime);
+        bool areThereBetterOrders(int, double, double);
 
         void deduplicateOrders();
         void emergencySwitchOff();
@@ -17,23 +22,33 @@ class OrderManage {
 
         void deleteAllOrders();
         void deletePendingOrders();
-        void deleteOrdersFromList(Order & []);
-        void deleteSingleOrder(Order &);
 
     protected:
         void deleteMockedOrder(Order &);
         void setMockedOrders();
+        void setMockedOrders(Order &);
         void setMockedOrders(Order & []);
 
     private:
         OrderFind orderFind_;
 
+        static const int betterSetupBufferPips_;
         static const int lossLimiterHours_;
         static const int lossLimiterMaxPercentLoss_;
         static const int maximumOpenedOrders_;
         static const int maximumCorrelatedPendingOrders_;
+
+        void deleteOrdersFromList(Order & []);
+        void deleteSingleOrder(Order &);
 };
 
+OrderManage::OrderManage() {}
+
+OrderManage::OrderManage(OrderFind & orderFind) {
+    orderFind_ = orderFind;
+}
+
+const int OrderManage::betterSetupBufferPips_ = 2;
 const int OrderManage::lossLimiterHours_ = 8;
 const int OrderManage::lossLimiterMaxPercentLoss_ = 5;
 const int OrderManage::maximumOpenedOrders_ = 1;
@@ -53,6 +68,71 @@ bool OrderManage::areThereOpenOrders() {
     orderFind_.getFilteredOrdersList(orders, orderFilter);
 
     return (ArraySize(orders) > 0);
+}
+
+/**
+ * Checks if there have been any recent correlated open orders, so that it can be waited before placing new ones.
+ */
+bool OrderManage::areThereRecentOrders(datetime date) {
+    OrderFilter orderFilter;
+    orderFilter.magicNumber.add(ALLOWED_MAGIC_NUMBERS);
+    orderFilter.symbolFamily.add(SymbolFamily());
+    orderFilter.type.add(OP_BUY, OP_SELL);
+
+    orderFilter.closeTime.setFilterType(Greater);
+    orderFilter.closeTime.add(date);
+
+    Order orders[];
+    orderFind_.getFilteredOrdersList(orders, orderFilter, MODE_HISTORY);
+
+    if (ArraySize(orders) > 0) {
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * Checks if there are other pending orders. In case they are with worst setups it deletes them.
+ */
+bool OrderManage::areThereBetterOrders(int orderType, double stopLossSize, double sizeFactor) {
+    OrderFilter orderFilter;
+    orderFilter.magicNumber.add(ALLOWED_MAGIC_NUMBERS);
+    orderFilter.symbolFamily.add(SymbolFamily());
+    orderFilter.type.add(orderType);
+
+    Order orders[];
+    orderFind_.getFilteredOrdersList(orders, orderFilter);
+
+    for (int order = 0; order < ArraySize(orders); order++) {
+        const double openPrice = orders[order].openPrice;
+        const double stopLoss = orders[order].stopLoss;
+        const string symbol = orders[order].symbol;
+
+        const int newStopLossPips = MathRound(stopLossSize / Pips() / PeriodFactor());
+        const int oldStopLossPips = MathRound(MathAbs(openPrice - stopLoss) / Pips(symbol) / PeriodFactor(symbol));
+        const double newSizeFactorWeight = sizeFactor / PeriodFactor();
+        const double oldSizeFactorWeight = getSizeFactorFromComment(orders[order].comment) / PeriodFactor(symbol);
+
+        const bool isNewStopLossSmaller = (oldStopLossPips - newStopLossPips > betterSetupBufferPips_);
+        const bool isNewSizeWeightBigger = (newSizeFactorWeight > oldSizeFactorWeight);
+
+        if (isNewSizeWeightBigger || (newSizeFactorWeight == oldSizeFactorWeight && isNewStopLossSmaller)) {
+            deleteSingleOrder(orders[order]);
+        }
+    }
+
+    // Including also open orders that might have been created in the meantime
+    orderFilter.type.add(OP_BUY, OP_SELL);
+
+    ArrayFree(orders);
+    orderFind_.getFilteredOrdersList(orders, orderFilter);
+
+    if (ArraySize(orders) > 0) {
+        return true;
+    }
+
+    return false;
 }
 
 /**
@@ -196,24 +276,23 @@ void OrderManage::deleteOrdersFromList(Order & orders[]) {
  * Delete a single order.
  */
 void OrderManage::deleteSingleOrder(Order & order) {
-    const int ticket = order.ticket;
-
-    bool deletedOrder = false;
-
     if (INITIALIZATION_COMPLETED) {
+        const int ticket = order.ticket;
+        bool deletedOrder = false;
+
         if (order.type == OP_BUY || order.type == OP_SELL) {
             deletedOrder = OrderClose(ticket, order.lots, order.closePrice, 3);
         } else {
             deletedOrder = OrderDelete(ticket);
         }
+
+        if (deletedOrder) {
+            Print(__FUNCTION__, " | Deleted order: ", ticket);
+        } else {
+            ThrowException(__FUNCTION__, StringConcatenate("Failed to delete order: ", ticket));
+        }
     } else {
         deleteMockedOrder(order);
-    }
-
-    if (deletedOrder) {
-        Print(__FUNCTION__, " | Deleted order: ", ticket);
-    } else {
-        ThrowException(__FUNCTION__, StringConcatenate("Failed to delete order: ", ticket));
     }
 }
 
@@ -225,6 +304,37 @@ void OrderManage::setMockedOrders() {
     orderFind_.setMockedOrders();
 }
 
+void OrderManage::setMockedOrders(Order & order) {
+    orderFind_.setMockedOrders(order);
+}
+
 void OrderManage::setMockedOrders(Order & orders[]) {
     orderFind_.setMockedOrders(orders);
+}
+
+
+
+
+
+
+
+
+
+
+double getSizeFactorFromComment(string comment) { /// needed a small class for comment creation
+    string splittedComment[];
+    StringSplit(comment, StringGetCharacter(" ", 0), splittedComment);
+
+    for (int i = 0; i < ArraySize(splittedComment); i++) {
+        if (StringContains(splittedComment[i], "M")) {
+            StringSplit(splittedComment[i], StringGetCharacter("M", 0), splittedComment);
+            break;
+        }
+    }
+    //Alert(splittedComment[1]);
+    if (ArraySize(splittedComment) == 2) {
+        return (double) splittedComment[1];
+    }
+
+    return ThrowException(-1, __FUNCTION__, "Could not get sizeFactor from comment");
 }

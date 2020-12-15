@@ -4,9 +4,6 @@
 #include "../../Constants.mqh"
 #include "../market/Holiday.mqh"
 #include "../market/Market.mqh"
-#include "../order/Order.mqh"
-#include "../order/OrderFilter.mqh"
-#include "../order/OrderFind.mqh"
 #include "../order/OrderManage.mqh"
 #include "../pattern/Pattern.mqh"
 #include "../pivot/Pivot.mqh"
@@ -21,22 +18,13 @@ class OrderCreate {
     protected:
         void createNewOrder(int);
 
-        bool areThereRecentOrders(datetime);
-        bool areThereBetterOrders(int, double, double);
         int calculateOrderTypeFromSetups(int);
         int morningLookBackCandles(int);
         double calculateSizeFactor(int, double, string);
         double calculateOrderLots(double, double, double);
         string buildOrderComment(double, double, double);
 
-        void deleteMockedOrder(Order &);
-        void setMockedOrders();
-        void setMockedOrders(Order & []);
-
     private:
-        OrderFind orderFind_;
-
-        static const int betterSetupBufferPips_;
         static const int maxCommentLength_;
         static const int orderCandlesDuration_;
         static const double takeProfitFactor_;
@@ -49,7 +37,6 @@ class OrderCreate {
         static datetime noSetupTimeStamp_;
 };
 
-const int OrderCreate::betterSetupBufferPips_ = 2;
 const int OrderCreate::maxCommentLength_ = 20;
 const int OrderCreate::orderCandlesDuration_ = 6;
 const double OrderCreate::takeProfitFactor_ = 3;
@@ -84,7 +71,8 @@ void OrderCreate::newOrder() {
     if (Minute() == 0 || Minute() == 59 || Minute() == 30 || Minute() == 29) { /// extract in new class?
         return;
     }
-    if (areThereRecentOrders(TimeCurrent() - 60 * Period() *
+    OrderManage orderManage;
+    if (orderManage.areThereRecentOrders(TimeCurrent() - 60 * Period() *
         MathRound(orderCandlesDuration_ / PeriodFactor()))) { /// maybe not here, refactor preconditions in handler
         return;
     }
@@ -146,7 +134,8 @@ void OrderCreate::createNewOrder(int startIndexForOrder) {
     if (sizeFactor == 0) {
         return;
     }
-    if (areThereBetterOrders(orderType, stopLossSize, sizeFactor)) {
+    OrderManage orderManage;
+    if (orderManage.areThereBetterOrders(orderType, stopLossSize, sizeFactor)) {
         return;
     }
 
@@ -276,86 +265,6 @@ int OrderCreate::calculateOrderTypeFromSetups(int timeIndex) {
 }
 
 /**
- * Checks if there have been any recent correlated open orders, so that it can be waited before placing new ones.
- */
-bool OrderCreate::areThereRecentOrders(datetime date) {
-    OrderFilter orderFilter;
-    orderFilter.magicNumber.add(ALLOWED_MAGIC_NUMBERS);
-    orderFilter.symbolFamily.add(SymbolFamily());
-    orderFilter.type.add(OP_BUY, OP_SELL);
-
-    orderFilter.closeTime.setFilterType(Greater);
-    orderFilter.closeTime.add(date);
-
-    Order orders[];
-    orderFind_.getFilteredOrdersList(orders, orderFilter, MODE_HISTORY);
-
-    if (ArraySize(orders) > 0) {
-        return true;
-    }
-
-    return false;
-}
-
-/**
- * Checks if there are other pending orders. In case they are with worst setups it deletes them.
- */
-bool OrderCreate::areThereBetterOrders(int orderType, double stopLossSize, double sizeFactor) {
-    OrderFilter orderFilter;
-    orderFilter.magicNumber.add(ALLOWED_MAGIC_NUMBERS);
-    orderFilter.symbolFamily.add(SymbolFamily());
-    orderFilter.type.add(orderType);
-
-    Order orders[];
-    orderFind_.getFilteredOrdersList(orders, orderFilter);
-
-    for (int order = 0; order < ArraySize(orders); order++) {
-        const double openPrice = orders[order].openPrice;
-        const double stopLoss = orders[order].stopLoss;
-        const string symbol = orders[order].symbol;
-
-        const int newStopLossPips = MathRound(stopLossSize / Pips() / PeriodFactor());
-        const int oldStopLossPips = MathRound(MathAbs(openPrice - stopLoss) / Pips(symbol) / PeriodFactor(symbol));
-        const double newSizeFactorWeight = sizeFactor / PeriodFactor();
-        const double oldSizeFactorWeight = calculateSizeFactor(orderType, openPrice, symbol) / PeriodFactor(symbol);
-
-        const bool isNewStopLossSmaller = (oldStopLossPips - newStopLossPips > betterSetupBufferPips_);
-        const bool isNewSizeWeightBigger = (newSizeFactorWeight > oldSizeFactorWeight);
-
-        if (isNewSizeWeightBigger || (newSizeFactorWeight == oldSizeFactorWeight && isNewStopLossSmaller)) {
-            if (INITIALIZATION_COMPLETED) {
-                OrderManage orderManage;
-                orderManage.deleteSingleOrder(orders[order]); MAYBE NOT DELETE HERE???? ///????? CREATE NEW CLASS ORDERMOCK????????????????????????????????????????
-            } else {
-                deleteMockedOrder(orders[order]);
-            }
-        }
-    }
-
-    // Including also open orders that might have been created in the meantime
-    orderFilter.type.add(OP_BUY, OP_SELL);
-
-    ArrayFree(orders);
-    orderFind_.getFilteredOrdersList(orders, orderFilter);
-
-    if (ArraySize(orders) > 0) {
-        return true;
-    }
-
-    return false;
-}
-
-
-//void OrderCreate::findBestPendingOrder(int ticket1, int ticket2) {
-//    if symbolFamily != symbolFamily
-//        print? not correlated -> return
-//
-////// separate what is strategy related? orderComment is almost independent. Ditch the A: ?
-//}
-
-
-
-/**
  * Calculates the size modulation factor from pivot and holiday setups.
  */
 double OrderCreate::calculateSizeFactor(int orderType, double openPrice, string orderSymbol) {
@@ -473,16 +382,4 @@ double OrderCreate::calculateOrderLots(double openPrice, double stopLoss, double
     orderLots = MathMax(orderLots, 0.02);
 
     return NormalizeDouble(orderLots, 2);
-}
-
-void OrderCreate::deleteMockedOrder(Order & order) {
-    orderFind_.deleteMockedOrder(order);
-}
-
-void OrderCreate::setMockedOrders() {
-    orderFind_.setMockedOrders();
-}
-
-void OrderCreate::setMockedOrders(Order & orders[]) {
-    orderFind_.setMockedOrders(orders);
 }

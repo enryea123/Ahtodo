@@ -13,6 +13,7 @@ class OrderFind {
 
         void deleteMockedOrder(Order &);
         void setMockedOrders();
+        void setMockedOrders(Order &);
         void setMockedOrders(Order & []);
         void getMockedOrders(Order & []);
 
@@ -83,7 +84,7 @@ void OrderFind::getOrdersList(Order & orders[], int pool = MODE_TRADES) {
     }
 }
 
-void OrderFind::deleteMockedOrder(Order & order) {
+void OrderFind::deleteMockedOrder(Order & order) { /// probably better bool to test more functionality? (don't test mocks)
     for (int i = 0; i < ArraySize(mockedOrders_); i++) {
         if (order.ticket != 0 && mockedOrders_[i].ticket == order.ticket) {
             ArrayRemove(mockedOrders_, i);
@@ -94,6 +95,11 @@ void OrderFind::deleteMockedOrder(Order & order) {
 
 void OrderFind::setMockedOrders() {
     ArrayFree(mockedOrders_);
+}
+
+void OrderFind::setMockedOrders(Order & order) {
+    ArrayResize(mockedOrders_, 1);
+    mockedOrders_[0] = order;
 }
 
 void OrderFind::setMockedOrders(Order & orders[]) {
