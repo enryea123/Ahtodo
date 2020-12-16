@@ -59,6 +59,11 @@ void UnitTestsRunner::runAllUnitTests() {
     orderManageTest.areThereOpenOrdersTest();
     orderManageTest.areThereRecentOrdersTest();
     orderManageTest.areThereBetterOrdersTest();
+    orderManageTest.deduplicateOrdersTest();
+    orderManageTest.emergencySwitchOffTest();
+    orderManageTest.lossLimiterTest();
+    orderManageTest.deleteAllOrdersTest();
+    orderManageTest.deletePendingOrdersTest();
 
     PatternTest patternTest;
     patternTest.isPatternTest();

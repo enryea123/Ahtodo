@@ -9,10 +9,13 @@ class UnitTest {
         UnitTest(string);
         ~UnitTest();
 
-        template <typename T> void assertEquals(T, T, string);
-        template <typename T> void assertNotEquals(T, T, string);
-        void assertTrue(bool, string);
-        void assertFalse(bool, string);
+        template <typename T> bool assertEquals(T, T, string);
+        template <typename T> bool assertEquals(T &, T &, string);
+        template <typename T> bool assertEquals(T & [], T & [], string);
+        template <typename T> bool assertNotEquals(T, T, string);
+        template <typename T> bool assertNotEquals(T &, T &, string);
+        bool assertTrue(bool, string);
+        bool assertFalse(bool, string);
 
         bool hasDateDependentTestExpired();
 
@@ -21,8 +24,8 @@ class UnitTest {
         uint totalAssertions_;
         string testName_;
 
-        template <typename T> void setFailure(T, T, string);
-        void setSuccess(string);
+        template <typename T> bool setFailure(T, T, string);
+        bool setSuccess(string);
         void getTestResult();
 };
 
@@ -36,35 +39,66 @@ UnitTest::~UnitTest() {
     getTestResult();
 }
 
-template <typename T> void UnitTest::assertEquals(T expected, T actual, string message = NULL) {
+template <typename T> bool UnitTest::assertEquals(T expected, T actual, string message = NULL) {
     if (expected == actual) {
-        setSuccess(message);
+        return setSuccess(message);
     } else {
-        setFailure(expected, actual, message);
+        return setFailure(expected, actual, message);
     }
 }
 
-template <typename T> void UnitTest::assertNotEquals(T expected, T actual, string message = NULL) {
+template <typename T> bool UnitTest::assertEquals(T & expected, T & actual, string message = NULL) {
+    if (expected == actual) {
+        return setSuccess(message);
+    } else {
+        return setFailure(expected.toString(), actual.toString(), message);
+    }
+}
+
+template <typename T> bool UnitTest::assertEquals(T & expected[], T & actual[], string message = NULL) {
+    if (!assertEquals(StringConcatenate("size: ", ArraySize(expected)),
+        StringConcatenate("size: ", ArraySize(actual)), message)) {
+        return false;
+    }
+
+    for (int i = 0; i < ArraySize(expected); i++) {
+        if (!assertEquals(expected[i], actual[i], message)) {
+            return false;
+        }
+    }
+
+    return setSuccess(message);
+}
+
+template <typename T> bool UnitTest::assertNotEquals(T expected, T actual, string message = NULL) {
     if (expected != actual) {
-        setSuccess(message);
+        return setSuccess(message);
     } else {
-        setFailure(expected, actual, message);
+        return setFailure(expected, actual, message);
     }
 }
 
-void UnitTest::assertTrue(bool condition, string message = NULL) {
+template <typename T> bool UnitTest::assertNotEquals(T & expected, T & actual, string message = NULL) {
+    if (expected != actual) {
+        return setSuccess(message);
+    } else {
+        return setFailure(expected.toString(), actual.toString(), message);
+    }
+}
+
+bool UnitTest::assertTrue(bool condition, string message = NULL) {
     if (condition) {
-        setSuccess(message);
+        return setSuccess(message);
     } else {
-        setFailure(true, condition, message);
+        return setFailure("true", "false", message);
     }
 }
 
-void UnitTest::assertFalse(bool condition, string message = NULL) {
+bool UnitTest::assertFalse(bool condition, string message = NULL) {
     if (!condition) {
-        setSuccess(message);
+        return setSuccess(message);
     } else {
-        setFailure(false, condition, message);
+        return setFailure("false", "true", message);
     }
 }
 
@@ -76,7 +110,7 @@ bool UnitTest::hasDateDependentTestExpired() {
     return false;
 }
 
-template <typename T> void UnitTest::setFailure(T expected, T actual, string message = NULL) {
+template <typename T> bool UnitTest::setFailure(T expected, T actual, string message = NULL) {
     totalAssertions_++;
     Print("Assertion failed");
 
@@ -85,15 +119,19 @@ template <typename T> void UnitTest::setFailure(T expected, T actual, string mes
     }
 
     Print("Expected <", expected, "> Actual <", actual, ">");
+
+    return false;
 }
 
-void UnitTest::setSuccess(string message = NULL) {
+bool UnitTest::setSuccess(string message = NULL) {
     passedAssertions_++;
     totalAssertions_++;
 
     if (IS_DEBUG && message != NULL && message != "") {
         Print("Assertion succeeded: ", message);
     }
+
+    return true;
 }
 
 void UnitTest::getTestResult() {

@@ -106,7 +106,9 @@ void Market::marketConditionsValidation() {
         return;
     }
 
-    ThrowFatalException(__FUNCTION__, "Market conditions validation failed");
+    if (IsConnected()) {
+        ThrowFatalException(__FUNCTION__, "Market conditions validation failed");
+    }
 }
 
 bool Market::isAllowedAccountNumber(int accountNumber = NULL) {

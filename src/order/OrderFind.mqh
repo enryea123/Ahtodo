@@ -86,7 +86,7 @@ void OrderFind::getOrdersList(Order & orders[], int pool = MODE_TRADES) {
 
 void OrderFind::deleteMockedOrder(Order & order) { /// probably better bool to test more functionality? (don't test mocks)
     for (int i = 0; i < ArraySize(mockedOrders_); i++) {
-        if (order.ticket != 0 && mockedOrders_[i].ticket == order.ticket) {
+        if (mockedOrders_[i] == order) {
             ArrayRemove(mockedOrders_, i);
             return;
         }

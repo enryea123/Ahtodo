@@ -117,7 +117,7 @@
 
 // posso fare molti piu print sulle trendline per gli ordini se sono 1 volta a candela!
 
-// controllare in tutti i file se Constants.mqh è usato, altrimenti togliere l'import
+// controllare in tutti i file se Constants.mqh è usato, altrimenti togliere l'import. ripulire tutti gli altri include
 
 // throwexception con argomenti multiple per non dover usare stringconcat?
 
@@ -135,3 +135,7 @@
 // check tutti i "if (!period) {" vs "if (period == NULL) {". Uguale per altre variabili
 
 // separa order e orderfilter in files diversi
+
+// spezzare unittests in molti test piu piccoli? Inizia da ordermanage per considerare
+
+// forse gli unitTest possono essere inizializzati con __FUNCTION__. Rivedere i messagi per togliere info ridondanti

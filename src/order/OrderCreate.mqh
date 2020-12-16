@@ -304,7 +304,7 @@ double OrderCreate::calculateSizeFactor(int orderType, double openPrice, string 
         if (iCandle(I_high, orderSymbol, D1, 0) < pivot.getPivot(orderSymbol, D1, 0) ||
             iCandle(I_low, orderSymbol, D1, 0) > pivot.getPivot(orderSymbol, D1, 0)) {
 
-            if (MarketInfo(orderSymbol, MODE_ASK) < pivot.getPivot(orderSymbol, D1, 0)) {
+            if (GetAsk(orderSymbol) < pivot.getPivot(orderSymbol, D1, 0)) {
                 if (orderType == OP_BUYSTOP) {
                     sizeFactor *= 1.1;
                 }

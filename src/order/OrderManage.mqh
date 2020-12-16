@@ -9,9 +9,6 @@
 
 class OrderManage {
     public:
-        OrderManage();
-        OrderManage(OrderFind &);
-
         bool areThereOpenOrders();
         bool areThereRecentOrders(datetime);
         bool areThereBetterOrders(int, double, double);
@@ -23,18 +20,20 @@ class OrderManage {
         void deleteAllOrders();
         void deletePendingOrders();
 
+        static const double lossLimiterTime_;
+        static const double maxAllowedLossesPercent_;
+
     protected:
         void deleteMockedOrder(Order &);
         void setMockedOrders();
         void setMockedOrders(Order &);
         void setMockedOrders(Order & []);
+        void getMockedOrders(Order & []);
 
     private:
         OrderFind orderFind_;
 
         static const int betterSetupBufferPips_;
-        static const int lossLimiterHours_;
-        static const int lossLimiterMaxPercentLoss_;
         static const int maximumOpenedOrders_;
         static const int maximumCorrelatedPendingOrders_;
 
@@ -42,15 +41,10 @@ class OrderManage {
         void deleteSingleOrder(Order &);
 };
 
-OrderManage::OrderManage() {}
-
-OrderManage::OrderManage(OrderFind & orderFind) {
-    orderFind_ = orderFind;
-}
+const double OrderManage::lossLimiterTime_ = 8 * 3600;
+const double OrderManage::maxAllowedLossesPercent_ = PERCENT_RISK * 5 / 100;
 
 const int OrderManage::betterSetupBufferPips_ = 2;
-const int OrderManage::lossLimiterHours_ = 8;
-const int OrderManage::lossLimiterMaxPercentLoss_ = 5;
 const int OrderManage::maximumOpenedOrders_ = 1;
 const int OrderManage::maximumCorrelatedPendingOrders_ = 1;
 
@@ -107,12 +101,13 @@ bool OrderManage::areThereBetterOrders(int orderType, double stopLossSize, doubl
     for (int order = 0; order < ArraySize(orders); order++) {
         const double openPrice = orders[order].openPrice;
         const double stopLoss = orders[order].stopLoss;
+        const int period = orders[order].magicNumber - BOT_MAGIC_NUMBER;
         const string symbol = orders[order].symbol;
 
         const int newStopLossPips = MathRound(stopLossSize / Pips() / PeriodFactor());
-        const int oldStopLossPips = MathRound(MathAbs(openPrice - stopLoss) / Pips(symbol) / PeriodFactor(symbol));
+        const int oldStopLossPips = MathRound(MathAbs(openPrice - stopLoss) / Pips(symbol) / PeriodFactor(period));
         const double newSizeFactorWeight = sizeFactor / PeriodFactor();
-        const double oldSizeFactorWeight = getSizeFactorFromComment(orders[order].comment) / PeriodFactor(symbol);
+        const double oldSizeFactorWeight = getSizeFactorFromComment(orders[order].comment) / PeriodFactor(period);
 
         const bool isNewStopLossSmaller = (oldStopLossPips - newStopLossPips > betterSetupBufferPips_);
         const bool isNewSizeWeightBigger = (newSizeFactorWeight > oldSizeFactorWeight);
@@ -194,8 +189,14 @@ void OrderManage::emergencySwitchOff() {
     if (ArraySize(orders) > 0) {
         deleteAllOrders();
 
-        ThrowFatalException(__FUNCTION__, StringConcatenate(
-            "Emergency switchOff invoked for magicNumber: ", orders[0].magicNumber));
+        const string exceptionMessage = StringConcatenate(
+            "Emergency switchOff invoked for magicNumber: ", orders[0].magicNumber);
+
+        if (INITIALIZATION_COMPLETED) {
+            ThrowFatalException(__FUNCTION__, exceptionMessage);
+        } else {
+            ThrowException(__FUNCTION__, exceptionMessage);
+        }
     }
 }
 
@@ -211,22 +212,28 @@ void OrderManage::lossLimiter() {
     orderFilter.profit.add(0);
 
     orderFilter.closeTime.setFilterType(Greater);
-    orderFilter.closeTime.add(TimeCurrent() - lossLimiterHours_ * 3600);
+    orderFilter.closeTime.add(TimeCurrent() - lossLimiterTime_);
 
     Order orders[];
     orderFind_.getFilteredOrdersList(orders, orderFilter, MODE_HISTORY);
-
-    const double maxAllowedLosses = AccountEquity() * lossLimiterMaxPercentLoss_ * PERCENT_RISK / 100;
 
     double totalLosses = 0;
 
     for (int order = 0; order < ArraySize(orders); order++) {
         totalLosses -= orders[order].profit;
 
-        if (totalLosses > maxAllowedLosses) {
+        if (totalLosses > AccountEquity() * maxAllowedLossesPercent_) {
             deleteAllOrders();
-            ThrowFatalException(__FUNCTION__, StringConcatenate(
-                "Emergency switchOff invoked for total losses: ", totalLosses));
+
+            const string exceptionMessage = StringConcatenate(
+                "Emergency switchOff invoked for total losses: ", totalLosses);
+
+            if (INITIALIZATION_COMPLETED) {
+                ThrowFatalException(__FUNCTION__, exceptionMessage);
+            } else {
+                ThrowException(__FUNCTION__, exceptionMessage);
+            }
+
             return;
         }
     }
@@ -312,7 +319,9 @@ void OrderManage::setMockedOrders(Order & orders[]) {
     orderFind_.setMockedOrders(orders);
 }
 
-
+void OrderManage::getMockedOrders(Order & orders[]) {
+    orderFind_.getMockedOrders(orders);
+}
 
 
 

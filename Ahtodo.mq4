@@ -11,6 +11,10 @@
 
 
 void OnInit() {
+    while (!IsConnected()) {
+        Sleep(2000);
+    }
+
     const int startTime = TimeLocal();
 
     if (!DownloadHistory()) {
