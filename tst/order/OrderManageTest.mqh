@@ -1,5 +1,6 @@
 #property copyright "2020 Enrico Albano"
 #property link "https://www.linkedin.com/in/enryea123"
+#property strict
 
 #include "../UnitTest.mqh"
 #include "../../src/order/Order.mqh"
@@ -28,6 +29,8 @@ class OrderManageTest {
         void lossLimiterTest();
         void deleteAllOrdersTest();
         void deletePendingOrdersTest();
+        void buildOrderCommentTest();
+        void getSizeFactorFromCommentTest();
 
     private:
         OrderManageExposed orderManageExposed_;
@@ -471,7 +474,7 @@ void OrderManageTest::lossLimiterTest() {
         mockedOrders[0]
     );
 
-    orders[1].closeTime = TimeCurrent() - orderManageExposed_.lossLimiterTime_ - 10;
+    orders[1].closeTime = (datetime) (TimeCurrent() - orderManageExposed_.lossLimiterTime_ - 10);
     ArrayFree(mockedOrders);
 
     orderManageExposed_._setMockedOrders(orders);
@@ -602,4 +605,71 @@ void OrderManageTest::deletePendingOrdersTest() {
     );
 
     orderManageExposed_._setMockedOrders();
+}
+
+void OrderManageTest::buildOrderCommentTest() {
+    UnitTest unitTest("buildOrderCommentTest");
+
+    unitTest.assertEquals(
+        StringConcatenate("A P", Period(), " ", orderManageExposed_.sizeFactorCommentIdentifier_, "1 R3 S10"),
+        orderManageExposed_.buildOrderComment(1, 3, 10)
+    );
+
+    unitTest.assertEquals(
+        StringConcatenate("A P", Period(), " ", orderManageExposed_.sizeFactorCommentIdentifier_, "1.2 R2.8 S12"),
+        orderManageExposed_.buildOrderComment(1.2, 2.8, 12.1)
+    );
+
+    unitTest.assertEquals(
+        StringConcatenate(orderManageExposed_.sizeFactorCommentIdentifier_, "1"),
+        orderManageExposed_.buildOrderComment(1, 2, 12345678901234)
+    );
+}
+
+void OrderManageTest::getSizeFactorFromCommentTest() {
+    UnitTest unitTest("getSizeFactorFromCommentTest");
+
+    string comment = StringConcatenate("A P", Period(), " ",
+        orderManageExposed_.sizeFactorCommentIdentifier_, "1.3 R3 S10");
+
+    unitTest.assertEquals(
+        1.3,
+        orderManageExposed_.getSizeFactorFromComment(comment)
+    );
+
+    comment = StringConcatenate("A P", Period(), " ",
+        orderManageExposed_.sizeFactorCommentIdentifier_, "1 R3 S10");
+
+    unitTest.assertEquals(
+        1.0,
+        orderManageExposed_.getSizeFactorFromComment(comment)
+    );
+
+    comment = StringConcatenate(orderManageExposed_.sizeFactorCommentIdentifier_, "0.8");
+
+    unitTest.assertEquals(
+        0.8,
+        orderManageExposed_.getSizeFactorFromComment(comment)
+    );
+
+    comment = StringConcatenate("A P", Period(), " W1 R3 S10");
+
+    unitTest.assertEquals(
+        -1.0,
+        orderManageExposed_.getSizeFactorFromComment(comment)
+    );
+
+    comment = StringConcatenate("W1");
+
+    unitTest.assertEquals(
+        -1.0,
+        orderManageExposed_.getSizeFactorFromComment(comment)
+    );
+
+    comment = StringConcatenate("asdasdM123asdasd");
+
+    unitTest.assertEquals(
+        123.0,
+        orderManageExposed_.getSizeFactorFromComment(comment)
+    );
 }

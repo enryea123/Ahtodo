@@ -1,5 +1,6 @@
 #property copyright "2020 Enrico Albano"
 #property link "https://www.linkedin.com/in/enryea123"
+#property strict
 
 #include "../../Constants.mqh"
 #include "../market/Holiday.mqh"
@@ -22,10 +23,8 @@ class OrderCreate {
         int morningLookBackCandles(int);
         double calculateSizeFactor(int, double, string);
         double calculateOrderLots(double, double, double);
-        string buildOrderComment(double, double, double);
 
     private:
-        static const int maxCommentLength_;
         static const int orderCandlesDuration_;
         static const double takeProfitFactor_;
         static const double trandLineSetupMaxDistance_;
@@ -37,7 +36,6 @@ class OrderCreate {
         static datetime noSetupTimeStamp_;
 };
 
-const int OrderCreate::maxCommentLength_ = 20;
 const int OrderCreate::orderCandlesDuration_ = 6;
 const double OrderCreate::takeProfitFactor_ = 3;
 const double OrderCreate::trandLineSetupMaxDistance_ = 3 * Pips();
@@ -72,8 +70,8 @@ void OrderCreate::newOrder() {
         return;
     }
     OrderManage orderManage;
-    if (orderManage.areThereRecentOrders(TimeCurrent() - 60 * Period() *
-        MathRound(orderCandlesDuration_ / PeriodFactor()))) { /// maybe not here, refactor preconditions in handler
+    if (orderManage.areThereRecentOrders((datetime) (TimeCurrent() - 60 * Period() * /// comunque non mi piace cosi passare sto parametro lunghissimo
+        MathRound(orderCandlesDuration_ / PeriodFactor())))) { /// maybe not here, refactor preconditions in handler
         return;
     }
 
@@ -141,7 +139,7 @@ void OrderCreate::createNewOrder(int startIndexForOrder) {
 
     const int magicNumber = BotMagicNumber();
     const datetime expirationTime = Time[0] + (orderCandlesDuration_ + 1 - startIndexForOrder) * Period() * 60;
-    const string orderComment = buildOrderComment(sizeFactor, takeProfitFactor, stopLossSize);
+    const string orderComment = orderManage.buildOrderComment(sizeFactor, takeProfitFactor, stopLossSize / Pips()); /// change later /Pips()? also tests betterOrders..
 
     ResetLastError();
 
@@ -188,29 +186,10 @@ void OrderCreate::createNewOrder(int startIndexForOrder) {
         }
 
         if (previouslySelectedOrder != 0 && !OrderSelect(previouslySelectedOrder, SELECT_BY_TICKET)) {
-            ThrowException(__FUNCTION__, "Could not select back previous order: ", previouslySelectedOrder);
+            ThrowException(__FUNCTION__, StringConcatenate(
+                "Could not select back previous order: ", previouslySelectedOrder));
         }
     }
-}
-
-/**
- * Creates the comment for a new pending order, and makes sure it doesn't exceed the maximum length.
- */
-string OrderCreate::buildOrderComment(double sizeFactor, double takeProfitFactor, double stopLossSize) { /// in questo test scrivere quale parte è usata da che codice
-    const string comment = StringConcatenate(
-        "A:",
-        " P", Period(),
-        " M", NormalizeDouble(sizeFactor, 1),
-        " R", NormalizeDouble(takeProfitFactor, 1),
-        " S", MathRound(stopLossSize / Pips())
-    );
-
-    if (StringLen(comment) > maxCommentLength_) {
-        return ThrowException(StringSubstr(comment, 0, maxCommentLength_), __FUNCTION__,
-            StringConcatenate("Order comment longer than: ", maxCommentLength_));
-    }
-
-    return comment;
 }
 
 /**
@@ -224,15 +203,15 @@ int OrderCreate::calculateOrderTypeFromSetups(int timeIndex) {
     Pattern pattern;
     for (int t = 1; t < timeIndex + 1; t++) {
         if (pattern.isAntiPattern(t)) {
-            antiPatternTimeStamp_ = PrintTimer(antiPatternTimeStamp_,
-                "AntiPattern found at time: ", TimeToStr(Time[t]));
+            antiPatternTimeStamp_ = PrintTimer(antiPatternTimeStamp_, StringConcatenate(
+                "AntiPattern found at time: ", TimeToStr(Time[t])));
             return -1;
         }
     }
 
     if (!pattern.isSellPattern(timeIndex) && !pattern.isBuyPattern(timeIndex)) {
-        foundPatternTimeStamp_ = PrintTimer(foundPatternTimeStamp_,
-            "No patterns found at time: ", TimeToStr(Time[timeIndex]));
+        foundPatternTimeStamp_ = PrintTimer(foundPatternTimeStamp_, StringConcatenate(
+            "No patterns found at time: ", TimeToStr(Time[timeIndex])));
         return -1;
     }
 
@@ -248,19 +227,20 @@ int OrderCreate::calculateOrderTypeFromSetups(int timeIndex) {
         const double trandLineDistanceFromMax = MathAbs(iExtreme(Max, timeIndex) - trendLineSetupValue);
 
         if (pattern.isSellPattern(timeIndex) && trandLineDistanceFromMin < trandLineSetupMaxDistance_) {
-            sellSetupTimeStamp_ = PrintTimer(sellSetupTimeStamp_,
-                "Found OP_SELLSTOP setup at Time: ", TimeToStr(Time[timeIndex]), " for TrendLine: ", ObjectName(i));
+            sellSetupTimeStamp_ = PrintTimer(sellSetupTimeStamp_, StringConcatenate(
+                "Found OP_SELLSTOP setup at Time: ", TimeToStr(Time[timeIndex]), " for TrendLine: ", ObjectName(i)));
             return OP_SELLSTOP;
         }
 
         if (pattern.isBuyPattern(timeIndex) && trandLineDistanceFromMax < trandLineSetupMaxDistance_) {
-            buySetupTimeStamp_ = PrintTimer(buySetupTimeStamp_,
-                "Found OP_BUYSTOP setup at Time: ", TimeToStr(Time[timeIndex]), " for TrendLine: ", ObjectName(i));
+            buySetupTimeStamp_ = PrintTimer(buySetupTimeStamp_, StringConcatenate(
+                "Found OP_BUYSTOP setup at Time: ", TimeToStr(Time[timeIndex]), " for TrendLine: ", ObjectName(i)));
             return OP_BUYSTOP;
         }
     }
 
-    noSetupTimeStamp_ = PrintTimer(noSetupTimeStamp_, "No setups found at Time: ", TimeToStr(Time[timeIndex]));
+    noSetupTimeStamp_ = PrintTimer(noSetupTimeStamp_, StringConcatenate(
+        "No setups found at Time: ", TimeToStr(Time[timeIndex])));
     return -1;
 }
 

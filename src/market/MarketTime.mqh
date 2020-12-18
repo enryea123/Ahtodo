@@ -1,5 +1,6 @@
 #property copyright "2020 Enrico Albano"
 #property link "https://www.linkedin.com/in/enryea123"
+#property strict
 
 #include "../../Constants.mqh"
 
@@ -128,7 +129,7 @@ datetime MarketTime::timeAtMidnight(datetime date) {
 
 // Can also be negative
 int MarketTime::timeShiftInHours(datetime date1, datetime date2) {
-    return MathRound((date1 - date2) / (double) 3600);
+    return (int) MathRound((date1 - date2) / (double) 3600);
 }
 
 /**
@@ -192,6 +193,8 @@ datetime MarketTime::findDayOfWeekOccurrenceInMonth(int year, int month, int day
     } else if(occurrence < 0) {
         startDay = MathMax(1 + daysInMonth + 7 * occurrence, 1);
         endDay = MathMax(daysInMonth + 7 * (occurrence + 1), 7);
+    } else {
+        return ThrowException(-1, __FUNCTION__, StringConcatenate("Invalid occurrence: ", occurrence));
     }
 
     for (int day = startDay; day <= endDay; day++) {

@@ -1,5 +1,6 @@
 #property copyright "2020 Enrico Albano"
 #property link "https://www.linkedin.com/in/enryea123"
+#property strict
 
 #include "../Constants.mqh"
 #include "extreme/ArrowStyleTest.mqh"
@@ -21,7 +22,7 @@ class UnitTestsRunner {
 };
 
 void UnitTestsRunner::runAllUnitTests() {
-    const int startTime = TimeLocal();
+    const datetime startTime = TimeLocal();
 
     ArrowStyleTest arrowStyleTest;
     arrowStyleTest.drawExtremeArrowTest();
@@ -64,6 +65,8 @@ void UnitTestsRunner::runAllUnitTests() {
     orderManageTest.lossLimiterTest();
     orderManageTest.deleteAllOrdersTest();
     orderManageTest.deletePendingOrdersTest();
+    orderManageTest.buildOrderCommentTest();
+    orderManageTest.getSizeFactorFromCommentTest();
 
     PatternTest patternTest;
     patternTest.isPatternTest();

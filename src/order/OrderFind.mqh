@@ -1,5 +1,6 @@
 #property copyright "2020 Enrico Albano"
 #property link "https://www.linkedin.com/in/enryea123"
+#property strict
 
 #include "../../Constants.mqh"
 #include "Order.mqh"
@@ -80,7 +81,8 @@ void OrderFind::getOrdersList(Order & orders[], int pool = MODE_TRADES) {
     ArrayResize(orders, index);
 
     if (previouslySelectedOrder != 0 && !OrderSelect(previouslySelectedOrder, SELECT_BY_TICKET)) {
-        ThrowException(__FUNCTION__, "Could not select back previous order: ", previouslySelectedOrder);
+        ThrowException(__FUNCTION__, StringConcatenate(
+            "Could not select back previous order: ", previouslySelectedOrder));
     }
 }
 

@@ -1,5 +1,6 @@
 #property copyright "2020 Enrico Albano"
 #property link "https://www.linkedin.com/in/enryea123"
+#property strict
 
 #include "../../Constants.mqh"
 
@@ -26,7 +27,7 @@ class Filter {
                 values_ = StringConcatenate(values_, separator_, v, separator_);
             }
             if (filterType_ == Greater || filterType_ == Smaller) {
-                values_ = v;
+                values_ = (string) (double) v;
             }
         }
         template <typename T> void add(T v1, T v2) {add(v1); add(v2);}
@@ -45,7 +46,7 @@ class Filter {
                     !(filterType_ == Include) : (filterType_ == Include);
             }
             if (filterType_ == Greater || filterType_ == Smaller) {
-                return (v > values_) ?
+                return ((double) v > (double) values_) ?
                     !(filterType_ == Greater) : (filterType_ == Greater);
             }
 

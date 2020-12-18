@@ -1,5 +1,6 @@
-#property copyright "2020 Enrico voidAlbano"
+#property copyright "2020 Enrico Albano"
 #property link "https://www.linkedin.com/in/enryea123"
+#property strict
 
 #include "../../Constants.mqh"
 
@@ -14,8 +15,8 @@ class ArrowStyle {
 
         color getArrowColor(bool);
         int getArrowSize(bool);
+        int getArrowObjectType(Discriminator);
         double getArrowAnchor(Discriminator);
-        string getArrowObjectType(Discriminator);
         string buildArrowName(int, Discriminator, bool);
 };
 
@@ -50,7 +51,7 @@ double ArrowStyle::getArrowAnchor(Discriminator discriminator) {
     return (discriminator == Max) ? ANCHOR_BOTTOM : ANCHOR_TOP;
 }
 
-string ArrowStyle::getArrowObjectType(Discriminator discriminator) {
+int ArrowStyle::getArrowObjectType(Discriminator discriminator) {
     return (discriminator == Max) ? OBJ_ARROW_DOWN : OBJ_ARROW_UP;
 }
 

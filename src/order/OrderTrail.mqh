@@ -1,5 +1,6 @@
 #property copyright "2020 Enrico Albano"
 #property link "https://www.linkedin.com/in/enryea123"
+#property strict
 
 #include "../../Constants.mqh"
 #include "../market/Holiday.mqh"
@@ -89,7 +90,7 @@ void OrderTrail::updateOrder(Order & order, double newStopLoss, double newTakePr
 }
 
 void OrderTrail::splitPosition(Order & order, double newStopLoss) { /// testable because I can build on Order object with custom values (use ordercomment builder)
-    const int newStopLossPips = MathRound(MathAbs(order.openPrice - newStopLoss) / Pips());
+    const double newStopLossPips = MathRound(MathAbs(order.openPrice - newStopLoss) / Pips());
 
     if (positionSplit_ && StringContains(order.comment, StringConcatenate("P", Period())) && /// test to make sure comment is not changed
         newStopLossPips == getBreakEvenPips(0)) {

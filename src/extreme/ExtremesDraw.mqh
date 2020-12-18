@@ -1,5 +1,6 @@
 #property copyright "2020 Enrico Albano"
 #property link "https://www.linkedin.com/in/enryea123"
+#property strict
 
 #include "../../Constants.mqh"
 #include "ArrowStyle.mqh"
@@ -59,7 +60,7 @@ void ExtremesDraw::calculateValidExtremes(int & validExtremes[], Discriminator d
     calculateAllExtremes(allExtremes, discriminator);
 
     int numberOfValidExtremes = 0;
-    ArrayResize(validExtremes, MathRound(CANDLES_VISIBLE_IN_GRAPH_2X / (minimumCandlesBetweenExtremes_ + 1)));
+    ArrayResize(validExtremes, (int) MathRound(CANDLES_VISIBLE_IN_GRAPH_2X / (minimumCandlesBetweenExtremes_ + 1)));
 
     for (int i = ArraySize(allExtremes) - 1; i >= 0; i--) {
         bool isValidExtreme = true;

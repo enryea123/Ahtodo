@@ -1,5 +1,6 @@
 #property copyright "2020 Enrico Albano"
 #property link "https://www.linkedin.com/in/enryea123"
+#property strict
 
 #include "../UnitTest.mqh"
 #include "../../src/order/Order.mqh"
@@ -18,7 +19,6 @@ class OrderCreateExposed: public OrderCreate {
         int _morningLookBackCandles(int v) {return morningLookBackCandles(v);}
         double _calculateSizeFactor(int v1, double v2, string v3) {return calculateSizeFactor(v1, v2, v3);}
         double _calculateOrderLots(double v1, double v2, double v3) {return calculateOrderLots(v1, v2, v3);}
-        string _buildOrderComment(double v1, double v2, double v3) {return buildOrderComment(v1, v2, v3);}
 };
 
 

@@ -1,5 +1,6 @@
 #property copyright "2020 Enrico Albano"
 #property link "https://www.linkedin.com/in/enryea123"
+#property strict
 
 #include "../../Constants.mqh"
 #include "Holiday.mqh"
@@ -78,7 +79,7 @@ bool Market::isMarketOpened(datetime date = NULL) {
 
     const double spread = GetMarketSpread();
     if (spread > spreadPipsCloseMarket_) {
-        spreadTimeStamp_ = AlertTimer(spreadTimeStamp_, "Market closed for spread: ", spread);
+        spreadTimeStamp_ = AlertTimer(spreadTimeStamp_, StringConcatenate("Market closed for spread: ", spread));
         return false;
     }
 

@@ -1,5 +1,6 @@
 #property copyright "2020 Enrico Albano"
 #property link "https://www.linkedin.com/in/enryea123"
+#property strict
 
 #include "../../Constants.mqh"
 #include "Order.mqh"
@@ -11,7 +12,7 @@ class OrderManage {
     public:
         bool areThereOpenOrders();
         bool areThereRecentOrders(datetime);
-        bool areThereBetterOrders(int, double, double);
+        bool areThereBetterOrders(int, double, double); /// split in findBestOrder or something like that, to not delete from orderCreate. Then this logic used by deduplicate? cross-class logic...
 
         void deduplicateOrders();
         void emergencySwitchOff();
@@ -20,8 +21,13 @@ class OrderManage {
         void deleteAllOrders();
         void deletePendingOrders();
 
+        string buildOrderComment(double, double, double);
+        double getSizeFactorFromComment(string);
+
+        static const int maxCommentCharacters_;
         static const double lossLimiterTime_;
         static const double maxAllowedLossesPercent_;
+        static const string sizeFactorCommentIdentifier_;
 
     protected:
         void deleteMockedOrder(Order &);
@@ -41,8 +47,10 @@ class OrderManage {
         void deleteSingleOrder(Order &);
 };
 
+const int OrderManage::maxCommentCharacters_ = 20;
 const double OrderManage::lossLimiterTime_ = 8 * 3600;
 const double OrderManage::maxAllowedLossesPercent_ = PERCENT_RISK * 5 / 100;
+static const string OrderManage::sizeFactorCommentIdentifier_ = "M";
 
 const int OrderManage::betterSetupBufferPips_ = 2;
 const int OrderManage::maximumOpenedOrders_ = 1;
@@ -104,8 +112,8 @@ bool OrderManage::areThereBetterOrders(int orderType, double stopLossSize, doubl
         const int period = orders[order].magicNumber - BOT_MAGIC_NUMBER;
         const string symbol = orders[order].symbol;
 
-        const int newStopLossPips = MathRound(stopLossSize / Pips() / PeriodFactor());
-        const int oldStopLossPips = MathRound(MathAbs(openPrice - stopLoss) / Pips(symbol) / PeriodFactor(period));
+        const double newStopLossPips = MathRound(stopLossSize / Pips() / PeriodFactor());
+        const double oldStopLossPips = MathRound(MathAbs(openPrice - stopLoss) / Pips(symbol) / PeriodFactor(period));
         const double newSizeFactorWeight = sizeFactor / PeriodFactor();
         const double oldSizeFactorWeight = getSizeFactorFromComment(orders[order].comment) / PeriodFactor(period);
 
@@ -323,24 +331,45 @@ void OrderManage::getMockedOrders(Order & orders[]) {
     orderFind_.getMockedOrders(orders);
 }
 
+/**
+ * Creates the comment for a new pending order, and makes sure it doesn't exceed the maximum length.
+ */
+string OrderManage::buildOrderComment(double sizeFactor, double takeProfitFactor, double stopLossPips) {
+    const string strategyPrefix = "A";
 
+    const string comment = StringConcatenate(
+        strategyPrefix,
+        " P", Period(),
+        " ", sizeFactorCommentIdentifier_, NormalizeDouble(sizeFactor, 1),
+        " R", NormalizeDouble(takeProfitFactor, 1),
+        " S", MathRound(stopLossPips)
+    );
 
+    string commentNoSpaces = comment;
+    StringReplace(commentNoSpaces, " ", "");
 
+    if (StringLen(commentNoSpaces) > maxCommentCharacters_) {
+        return ThrowException(StringConcatenate(sizeFactorCommentIdentifier_, NormalizeDouble(sizeFactor, 1)),
+            __FUNCTION__, "Order comment too long");
+    }
 
+    return comment;
+}
 
-
-
-double getSizeFactorFromComment(string comment) { /// needed a small class for comment creation
+/**
+ * Estrapolates the sizeFactor of a pending order from a well formatted order comment.
+ */
+double OrderManage::getSizeFactorFromComment(string comment) {
     string splittedComment[];
     StringSplit(comment, StringGetCharacter(" ", 0), splittedComment);
 
     for (int i = 0; i < ArraySize(splittedComment); i++) {
-        if (StringContains(splittedComment[i], "M")) {
-            StringSplit(splittedComment[i], StringGetCharacter("M", 0), splittedComment);
+        if (StringContains(splittedComment[i], sizeFactorCommentIdentifier_)) {
+            StringSplit(splittedComment[i], StringGetCharacter(sizeFactorCommentIdentifier_, 0), splittedComment);
             break;
         }
     }
-    //Alert(splittedComment[1]);
+
     if (ArraySize(splittedComment) == 2) {
         return (double) splittedComment[1];
     }

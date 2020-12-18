@@ -1,5 +1,6 @@
 #property copyright "2020 Enrico Albano"
 #property link "https://www.linkedin.com/in/enryea123"
+#property strict
 
 #include "../../Constants.mqh"
 #include "Pivot.mqh"
@@ -18,7 +19,7 @@ class PivotsDraw {
 
         int getMaxTimeIndex(int);
         void drawPivotLabel(string, string, color, double);
-        void drawPivotLine(string, color, datetime, datetime, double, double);
+        void drawPivotLine(string, color, double, double, double, double);
 
         void drawPivot(PivotPeriod);
         void drawPivotRS(PivotRS);
@@ -103,7 +104,7 @@ void PivotsDraw::drawPivotRS(PivotPeriod pivotPeriod, PivotRS pivotRS) {
 
 int PivotsDraw::getMaxTimeIndex(int pivotPeriodFactor) {
     const int maxCandles = IS_DEBUG ? CANDLES_VISIBLE_IN_GRAPH_2X : maxCandlesPivotLinesDraw_;
-    return MathRound(1 + maxCandles * Period() / PERIOD_D1 / pivotPeriodFactor) + 1;
+    return (int) MathRound(1 + maxCandles * Period() / PERIOD_D1 / pivotPeriodFactor) + 1;
 }
 
 void PivotsDraw::drawPivotLabel(string pivotLabelName, string pivotLabelText, color pivotColor, double x) {
@@ -114,8 +115,8 @@ void PivotsDraw::drawPivotLabel(string pivotLabelName, string pivotLabelText, co
     ObjectSet(pivotLabelName, OBJPROP_FONTSIZE, pivotLabelFontSize_);
 }
 
-void PivotsDraw::drawPivotLine(string lineName, color lineColor, datetime t1, datetime t2, double x1, double x2) {
-    ObjectCreate(lineName, OBJ_TREND, 0, t1, x1, t2, x2);
+void PivotsDraw::drawPivotLine(string lineName, color lineColor, double t1, double t2, double x1, double x2) {
+    ObjectCreate(lineName, OBJ_TREND, 0, (datetime) t1, x1, (datetime) t2, x2);
 
     ObjectSet(lineName, OBJPROP_RAY_RIGHT, false);
     ObjectSet(lineName, OBJPROP_COLOR, lineColor);

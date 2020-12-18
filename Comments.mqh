@@ -139,3 +139,17 @@
 // spezzare unittests in molti test piu piccoli? Inizia da ordermanage per considerare
 
 // forse gli unitTest possono essere inizializzati con __FUNCTION__. Rivedere i messagi per togliere info ridondanti
+
+// OrderManage puo essere splittata forse, le sottoclassi ereditano tutte una nuova classe OrderMock,
+// che possiede orderFind_, ed è l'unica ad avere metodi mocks pubblici.
+// Oppure ereditano direttamente OrderFind a cui mettere i metodi mock protected??
+
+// si potrebbe unire il bot di tutti i periodi in uno solo, tanto la maggior parte delle operazioni sono dietro le quinte.
+// disegnerebbe solo 1 trendline alla volta per i vari timeframe per cercare ordini.
+// Il bot non si toglierebbe se messo su timeframe strani, perchè tanto mette ordini solo sui 3 abilitati.
+// come implementare strategy A/B in questo caso?
+
+// si puo fare che la routine degli ordini funziona 1 volta a minuto invece che ad ogni tick.
+// se si unisce il bot per timeframe multipli, si puo fare mandare prima l'ordine m30, cosi non c'è da aspettare con Sleep.
+
+// pivot possono essere salvati in static variable invece che calcolati ogni volta.

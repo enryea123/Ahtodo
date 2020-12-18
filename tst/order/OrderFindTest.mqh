@@ -1,5 +1,6 @@
 #property copyright "2020 Enrico Albano"
 #property link "https://www.linkedin.com/in/enryea123"
+#property strict
 
 #include "../UnitTest.mqh"
 #include "../../src/order/Order.mqh"
@@ -136,7 +137,7 @@ void OrderFindTest::getFilteredOrdersListTest() {
         ArraySize(orders)
     );
 
-    for (i = 0; i < ArraySize(orders); i++) {
+    for (int i = 0; i < ArraySize(orders); i++) {
         unitTest.assertNotEquals(
             999999999,
             orders[i].magicNumber
@@ -153,7 +154,7 @@ void OrderFindTest::getFilteredOrdersListTest() {
         ArraySize(orders)
     );
 
-    for (i = 0; i < ArraySize(orders); i++) {
+    for (int i = 0; i < ArraySize(orders); i++) {
         unitTest.assertNotEquals(
             0.0,
             orders[i].profit
@@ -169,7 +170,7 @@ void OrderFindTest::getFilteredOrdersListTest() {
         ArraySize(orders)
     );
 
-    for (i = 0; i < ArraySize(orders); i++) {
+    for (int i = 0; i < ArraySize(orders); i++) {
         unitTest.assertEquals(
             "EURUSD",
             orders[i].symbol
@@ -186,7 +187,7 @@ void OrderFindTest::getFilteredOrdersListTest() {
         ArraySize(orders)
     );
 
-    for (i = 0; i < ArraySize(orders); i++) {
+    for (int i = 0; i < ArraySize(orders); i++) {
         unitTest.assertTrue(
             orders[i].closeTime > filterDate
         );

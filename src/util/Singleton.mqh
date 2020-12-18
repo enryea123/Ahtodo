@@ -1,5 +1,6 @@
 #property copyright "2020 Enrico Albano"
 #property link "https://www.linkedin.com/in/enryea123"
+#property strict
 
 #define SingletonContructor(T) private: T() {}; public: static T * getInstance() {if (!instance) instance = new T(); return (T *) instance;}
 

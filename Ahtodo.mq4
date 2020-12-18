@@ -1,6 +1,7 @@
 #property copyright "2020 Enrico Albano"
 #property link "https://www.linkedin.com/in/enryea123"
 #property description "Enrico Albano's automated bot for Ahtodo"
+#property strict
 
 #include "src/drawer/Drawer.mqh"
 #include "src/market/Market.mqh"
@@ -15,7 +16,7 @@ void OnInit() {
         Sleep(2000);
     }
 
-    const int startTime = TimeLocal();
+    const datetime startTime = TimeLocal();
 
     if (!DownloadHistory()) {
         ThrowFatalException(__FUNCTION__, "Could not download history data, retry or download it manually");

@@ -1,5 +1,6 @@
 #property copyright "2020 Enrico Albano"
 #property link "https://www.linkedin.com/in/enryea123"
+#property strict
 
 input double PERCENT_RISK = 1.0; /// getPercentRisk: if !PercentRisk -> get from list of account owners
 
@@ -129,7 +130,7 @@ double iCandle(CandleSeriesType candleSeriesType, string symbol, int period, int
 
     if (timeIndex < 0) {
         if (candleSeriesType == I_time) {
-            return TimeCurrent();
+            return (double) TimeCurrent();
         }
         return ThrowException(-1, __FUNCTION__, "timeIndex < 0");
     }
@@ -146,7 +147,7 @@ double iCandle(CandleSeriesType candleSeriesType, string symbol, int period, int
     } else if (candleSeriesType == I_close) {
         value = iClose(symbol, period, timeIndex);
     } else if (candleSeriesType == I_time) {
-        value = iTime(symbol, period, timeIndex);
+        value = (double) iTime(symbol, period, timeIndex);
     } else {
         return ThrowException(-1, __FUNCTION__, StringConcatenate("Unsupported candleSeriesType: ", candleSeriesType));
     }
@@ -357,10 +358,6 @@ template <typename T> T ThrowException(T returnValue, string function, string me
     return returnValue;
 }
 
-template <typename T> T ThrowException(T returnValue, string function, string message1, string message2) {
-    return ThrowException(returnValue, function, StringConcatenate(message1, message2));
-}
-
 void ThrowException(string function, string message) {
     OptionalAlert(StringConcatenate(function, " | ThrowException invoked with message: ", message));
 }
@@ -384,18 +381,6 @@ datetime PrintTimer(datetime timeStamp, string message) {
     return timeStamp;
 }
 
-datetime PrintTimer(datetime timeStamp, string message1, string message2) {
-    return PrintTimer(timeStamp, StringConcatenate(message1, message2));
-}
-
-datetime PrintTimer(datetime timeStamp, string message1, string message2, string message3) {
-    return PrintTimer(timeStamp, StringConcatenate(message1, message2, message3));
-}
-
-datetime PrintTimer(datetime timeStamp, string message1, string message2, string message3, string message4) {
-    return PrintTimer(timeStamp, StringConcatenate(message1, message2, message3, message4));
-}
-
 datetime AlertTimer(datetime timeStamp, string message) {
     if (timeStamp != Time[0]) {
         OptionalAlert(message);
@@ -403,10 +388,6 @@ datetime AlertTimer(datetime timeStamp, string message) {
     }
 
     return timeStamp;
-}
-
-datetime AlertTimer(datetime timeStamp, string message1, string message2) {
-    return AlertTimer(timeStamp, StringConcatenate(message1, message2));
 }
 
 void OptionalAlert(string message) { // should be private if it goes in a class
