@@ -8,6 +8,7 @@
 
 class PivotStyle {
     public:
+        PivotStyle();
         PivotStyle(PivotPeriod);
 
         color pivotColor();
@@ -21,12 +22,22 @@ class PivotStyle {
         string pivotRSLabelName(PivotRS);
         string pivotRSLineName(PivotRS);
 
+        void setPivotPeriod(PivotPeriod pivotPeriod);
+
     private:
         PivotPeriod pivotPeriod_;
 };
 
+PivotStyle::PivotStyle():
+    pivotPeriod_(D1) {
+}
+
 PivotStyle::PivotStyle(PivotPeriod pivotPeriod):
     pivotPeriod_(pivotPeriod) {
+}
+
+void PivotStyle::setPivotPeriod(PivotPeriod pivotPeriod) {
+    pivotPeriod_ = pivotPeriod;
 }
 
 color PivotStyle::pivotColor() {

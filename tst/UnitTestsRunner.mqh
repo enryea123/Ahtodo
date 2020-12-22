@@ -48,9 +48,11 @@ void UnitTestsRunner::runAllUnitTests() {
     marketTimeTest.timeAtMidnightTest();
     marketTimeTest.timeShiftInHoursTest();
 
-//    OrderCreateTest orderCreateTest;
-//    orderCreateTest.asadasd();
-//    orderCreateTest.asdasdasd2();
+    OrderCreateTest orderCreateTest;
+    orderCreateTest.areThereRecentOrdersTest();
+    orderCreateTest.areThereBetterOrdersTest();
+    orderCreateTest.buildOrderCommentTest();
+    orderCreateTest.getSizeFactorFromCommentTest();
 
     OrderFindTest orderFindTest;
     orderFindTest.getOrdersListTest();
@@ -58,15 +60,12 @@ void UnitTestsRunner::runAllUnitTests() {
 
     OrderManageTest orderManageTest;
     orderManageTest.areThereOpenOrdersTest();
-    orderManageTest.areThereRecentOrdersTest();
-    orderManageTest.areThereBetterOrdersTest();
+    orderManageTest.findBestOrderTest();
     orderManageTest.deduplicateOrdersTest();
     orderManageTest.emergencySwitchOffTest();
     orderManageTest.lossLimiterTest();
     orderManageTest.deleteAllOrdersTest();
     orderManageTest.deletePendingOrdersTest();
-    orderManageTest.buildOrderCommentTest();
-    orderManageTest.getSizeFactorFromCommentTest();
 
     PatternTest patternTest;
     patternTest.isPatternTest();

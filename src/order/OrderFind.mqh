@@ -75,6 +75,7 @@ void OrderFind::getOrdersList(Order & orders[], int pool = MODE_TRADES) {
         orders[index].comment = OrderComment();
         orders[index].symbol = OrderSymbol();
         orders[index].closeTime = OrderCloseTime();
+        orders[index].expiration = OrderExpiration();
         index++;
     }
 
@@ -86,7 +87,7 @@ void OrderFind::getOrdersList(Order & orders[], int pool = MODE_TRADES) {
     }
 }
 
-void OrderFind::deleteMockedOrder(Order & order) { /// probably better bool to test more functionality? (don't test mocks)
+void OrderFind::deleteMockedOrder(Order & order) {
     for (int i = 0; i < ArraySize(mockedOrders_); i++) {
         if (mockedOrders_[i] == order) {
             ArrayRemove(mockedOrders_, i);

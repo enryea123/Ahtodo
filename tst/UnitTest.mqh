@@ -137,7 +137,7 @@ bool UnitTest::setSuccess(string message = NULL) {
 
 void UnitTest::getTestResult() {
     const string baseMessage = StringConcatenate("Test ", testName_,
-        ": %s with ", passedAssertions_, "/", totalAssertions_);
+        " %s with ", passedAssertions_, "/", totalAssertions_);
 
     if (passedAssertions_ == totalAssertions_) {
         Print(StringFormat(baseMessage, "PASSED"));

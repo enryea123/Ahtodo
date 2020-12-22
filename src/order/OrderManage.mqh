@@ -11,50 +11,34 @@
 class OrderManage {
     public:
         bool areThereOpenOrders();
-        bool areThereRecentOrders(datetime);
-        bool areThereBetterOrders(int, double, double); /// split in findBestOrder or something like that, to not delete from orderCreate. Then this logic used by deduplicate? cross-class logic...
 
         void deduplicateOrders();
         void emergencySwitchOff();
         void lossLimiter();
 
+        bool findBestOrder(Order &, Order &);
+
         void deleteAllOrders();
         void deletePendingOrders();
 
-        string buildOrderComment(double, double, double);
-        double getSizeFactorFromComment(string);
-
-        static const int maxCommentCharacters_;
-        static const double lossLimiterTime_;
-        static const double maxAllowedLossesPercent_;
-        static const string sizeFactorCommentIdentifier_;
-
     protected:
-        void deleteMockedOrder(Order &);
-        void setMockedOrders();
-        void setMockedOrders(Order &);
-        void setMockedOrders(Order & []);
-        void getMockedOrders(Order & []);
-
-    private:
         OrderFind orderFind_;
 
-        static const int betterSetupBufferPips_;
-        static const int maximumOpenedOrders_;
-        static const int maximumCorrelatedPendingOrders_;
+        static const double lossLimiterTime_;
+        static const double maxAllowedLossesPercent_;
 
+    private:
+        static const int smallerStopLossBufferPips_;
+
+        void deduplicateDiscriminatedOrders(Discriminator);
         void deleteOrdersFromList(Order & []);
         void deleteSingleOrder(Order &);
 };
 
-const int OrderManage::maxCommentCharacters_ = 20;
 const double OrderManage::lossLimiterTime_ = 8 * 3600;
 const double OrderManage::maxAllowedLossesPercent_ = PERCENT_RISK * 5 / 100;
-static const string OrderManage::sizeFactorCommentIdentifier_ = "M";
 
-const int OrderManage::betterSetupBufferPips_ = 2;
-const int OrderManage::maximumOpenedOrders_ = 1;
-const int OrderManage::maximumCorrelatedPendingOrders_ = 1;
+const int OrderManage::smallerStopLossBufferPips_ = 1;
 
 /**
  * Checks if there are any already opened orders,
@@ -73,112 +57,47 @@ bool OrderManage::areThereOpenOrders() {
 }
 
 /**
- * Checks if there have been any recent correlated open orders, so that it can be waited before placing new ones.
- */
-bool OrderManage::areThereRecentOrders(datetime date) {
-    OrderFilter orderFilter;
-    orderFilter.magicNumber.add(ALLOWED_MAGIC_NUMBERS);
-    orderFilter.symbolFamily.add(SymbolFamily());
-    orderFilter.type.add(OP_BUY, OP_SELL);
-
-    orderFilter.closeTime.setFilterType(Greater);
-    orderFilter.closeTime.add(date);
-
-    Order orders[];
-    orderFind_.getFilteredOrdersList(orders, orderFilter, MODE_HISTORY);
-
-    if (ArraySize(orders) > 0) {
-        return true;
-    }
-
-    return false;
-}
-
-/**
- * Checks if there are other pending orders. In case they are with worst setups it deletes them.
- */
-bool OrderManage::areThereBetterOrders(int orderType, double stopLossSize, double sizeFactor) {
-    OrderFilter orderFilter;
-    orderFilter.magicNumber.add(ALLOWED_MAGIC_NUMBERS);
-    orderFilter.symbolFamily.add(SymbolFamily());
-    orderFilter.type.add(orderType);
-
-    Order orders[];
-    orderFind_.getFilteredOrdersList(orders, orderFilter);
-
-    for (int order = 0; order < ArraySize(orders); order++) {
-        const double openPrice = orders[order].openPrice;
-        const double stopLoss = orders[order].stopLoss;
-        const int period = orders[order].magicNumber - BOT_MAGIC_NUMBER;
-        const string symbol = orders[order].symbol;
-
-        const double newStopLossPips = MathRound(stopLossSize / Pips() / PeriodFactor());
-        const double oldStopLossPips = MathRound(MathAbs(openPrice - stopLoss) / Pips(symbol) / PeriodFactor(period));
-        const double newSizeFactorWeight = sizeFactor / PeriodFactor();
-        const double oldSizeFactorWeight = getSizeFactorFromComment(orders[order].comment) / PeriodFactor(period);
-
-        const bool isNewStopLossSmaller = (oldStopLossPips - newStopLossPips > betterSetupBufferPips_);
-        const bool isNewSizeWeightBigger = (newSizeFactorWeight > oldSizeFactorWeight);
-
-        if (isNewSizeWeightBigger || (newSizeFactorWeight == oldSizeFactorWeight && isNewStopLossSmaller)) {
-            deleteSingleOrder(orders[order]);
-        }
-    }
-
-    // Including also open orders that might have been created in the meantime
-    orderFilter.type.add(OP_BUY, OP_SELL);
-
-    ArrayFree(orders);
-    orderFind_.getFilteredOrdersList(orders, orderFilter);
-
-    if (ArraySize(orders) > 0) {
-        return true;
-    }
-
-    return false;
-}
-
-/**
  * Ensures that only one open or correlated pending order at a time is present.
- * If it finds more orders, it deletes the duplicated ones, starting from the newests.
+ * If it finds more orders, it deletes the worst ones.
  */
 void OrderManage::deduplicateOrders() {
+    deduplicateDiscriminatedOrders(Max);
+    deduplicateDiscriminatedOrders(Min);
+}
+
+/**
+ * Deduplicates correlated orders in one direction.
+ */
+void OrderManage::deduplicateDiscriminatedOrders(Discriminator discriminator) {
     OrderFilter orderFilter;
     orderFilter.magicNumber.add(ALLOWED_MAGIC_NUMBERS);
     orderFilter.symbolFamily.add(SymbolFamily());
 
+    orderFilter.type.setFilterType(Exclude);
+
+    if (discriminator == Max) {
+        orderFilter.type.add(OP_SELLSTOP, OP_SELLLIMIT);
+    } else {
+        orderFilter.type.add(OP_BUYSTOP, OP_BUYLIMIT);
+    }
+
     Order orders[];
     orderFind_.getFilteredOrdersList(orders, orderFilter);
 
-    int pendingOrdersBuy = 0;
-    int pendingOrdersSell = 0;
+    int bestOrderIndex = 0;
 
-    for (int order = 0; order < ArraySize(orders); order++) {
-        const int type = orders[order].type;
-
-        if (type == OP_BUY || type == OP_SELL) {
-            if (ArraySize(orders) != maximumOpenedOrders_) {
-                ArrayRemove(orders, order);
-                deleteOrdersFromList(orders);
-            }
-            return;
-        }
-
-        if (type == OP_BUYSTOP || type == OP_BUYLIMIT) {
-            pendingOrdersBuy++;
-
-            if (pendingOrdersBuy > maximumCorrelatedPendingOrders_) {
-                deleteSingleOrder(orders[order]);
-                pendingOrdersBuy--;
-            }
-        } else if (type == OP_SELLSTOP || type == OP_SELLLIMIT) {
-            pendingOrdersSell++;
-
-            if (pendingOrdersSell > maximumCorrelatedPendingOrders_) {
-                deleteSingleOrder(orders[order]);
-                pendingOrdersSell--;
+    for (int i = 0; i < ArraySize(orders); i++) {
+        for (int j = 0; j < ArraySize(orders); j++) {
+            if (i != j) {
+                bestOrderIndex = findBestOrder(orders[i], orders[j]) ? i : j;
             }
         }
+    }
+
+    ArrayRemove(orders, bestOrderIndex);
+
+    if (ArraySize(orders) > 0) {
+        deleteOrdersFromList(orders);
     }
 }
 
@@ -248,6 +167,24 @@ void OrderManage::lossLimiter() {
 }
 
 /**
+ * Finds the best of two orders by comparing the type and the stopLoss size. Returns true if the first one is better.
+ */
+bool OrderManage::findBestOrder(Order & order1, Order & order2) {
+    if (order1.type == OP_BUY || order1.type == OP_SELL) {
+        return true;
+    }
+    if (order2.type == OP_BUY || order2.type == OP_SELL) {
+        return false;
+    }
+
+    if (order1.getStopLossPips() < order2.getStopLossPips() + smallerStopLossBufferPips_) {
+        return true;
+    }
+
+    return false;
+}
+
+/**
  * Delete all the orders of the current symbol and period.
  */
 void OrderManage::deleteAllOrders() {
@@ -307,72 +244,7 @@ void OrderManage::deleteSingleOrder(Order & order) {
             ThrowException(__FUNCTION__, StringConcatenate("Failed to delete order: ", ticket));
         }
     } else {
-        deleteMockedOrder(order);
+        // Needed for unit tests
+        orderFind_.deleteMockedOrder(order);
     }
-}
-
-void OrderManage::deleteMockedOrder(Order & order) {
-    orderFind_.deleteMockedOrder(order);
-}
-
-void OrderManage::setMockedOrders() {
-    orderFind_.setMockedOrders();
-}
-
-void OrderManage::setMockedOrders(Order & order) {
-    orderFind_.setMockedOrders(order);
-}
-
-void OrderManage::setMockedOrders(Order & orders[]) {
-    orderFind_.setMockedOrders(orders);
-}
-
-void OrderManage::getMockedOrders(Order & orders[]) {
-    orderFind_.getMockedOrders(orders);
-}
-
-/**
- * Creates the comment for a new pending order, and makes sure it doesn't exceed the maximum length.
- */
-string OrderManage::buildOrderComment(double sizeFactor, double takeProfitFactor, double stopLossPips) {
-    const string strategyPrefix = "A";
-
-    const string comment = StringConcatenate(
-        strategyPrefix,
-        " P", Period(),
-        " ", sizeFactorCommentIdentifier_, NormalizeDouble(sizeFactor, 1),
-        " R", NormalizeDouble(takeProfitFactor, 1),
-        " S", MathRound(stopLossPips)
-    );
-
-    string commentNoSpaces = comment;
-    StringReplace(commentNoSpaces, " ", "");
-
-    if (StringLen(commentNoSpaces) > maxCommentCharacters_) {
-        return ThrowException(StringConcatenate(sizeFactorCommentIdentifier_, NormalizeDouble(sizeFactor, 1)),
-            __FUNCTION__, "Order comment too long");
-    }
-
-    return comment;
-}
-
-/**
- * Estrapolates the sizeFactor of a pending order from a well formatted order comment.
- */
-double OrderManage::getSizeFactorFromComment(string comment) {
-    string splittedComment[];
-    StringSplit(comment, StringGetCharacter(" ", 0), splittedComment);
-
-    for (int i = 0; i < ArraySize(splittedComment); i++) {
-        if (StringContains(splittedComment[i], sizeFactorCommentIdentifier_)) {
-            StringSplit(splittedComment[i], StringGetCharacter(sizeFactorCommentIdentifier_, 0), splittedComment);
-            break;
-        }
-    }
-
-    if (ArraySize(splittedComment) == 2) {
-        return (double) splittedComment[1];
-    }
-
-    return ThrowException(-1, __FUNCTION__, "Could not get sizeFactor from comment");
 }

@@ -6,12 +6,9 @@
 #include "../../src/pattern/Pattern.mqh"
 
 
-class PatternTest {
+class PatternTest: public Pattern {
     public:
         void isPatternTest();
-
-    private:
-        Pattern pattern_;
 };
 
 void PatternTest::isPatternTest() {
@@ -33,44 +30,44 @@ void PatternTest::isPatternTest() {
 
         const double thisCandleSize = MathAbs(iExtreme(Max, i) - iExtreme(Min, i));
 
-        if (!isUpPinbarTested && pattern_.upPinbar(i) &&
+        if (!isUpPinbarTested && upPinbar(i) &&
             thisCandleSize < PATTERN_MAXIMUM_SIZE_PIPS * PeriodFactor() * Pips() &&
             thisCandleSize > PATTERN_MINIMUM_SIZE_PIPS * PeriodFactor() * Pips()) {
             unitTest.assertTrue(
-                pattern_.isBuyPattern(i),
+                isBuyPattern(i),
                 "isUpPinbarTested"
             );
             checkedAssertions++;
             isUpPinbarTested = true;
         }
 
-        if (!isDownPinbarTested && pattern_.downPinbar(i) &&
+        if (!isDownPinbarTested && downPinbar(i) &&
             thisCandleSize < PATTERN_MAXIMUM_SIZE_PIPS * PeriodFactor() * Pips() &&
             thisCandleSize > PATTERN_MINIMUM_SIZE_PIPS * PeriodFactor() * Pips()) {
             unitTest.assertTrue(
-                pattern_.isSellPattern(i),
+                isSellPattern(i),
                 "isDownPinbarTested"
             );
             checkedAssertions++;
             isDownPinbarTested = true;
         }
 
-        if (!isNotUpPinbarTested && pattern_.upPinbar(i) &&
+        if (!isNotUpPinbarTested && upPinbar(i) &&
             (thisCandleSize > PATTERN_MAXIMUM_SIZE_PIPS * PeriodFactor() * Pips() ||
             thisCandleSize < PATTERN_MINIMUM_SIZE_PIPS * PeriodFactor() * Pips())) {
             unitTest.assertFalse(
-                pattern_.isBuyPattern(i),
+                isBuyPattern(i),
                 "isNotUpPinbarTested"
             );
             checkedAssertions++;
             isNotUpPinbarTested = true;
         }
 
-        if (!isNotDownPinbarTested && pattern_.downPinbar(i) &&
+        if (!isNotDownPinbarTested && downPinbar(i) &&
             (thisCandleSize > PATTERN_MAXIMUM_SIZE_PIPS * PeriodFactor() * Pips() ||
             thisCandleSize < PATTERN_MINIMUM_SIZE_PIPS * PeriodFactor() * Pips())) {
             unitTest.assertFalse(
-                pattern_.isSellPattern(i),
+                isSellPattern(i),
                 "isNotDownPinbarTested"
             );
             checkedAssertions++;

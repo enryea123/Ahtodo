@@ -16,13 +16,26 @@ class OrderCreate {
         ~OrderCreate();
         void newOrder();
 
-    protected:
-        void createNewOrder(int);
+        bool areThereRecentOrders(datetime);
+        bool areThereBetterOrders(string, int, double, double);
 
         int calculateOrderTypeFromSetups(int);
         int morningLookBackCandles(int);
         double calculateSizeFactor(int, double, string);
-        double calculateOrderLots(double, double, double);
+        double calculateOrderLots(double, double);
+
+        string buildOrderComment(int, double, double, int);
+        double getSizeFactorFromComment(string);
+
+    protected:
+        OrderFind orderFind_;
+
+        static const int maxCommentCharacters_;
+        static const string periodCommentIdentifier_;
+        static const string sizeFactorCommentIdentifier_;
+
+        void createNewOrder(int);
+        void sendOrder(Order &);
 
     private:
         static const int orderCandlesDuration_;
@@ -35,6 +48,10 @@ class OrderCreate {
         static datetime buySetupTimeStamp_;
         static datetime noSetupTimeStamp_;
 };
+
+const int OrderCreate::maxCommentCharacters_ = 20;
+const string OrderCreate::periodCommentIdentifier_ = "P";
+const string OrderCreate::sizeFactorCommentIdentifier_ = "M";
 
 const int OrderCreate::orderCandlesDuration_ = 6;
 const double OrderCreate::takeProfitFactor_ = 3;
@@ -69,9 +86,7 @@ void OrderCreate::newOrder() {
     if (Minute() == 0 || Minute() == 59 || Minute() == 30 || Minute() == 29) { /// extract in new class?
         return;
     }
-    OrderManage orderManage;
-    if (orderManage.areThereRecentOrders((datetime) (TimeCurrent() - 60 * Period() * /// comunque non mi piace cosi passare sto parametro lunghissimo
-        MathRound(orderCandlesDuration_ / PeriodFactor())))) { /// maybe not here, refactor preconditions in handler
+    if (areThereRecentOrders()) {
         return;
     }
 
@@ -104,13 +119,16 @@ void OrderCreate::createNewOrder(int startIndexForOrder) {
         return;
     }
 
-    const int orderType = calculateOrderTypeFromSetups(startIndexForOrder);
+    Order order;
+    order.symbol = Symbol();
+    order.magicNumber = BotMagicNumber();
+    order.type = calculateOrderTypeFromSetups(startIndexForOrder);
 
-    if (orderType != OP_BUYSTOP && orderType != OP_SELLSTOP) {
+    if (order.type != OP_BUYSTOP && order.type != OP_SELLSTOP) {
         return;
     }
 
-    const bool isBuy = (orderType == OP_BUYSTOP);
+    const bool isBuy = (order.type == OP_BUYSTOP);
 
     const Discriminator discriminator = isBuy ? Max : Min;
     const Discriminator antiDiscriminator = !isBuy ? Max : Min;
@@ -119,70 +137,67 @@ void OrderCreate::createNewOrder(int startIndexForOrder) {
     const double spreadAsk = isBuy ? spread : 0;
     const double spreadBid = !isBuy ? spread : 0;
 
-    const double openPrice = iExtreme(discriminator, startIndexForOrder) + discriminator * (1 + spreadAsk) * Pips();
-    const double stopLoss = iExtreme(antiDiscriminator, startIndexForOrder) - discriminator * (1 + spreadBid) * Pips();
+    order.openPrice = iExtreme(discriminator, startIndexForOrder) + discriminator * (1 + spreadAsk) * Pips();
+    order.stopLoss = iExtreme(antiDiscriminator, startIndexForOrder) - discriminator * (1 + spreadBid) * Pips();
 
-    const double stopLossSize = MathAbs(openPrice - stopLoss);
     const double takeProfitFactor = takeProfitFactor_;
-    const double takeProfit = openPrice + discriminator * stopLossSize * takeProfitFactor;
 
-    const double sizeFactor = calculateSizeFactor(orderType, openPrice, Symbol());
-    const double orderLots = calculateOrderLots(openPrice, stopLoss, sizeFactor);
+    order.takeProfit = order.openPrice + discriminator * takeProfitFactor * order.getStopLossPips() / Pips();
+
+    const double sizeFactor = calculateSizeFactor(order.type, order.openPrice, order.symbol);
+    order.lots = calculateOrderLots(order.getStopLossPips(), sizeFactor);
 
     if (sizeFactor == 0) {
         return;
     }
-    OrderManage orderManage;
-    if (orderManage.areThereBetterOrders(orderType, stopLossSize, sizeFactor)) {
+    if (areThereBetterOrders(order.symbol, order.type, order.openPrice, order.stopLoss)) {
         return;
     }
 
-    const int magicNumber = BotMagicNumber();
-    const datetime expirationTime = Time[0] + (orderCandlesDuration_ + 1 - startIndexForOrder) * Period() * 60;
-    const string orderComment = orderManage.buildOrderComment(sizeFactor, takeProfitFactor, stopLossSize / Pips()); /// change later /Pips()? also tests betterOrders..
+    order.expiration = Time[0] + (orderCandlesDuration_ + 1 - startIndexForOrder) * order.getPeriod() * 60;
+    order.comment = buildOrderComment(order.getPeriod(), sizeFactor, takeProfitFactor, order.getStopLossPips());
 
+    sendOrder(order);
+}
+
+/**
+ * Creates a new pending order.
+ */
+void OrderCreate::sendOrder(Order & order) {
     ResetLastError();
 
-    const int orderTicket = OrderSend(
-        Symbol(),
-        orderType,
-        orderLots,
-        NormalizeDouble(openPrice, Digits),
+    order.ticket = OrderSend(
+        order.symbol,
+        order.type,
+        order.lots,
+        NormalizeDouble(order.openPrice, Digits),
         3,
-        NormalizeDouble(stopLoss, Digits),
-        NormalizeDouble(takeProfit, Digits),
-        orderComment,
-        magicNumber,
-        expirationTime,
+        NormalizeDouble(order.stopLoss, Digits),
+        NormalizeDouble(order.takeProfit, Digits),
+        order.comment,
+        order.magicNumber,
+        order.expiration,
         Blue
     );
 
     const int lastError = GetLastError();
     if (lastError != 0) {
         ThrowException(__FUNCTION__, StringConcatenate(
-            "OrderSend error: ", lastError, " for orderTicket: ", orderTicket));
+            "OrderSend error: ", lastError, " for order ticket: ", order.ticket));
     }
 
-    if (orderTicket > 0) {
+    if (order.ticket > 0) {
         const int previouslySelectedOrder = OrderTicket();
-        const int selectedOrder = OrderSelect(orderTicket, SELECT_BY_TICKET);
+        const int selectedOrder = OrderSelect(order.ticket, SELECT_BY_TICKET);
 
-        Print("New order created: ", orderTicket);
+        Print("New order created with ticket: ", order.ticket);
         OrderPrint();
 
-        if (orderType != OrderType() ||
-            orderLots != OrderLots() ||
-            orderComment != OrderComment() ||
-            magicNumber != OrderMagicNumber() ||
-            expirationTime != OrderExpiration()) {
-
-            Print("orderType: ", orderType);
-            Print("orderLots: ", orderLots);
-            Print("orderComment: ", orderComment);
-            Print("magicNumber: ", magicNumber);
-            Print("expirationTime: ", TimeToStr(expirationTime));
+        if (order.type != OrderType() || order.lots != OrderLots() || order.comment != OrderComment() ||
+            order.magicNumber != OrderMagicNumber() || order.expiration != OrderExpiration()) {
+            Print(order.toString());
             ThrowException(__FUNCTION__, StringConcatenate(
-                "Mismatching information in newly created order: ", orderTicket));
+                "Mismatching information in newly created order with ticket: ", order.ticket));
         }
 
         if (previouslySelectedOrder != 0 && !OrderSelect(previouslySelectedOrder, SELECT_BY_TICKET)) {
@@ -242,6 +257,61 @@ int OrderCreate::calculateOrderTypeFromSetups(int timeIndex) {
     noSetupTimeStamp_ = PrintTimer(noSetupTimeStamp_, StringConcatenate(
         "No setups found at Time: ", TimeToStr(Time[timeIndex])));
     return -1;
+}
+
+/**
+ * Checks if there have been any recent correlated open orders, so that it can be waited before placing new ones.
+ */
+bool OrderCreate::areThereRecentOrders(datetime date = NULL) {
+    if (date == NULL) {
+        date = (datetime) (TimeCurrent() - 60 * Period() * MathRound(orderCandlesDuration_ / PeriodFactor()));
+    }
+
+    OrderFilter orderFilter;
+    orderFilter.magicNumber.add(ALLOWED_MAGIC_NUMBERS);
+    orderFilter.symbolFamily.add(SymbolFamily());
+    orderFilter.type.add(OP_BUY, OP_SELL);
+
+    orderFilter.closeTime.setFilterType(Greater);
+    orderFilter.closeTime.add(date);
+
+    Order orders[];
+    orderFind_.getFilteredOrdersList(orders, orderFilter, MODE_HISTORY);
+
+    if (ArraySize(orders) > 0) {
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * Checks if there are other pending orders. In case they are with worst setups it deletes them.
+ */
+bool OrderCreate::areThereBetterOrders(string symbol, int type, double openPrice, double stopLoss) {
+    OrderFilter orderFilter;
+    orderFilter.magicNumber.add(ALLOWED_MAGIC_NUMBERS);
+    orderFilter.symbolFamily.add(SymbolFamily());
+    orderFilter.type.add(type, OP_BUY, OP_SELL);
+
+    Order orders[];
+    orderFind_.getFilteredOrdersList(orders, orderFilter);
+
+    Order newOrder;
+    newOrder.symbol = symbol;
+    newOrder.type = type;
+    newOrder.openPrice = openPrice;
+    newOrder.stopLoss = stopLoss;
+
+    OrderManage orderManage;
+
+    for (int order = 0; order < ArraySize(orders); order++) {
+        if (orderManage.findBestOrder(orders[order], newOrder)) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 /**
@@ -348,13 +418,13 @@ int OrderCreate::morningLookBackCandles(int period = NULL) {
  * Calculates the size for a new order, and makes sure that it's divisible by 2,
  * so that the position can be later split.
  */
-double OrderCreate::calculateOrderLots(double openPrice, double stopLoss, double sizeFactor) {
+double OrderCreate::calculateOrderLots(double stopLossPips, double sizeFactor) {
     if (sizeFactor == 0) {
         return 0;
     }
 
     const double absoluteRisk = (PERCENT_RISK / 100) * AccountEquity() / MarketInfo(Symbol(), MODE_TICKVALUE);
-    const double stopLossTicks = MathAbs(openPrice - stopLoss) / MarketInfo(Symbol(), MODE_TICKSIZE);
+    const double stopLossTicks = stopLossPips / 10;
     const double rawOrderLots = absoluteRisk / stopLossTicks;
 
     double orderLots = 2 * NormalizeDouble(rawOrderLots * sizeFactor / 2, 2);
@@ -362,4 +432,46 @@ double OrderCreate::calculateOrderLots(double openPrice, double stopLoss, double
     orderLots = MathMax(orderLots, 0.02);
 
     return NormalizeDouble(orderLots, 2);
+}
+
+/**
+ * Creates the comment for a new pending order, and makes sure it doesn't exceed the maximum length.
+ */
+string OrderCreate::buildOrderComment(int period, double sizeFactor, double takeProfitFactor, int stopLossPips) {
+    const string strategyPrefix = "A";
+
+    const string comment = StringConcatenate(
+        strategyPrefix,
+        " ", periodCommentIdentifier_, period,
+        " ", sizeFactorCommentIdentifier_, NormalizeDouble(sizeFactor, 1),
+        " R", NormalizeDouble(takeProfitFactor, 1),
+        " S", stopLossPips
+    );
+
+    if (StringLen(comment) > maxCommentCharacters_) {
+        return ThrowException(StringSubstr(comment, 0, maxCommentCharacters_), __FUNCTION__, "Order comment too long");
+    }
+
+    return comment;
+}
+
+/**
+ * Estrapolates the sizeFactor of a pending order from a well formatted order comment.
+ */
+double OrderCreate::getSizeFactorFromComment(string comment) {
+    string splittedComment[];
+    StringSplit(comment, StringGetCharacter(" ", 0), splittedComment);
+
+    for (int i = 0; i < ArraySize(splittedComment); i++) {
+        if (StringContains(splittedComment[i], sizeFactorCommentIdentifier_)) {
+            StringSplit(splittedComment[i], StringGetCharacter(sizeFactorCommentIdentifier_, 0), splittedComment);
+            break;
+        }
+    }
+
+    if (ArraySize(splittedComment) == 2) {
+        return (double) splittedComment[1];
+    }
+
+    return ThrowException(-1, __FUNCTION__, "Could not get sizeFactor from comment");
 }

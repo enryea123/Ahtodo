@@ -19,7 +19,6 @@ class Market {
 
     protected:
         static const int spreadPipsCloseMarket_;
-        bool forceIsLiveAccountForTesting_;
 
         bool isAllowedAccountNumber(int);
         bool isAllowedExecutionDate(datetime);
@@ -29,6 +28,9 @@ class Market {
         bool isAllowedSymbolPeriodCombo(string, int);
         bool isDemoTrading(int);
 
+        void accountTypeOverride();
+        void accountTypeOverrideReset();
+
     private:
         static const int incorrectClockErrorSeconds_;
         static const int openMarketLookBackMinutes_;
@@ -37,6 +39,8 @@ class Market {
         static datetime spreadTimeStamp_;
 
         MarketTime marketTime_;
+
+        bool forceIsLiveAccountForTesting_;
 };
 
 Market::Market():
@@ -237,4 +241,12 @@ bool Market::isDemoTrading(int accountNumber = NULL) {
     }
 
     return false;
+}
+
+void Market::accountTypeOverride() {
+    forceIsLiveAccountForTesting_ = true;
+}
+
+void Market::accountTypeOverrideReset() {
+    forceIsLiveAccountForTesting_ = false;
 }

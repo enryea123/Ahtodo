@@ -6,43 +6,40 @@
 #include "../../src/trendline/TrendLine.mqh"
 
 
-class TrendLineTest {
+class TrendLineTest: public TrendLine {
     public:
         void isGoodTrendLineFromNameTest();
         void getTrendLineIndexesTest();
         void trendLineNameTest();
         void trendLineSetupsTest();
-
-    private:
-        TrendLine trendLine_;
 };
 
 void TrendLineTest::isGoodTrendLineFromNameTest() {
     UnitTest unitTest("isGoodTrendLineFromNameTest");
 
     unitTest.assertTrue(
-        trendLine_.isGoodTrendLineFromName(trendLine_.buildTrendLineName(50, 30, 0, Max))
+        isGoodTrendLineFromName(buildTrendLineName(50, 30, 0, Max))
     );
 
     unitTest.assertFalse(
-        trendLine_.isGoodTrendLineFromName(trendLine_.buildBadTrendLineName(50, 30, 0, Max), 1)
+        isGoodTrendLineFromName(buildBadTrendLineName(50, 30, 0, Max), 1)
     );
 
     unitTest.assertFalse(
-        trendLine_.isGoodTrendLineFromName("randomString", 1)
+        isGoodTrendLineFromName("randomString", 1)
     );
 
     const int timeIndex = 1;
-    const int bigTimeIndex = trendLine_.trendLineMinExtremesDistance_ - timeIndex;
+    const int bigTimeIndex = trendLineMinExtremesDistance_ - timeIndex;
 
     unitTest.assertTrue(
-        trendLine_.isGoodTrendLineFromName(trendLine_.buildTrendLineName(
-            20, trendLine_.trendLineMinExtremesDistance_ + timeIndex, 0, Max), timeIndex)
+        isGoodTrendLineFromName(buildTrendLineName(
+            20, trendLineMinExtremesDistance_ + timeIndex, 0, Max), timeIndex)
     );
 
     unitTest.assertFalse(
-        trendLine_.isGoodTrendLineFromName(trendLine_.buildTrendLineName(
-            20, trendLine_.trendLineMinExtremesDistance_ + timeIndex, 0, Max), bigTimeIndex)
+        isGoodTrendLineFromName(buildTrendLineName(
+            20, trendLineMinExtremesDistance_ + timeIndex, 0, Max), bigTimeIndex)
     );
 }
 
@@ -51,43 +48,43 @@ void TrendLineTest::getTrendLineIndexesTest() {
 
     unitTest.assertEquals(
         50,
-        trendLine_.getTrendLineMaxIndex("TrendLine_i50_j9_b-2_Max"),
+        getTrendLineMaxIndex("TrendLine_i50_j9_b-2_Max"),
         "TrendLine_i50_j9_b-2_Max"
     );
 
     unitTest.assertEquals(
         130,
-        trendLine_.getTrendLineMaxIndex("TrendLine_i130_j9_b1_Min"),
+        getTrendLineMaxIndex("TrendLine_i130_j9_b1_Min"),
         "TrendLine_i130_j9_b1_Min"
     );
 
     unitTest.assertEquals(
         20,
-        trendLine_.getTrendLineMinIndex("TrendLine_i130_j20_b0_Max"),
+        getTrendLineMinIndex("TrendLine_i130_j20_b0_Max"),
         "TrendLine_i130_j20_b0_Max"
     );
 
     unitTest.assertEquals(
         5,
-        trendLine_.getTrendLineMinIndex("TrendLine_i30_j5_b1_Max"),
+        getTrendLineMinIndex("TrendLine_i30_j5_b1_Max"),
         "TrendLine_i30_j5_b1_Max"
     );
 
     unitTest.assertEquals(
         -1,
-        trendLine_.getTrendLineMaxIndex("RandomString"),
+        getTrendLineMaxIndex("RandomString"),
         "RandomString"
     );
 
     unitTest.assertEquals(
         -1,
-        trendLine_.getTrendLineMaxIndex("TrendLine_WrongNameSent"),
+        getTrendLineMaxIndex("TrendLine_WrongNameSent"),
         "TrendLine_WrongNameSent"
     );
 
     unitTest.assertEquals(
         -1,
-        trendLine_.getTrendLineMaxIndex("TrendLine_Wrong_Name_Sent_To_Test"),
+        getTrendLineMaxIndex("TrendLine_Wrong_Name_Sent_To_Test"),
         "TrendLine_Wrong_Name_Sent_To_Test"
     );
 }
@@ -97,20 +94,20 @@ void TrendLineTest::trendLineNameTest() {
 
     unitTest.assertEquals(
         "TrendLine_i50_j9_b-2_Max",
-        trendLine_.buildTrendLineName(50, 9, -2, Max)
+        buildTrendLineName(50, 9, -2, Max)
     );
 
     unitTest.assertEquals(
         "TrendLine_i130_j20_b0_Min_Bad",
-        trendLine_.buildBadTrendLineName(130, 20, 0, Min)
+        buildBadTrendLineName(130, 20, 0, Min)
     );
 
     unitTest.assertTrue(
-        trendLine_.isBadTrendLineFromName("TrendLine_i130_j20_b0_Min_Bad")
+        isBadTrendLineFromName("TrendLine_i130_j20_b0_Min_Bad")
     );
 
     unitTest.assertFalse(
-        trendLine_.isBadTrendLineFromName("TrendLine_i50_j20_b0_Max")
+        isBadTrendLineFromName("TrendLine_i50_j20_b0_Max")
     );
 }
 
@@ -118,33 +115,33 @@ void TrendLineTest::trendLineSetupsTest() {
     UnitTest unitTest("trendLineSetupsTest");
 
     unitTest.assertFalse(
-        trendLine_.areTrendLineSetupsGood(10, 30, Max)
+        areTrendLineSetupsGood(10, 30, Max)
     );
 
     unitTest.assertFalse(
-        trendLine_.areTrendLineSetupsGood(20, -1, Max)
+        areTrendLineSetupsGood(20, -1, Max)
     );
 
     unitTest.assertFalse(
-        trendLine_.areTrendLineSetupsGood(9, 5, Max)
+        areTrendLineSetupsGood(9, 5, Max)
     );
 
     unitTest.assertFalse(
-        trendLine_.areTrendLineSetupsGood(10, 9, Max)
+        areTrendLineSetupsGood(10, 9, Max)
     );
 
     unitTest.assertFalse(
-        trendLine_.areTrendLineSetupsGood(100, 98, Max)
+        areTrendLineSetupsGood(100, 98, Max)
     );
 
     if (iExtreme(Min, 50) > iExtreme(Min, 20)) {
         unitTest.assertFalse(
-            trendLine_.areTrendLineSetupsGood(50, 20, Min),
+            areTrendLineSetupsGood(50, 20, Min),
             "Incorrect slope test - Min"
         );
     }else if (iExtreme(Max, 50) < iExtreme(Max, 20)) {
         unitTest.assertFalse(
-            trendLine_.areTrendLineSetupsGood(50, 20, Max),
+            areTrendLineSetupsGood(50, 20, Max),
             "Incorrect slope test - Max"
         );
     } else {
@@ -155,15 +152,15 @@ void TrendLineTest::trendLineSetupsTest() {
     const double slopeMax = (iExtreme(Max, 20) - iExtreme(Max, 50)) / (50 - 20);
 
     if (slopeMin > 0 && MathAbs(slopeMin) >
-        trendLine_.trendLinePositiveSlopeVolatility_ * GetMarketVolatility()) {
+        trendLinePositiveSlopeVolatility_ * GetMarketVolatility()) {
         unitTest.assertFalse(
-            trendLine_.areTrendLineSetupsGood(50, 20, Min),
+            areTrendLineSetupsGood(50, 20, Min),
             "TrendLine positive slope volatility"
         );
     }else if (slopeMax < 0 && MathAbs(slopeMax) >
-        trendLine_.trendLineNegativeSlopeVolatility_ * GetMarketVolatility()) {
+        trendLineNegativeSlopeVolatility_ * GetMarketVolatility()) {
         unitTest.assertFalse(
-            trendLine_.areTrendLineSetupsGood(50, 20, Max),
+            areTrendLineSetupsGood(50, 20, Max),
             "TrendLine negative slope volatility"
         );
     } else {

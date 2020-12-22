@@ -10,7 +10,7 @@ bool INITIALIZATION_COMPLETED = false; // oppure dovrebbe chiamarsi UNIT_TESTS_F
 
 const int BOT_MAGIC_NUMBER = 2044000; // then pass a different bot base number to each strategy Order's thing
 
-const datetime BOT_EXPIRATION_DATE = (datetime) "2021-06-30";
+const datetime BOT_EXPIRATION_DATE = (datetime) "2021-06-30"; /// usare __DATETIME__? o __DATE__ meglio
 const datetime BOT_TESTS_EXPIRATION_DATE = (datetime) "2025-01-01";
 
 const int CANDLES_VISIBLE_IN_GRAPH_2X = 940; /// questa non dovrebbe essere un config pero
@@ -235,7 +235,7 @@ bool DownloadHistory(string symbol = NULL) {
     return ThrowException(false, __FUNCTION__, "Could not download history data");
 }
 
-double Pips(string symbol = NULL) { /// rename pip?
+double Pips(string symbol = NULL) { /// rename pip? is !SymbolExists che fare?
     return 10 * MarketInfo(symbol, MODE_TICKSIZE); /// serve unittest, non è pensabile altrimenti. ad esempio cambio broker a diverse digit (oppure niente classe ma comunque test)
 }
 
@@ -340,17 +340,27 @@ template <typename T> void ArrayCopyClass(T & destination[], T & source[]) {
     }
 }
 
-template <typename T> void ArrayRemoveOrdered(T & array[], int index) { // maybe unit test
+template <typename T> void ArrayRemoveOrdered(T & array[], int index) { /// maybe unit test
     for(int last = ArraySize(array) - 1; index < last; index++) {
         array[index] = array[index + 1];
     }
-    ArrayResize(array, last);
+
+    if (last <= 0) {
+        ArrayFree(array);
+    } else {
+        ArrayResize(array, last);
+    }
 }
 
 template <typename T> void ArrayRemove(T & array[], int index) {
-   int last = ArraySize(array) - 1;
-   array[index] = array[last];
-   ArrayResize(array, last);
+    int last = ArraySize(array) - 1;
+
+    if (last <= 0) {
+        ArrayFree(array);
+    } else {
+        array[index] = array[last];
+        ArrayResize(array, last);
+    }
 }
 
 template <typename T> T ThrowException(T returnValue, string function, string message) {
@@ -359,7 +369,7 @@ template <typename T> T ThrowException(T returnValue, string function, string me
 }
 
 void ThrowException(string function, string message) {
-    OptionalAlert(StringConcatenate(function, " | ThrowException invoked with message: ", message));
+    OptionalAlert(StringConcatenate(function, " | ThrowException: ", message));
 }
 
 template <typename T> T ThrowFatalException(T returnValue, string function, string message) {
@@ -368,7 +378,7 @@ template <typename T> T ThrowFatalException(T returnValue, string function, stri
 }
 
 void ThrowFatalException(string function, string message) {
-    Alert(buildAlertMessage(StringConcatenate(function, " | ThrowFatalException invoked with message: ", message)));
+    Alert(buildAlertMessage(StringConcatenate(function, " | ThrowFatalException: ", message)));
     ExpertRemove();
 }
 

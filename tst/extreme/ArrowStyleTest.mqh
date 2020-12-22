@@ -6,19 +6,16 @@
 #include "../../src/extreme/ArrowStyle.mqh"
 
 
-class ArrowStyleTest {
+class ArrowStyleTest: public ArrowStyle {
     public:
         void drawExtremeArrowTest();
-
-    private:
-        ArrowStyle arrowStyle_;
 };
 
 void ArrowStyleTest::drawExtremeArrowTest() {
     UnitTest unitTest("drawExtremeArrowTest");
 
-    arrowStyle_.drawExtremeArrow(10, Max, true);
-    arrowStyle_.drawExtremeArrow(5, Min, false);
+    drawExtremeArrow(10, Max, true);
+    drawExtremeArrow(5, Min, false);
 
     unitTest.assertTrue(
         ObjectFind("Arrow_10_Max_Valid") >= 0

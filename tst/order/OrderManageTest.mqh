@@ -7,33 +7,15 @@
 #include "../../src/order/OrderManage.mqh"
 
 
-/**
- * This class exposes the protected methods of OrderManage for testing
- */
-class OrderManageExposed: public OrderManage {
-    public:
-        void _setMockedOrders() {setMockedOrders();}
-        void _setMockedOrders(Order & v) {setMockedOrders(v);}
-        void _setMockedOrders(Order & v[]) {setMockedOrders(v);}
-        void _getMockedOrders(Order & v[]) {getMockedOrders(v);}
-};
-
-
-class OrderManageTest {
+class OrderManageTest: public OrderManage {
     public:
         void areThereOpenOrdersTest();
-        void areThereRecentOrdersTest();
-        void areThereBetterOrdersTest();
+        void findBestOrderTest();
         void deduplicateOrdersTest();
         void emergencySwitchOffTest();
         void lossLimiterTest();
         void deleteAllOrdersTest();
         void deletePendingOrdersTest();
-        void buildOrderCommentTest();
-        void getSizeFactorFromCommentTest();
-
-    private:
-        OrderManageExposed orderManageExposed_;
 };
 
 void OrderManageTest::areThereOpenOrdersTest() {
@@ -44,237 +26,64 @@ void OrderManageTest::areThereOpenOrdersTest() {
     order.symbolFamily = SymbolFamily();
     order.type = OP_SELLSTOP;
 
-    orderManageExposed_._setMockedOrders(order);
+    orderFind_.setMockedOrders(order);
     unitTest.assertFalse(
-        orderManageExposed_.areThereOpenOrders()
+        areThereOpenOrders()
     );
 
     order.type = OP_BUY;
-    orderManageExposed_._setMockedOrders(order);
+    orderFind_.setMockedOrders(order);
 
     unitTest.assertTrue(
-        orderManageExposed_.areThereOpenOrders()
+        areThereOpenOrders()
     );
 
     order.symbolFamily = "CIAO";
-    orderManageExposed_._setMockedOrders(order);
+    orderFind_.setMockedOrders(order);
 
     unitTest.assertFalse(
-        orderManageExposed_.areThereOpenOrders()
+        areThereOpenOrders()
     );
 
     order.symbolFamily = SymbolFamily();
     order.magicNumber = 999999;
-    orderManageExposed_._setMockedOrders(order);
+    orderFind_.setMockedOrders(order);
 
     unitTest.assertFalse(
-        orderManageExposed_.areThereOpenOrders()
+        areThereOpenOrders()
     );
 
-    orderManageExposed_._setMockedOrders();
+    orderFind_.setMockedOrders();
 }
 
-void OrderManageTest::areThereRecentOrdersTest() {
-    UnitTest unitTest("areThereRecentOrdersTest");
-
-    const datetime filterDate = (datetime) "2020-09-01";
-
-    Order order;
-    order.magicNumber = 2044060;
-    order.symbolFamily = SymbolFamily();
-    order.type = OP_SELL;
-    order.closeTime = (datetime) "2020-08-20";
-
-    orderManageExposed_._setMockedOrders(order);
-
-    unitTest.assertFalse(
-        orderManageExposed_.areThereRecentOrders(filterDate)
-    );
-
-    order.closeTime = (datetime) "2020-09-20";
-    orderManageExposed_._setMockedOrders(order);
-
-    unitTest.assertTrue(
-        orderManageExposed_.areThereRecentOrders(filterDate)
-    );
-
-    order.type = OP_SELLSTOP;
-    orderManageExposed_._setMockedOrders(order);
-
-    unitTest.assertFalse(
-        orderManageExposed_.areThereRecentOrders(filterDate)
-    );
-
-    order.type = OP_BUY;
-    order.symbolFamily = "CIAO";
-    orderManageExposed_._setMockedOrders(order);
-
-    unitTest.assertFalse(
-        orderManageExposed_.areThereRecentOrders(filterDate)
-    );
-
-    orderManageExposed_._setMockedOrders();
-}
-
-void OrderManageTest::areThereBetterOrdersTest() {
-    UnitTest unitTest("areThereBetterOrdersTest");
-
-    const double stopLossSize = 20 * Pips();
-
-    Order order;
-    order.magicNumber = 2044060;
-    order.symbol = Symbol();
-    order.symbolFamily = SymbolFamily();
-    order.type = OP_SELLSTOP;
-    order.ticket = 1234;
-    order.openPrice = GetAsk(order.symbol);
-    order.stopLoss = order.openPrice + stopLossSize;
-    order.comment = "M1.0";
-
-    orderManageExposed_._setMockedOrders(order);
-
-    unitTest.assertTrue(
-        orderManageExposed_.areThereBetterOrders(OP_SELLSTOP, stopLossSize, 1)
-    );
-
-    orderManageExposed_._setMockedOrders(order);
-
-    unitTest.assertTrue(
-        orderManageExposed_.areThereBetterOrders(OP_SELLSTOP, stopLossSize * 1.2, 1)
-    );
-
-    orderManageExposed_._setMockedOrders(order);
-
-    unitTest.assertTrue(
-        orderManageExposed_.areThereBetterOrders(OP_SELLSTOP, stopLossSize, 0.8)
-    );
-
-    order.magicNumber = 2044030;
-    orderManageExposed_._setMockedOrders(order);
-
-    unitTest.assertTrue(
-        orderManageExposed_.areThereBetterOrders(OP_SELLSTOP, stopLossSize, 0.8)
-    );
-
-    orderManageExposed_._setMockedOrders(order);
-
-    unitTest.assertTrue(
-        orderManageExposed_.areThereBetterOrders(OP_SELLSTOP, stopLossSize - Pips(), 1)
-    );
-
-    order.type = OP_BUYSTOP;
-    orderManageExposed_._setMockedOrders(order);
-
-    unitTest.assertFalse(
-        orderManageExposed_.areThereBetterOrders(OP_SELLSTOP, stopLossSize * 1.2, 0.8)
-    );
-
-    order.type = OP_BUY;
-    orderManageExposed_._setMockedOrders(order);
-
-    unitTest.assertTrue(
-        orderManageExposed_.areThereBetterOrders(OP_SELLSTOP, stopLossSize * 0.8, 1.2)
-    );
-
-    order.type = OP_SELLSTOP;
-    order.symbolFamily = "CIAO";
-    orderManageExposed_._setMockedOrders(order);
-
-    unitTest.assertFalse(
-        orderManageExposed_.areThereBetterOrders(OP_SELLSTOP, stopLossSize, 1)
-    );
-
-    order.symbolFamily = SymbolFamily();
-    order.magicNumber = 999999;
-    orderManageExposed_._setMockedOrders(order);
-
-    unitTest.assertFalse(
-        orderManageExposed_.areThereBetterOrders(OP_SELLSTOP, stopLossSize, 1)
-    );
-
-    if (Period() != PERIOD_H4) {
-        order.magicNumber = 2044240;
-
-        orderManageExposed_._setMockedOrders(order);
-
-        unitTest.assertFalse(
-            orderManageExposed_.areThereBetterOrders(OP_SELLSTOP, stopLossSize * 0.5, 0.8)
-        );
-
-        orderManageExposed_._setMockedOrders(order);
-
-        unitTest.assertTrue(
-            orderManageExposed_.areThereBetterOrders(OP_SELLSTOP, stopLossSize * 0.5, 0.5)
-        );
-
-        orderManageExposed_._setMockedOrders(order);
-
-        unitTest.assertFalse(
-            orderManageExposed_.areThereBetterOrders(OP_SELLSTOP, stopLossSize, 1.2)
-        );
-
-        orderManageExposed_._setMockedOrders(order);
-
-        unitTest.assertFalse(
-            orderManageExposed_.areThereBetterOrders(OP_SELLSTOP, stopLossSize * 0.6, 1)
-        );
-    } else {
-        order.magicNumber = 2044240;
-
-        orderManageExposed_._setMockedOrders(order);
-
-        unitTest.assertFalse(
-            orderManageExposed_.areThereBetterOrders(OP_SELLSTOP, stopLossSize, 1.2)
-        );
-
-        orderManageExposed_._setMockedOrders(order);
-
-        unitTest.assertTrue(
-            orderManageExposed_.areThereBetterOrders(OP_SELLSTOP, stopLossSize, 1)
-        );
-
-        orderManageExposed_._setMockedOrders(order);
-
-        unitTest.assertFalse(
-            orderManageExposed_.areThereBetterOrders(OP_SELLSTOP, stopLossSize * 0.6, 1)
-        );
-
-        order.magicNumber = 2044060;
-
-        orderManageExposed_._setMockedOrders(order);
-
-        unitTest.assertTrue(
-            orderManageExposed_.areThereBetterOrders(OP_SELLSTOP, stopLossSize, 1.2)
-        );
-
-        orderManageExposed_._setMockedOrders(order);
-
-        unitTest.assertTrue(
-            orderManageExposed_.areThereBetterOrders(OP_SELLSTOP, stopLossSize * 0.8, 1)
-        );
-
-        orderManageExposed_._setMockedOrders(order);
-
-        unitTest.assertFalse(
-            orderManageExposed_.areThereBetterOrders(OP_SELLSTOP, stopLossSize * 0.8, 2.5)
-        );
-    }
-
-    order.magicNumber = 2044060;
+void OrderManageTest::findBestOrderTest() {
+    UnitTest unitTest("findBestOrderTest");
 
     Order orders[];
     ArrayResize(orders, 2);
-    orders[0] = order;
-    orders[1] = order;
-    orders[1].stopLoss = order.openPrice + stopLossSize / 2;
+    orders[0].symbol = Symbol();
+    orders[0].type = OP_SELLSTOP;
+    orders[0].openPrice = GetAsk(orders[0].symbol);
+    orders[0].stopLoss = orders[0].openPrice + 20 * Pips();
 
-    orderManageExposed_._setMockedOrders(orders);
+    orders[1] = orders[0];
 
     unitTest.assertTrue(
-        orderManageExposed_.areThereBetterOrders(OP_SELLSTOP, stopLossSize * 0.6, 1)
+        findBestOrder(orders[0], orders[1])
     );
 
-    orderManageExposed_._setMockedOrders();
+    orders[1].type = OP_BUY;
+
+    unitTest.assertFalse(
+        findBestOrder(orders[0], orders[1])
+    );
+
+    orders[1].type = OP_SELLSTOP;
+    orders[1].stopLoss -= 2 * Pips();
+
+    unitTest.assertFalse(
+        findBestOrder(orders[0], orders[1])
+    );
 }
 
 void OrderManageTest::deduplicateOrdersTest() {
@@ -283,14 +92,17 @@ void OrderManageTest::deduplicateOrdersTest() {
     Order orders[];
     ArrayResize(orders, 1);
     orders[0].magicNumber = 2044060;
+    orders[0].symbol = Symbol();
     orders[0].symbolFamily = SymbolFamily();
     orders[0].type = OP_SELLSTOP;
+    orders[0].openPrice = GetAsk(orders[0].symbol);
+    orders[0].stopLoss = orders[0].openPrice + 20 * Pips();
 
     Order mockedOrders[];
 
-    orderManageExposed_._setMockedOrders(orders);
-    orderManageExposed_.deduplicateOrders();
-    orderManageExposed_._getMockedOrders(mockedOrders);
+    orderFind_.setMockedOrders(orders);
+    deduplicateOrders();
+    orderFind_.getMockedOrders(mockedOrders);
 
     unitTest.assertEquals(
         orders,
@@ -301,9 +113,9 @@ void OrderManageTest::deduplicateOrdersTest() {
     orders[1] = orders[0];
     ArrayFree(mockedOrders);
 
-    orderManageExposed_._setMockedOrders(orders);
-    orderManageExposed_.deduplicateOrders();
-    orderManageExposed_._getMockedOrders(mockedOrders);
+    orderFind_.setMockedOrders(orders);
+    deduplicateOrders();
+    orderFind_.getMockedOrders(mockedOrders);
 
     unitTest.assertEquals(
         1,
@@ -318,9 +130,9 @@ void OrderManageTest::deduplicateOrdersTest() {
     orders[0].symbolFamily = "CIAO";
     ArrayFree(mockedOrders);
 
-    orderManageExposed_._setMockedOrders(orders);
-    orderManageExposed_.deduplicateOrders();
-    orderManageExposed_._getMockedOrders(mockedOrders);
+    orderFind_.setMockedOrders(orders);
+    deduplicateOrders();
+    orderFind_.getMockedOrders(mockedOrders);
 
     unitTest.assertEquals(
         orders,
@@ -332,9 +144,9 @@ void OrderManageTest::deduplicateOrdersTest() {
     orders[1].type = OP_BUYSTOP;
     ArrayFree(mockedOrders);
 
-    orderManageExposed_._setMockedOrders(orders);
-    orderManageExposed_.deduplicateOrders();
-    orderManageExposed_._getMockedOrders(mockedOrders);
+    orderFind_.setMockedOrders(orders);
+    deduplicateOrders();
+    orderFind_.getMockedOrders(mockedOrders);
 
     unitTest.assertEquals(
         orders,
@@ -346,9 +158,9 @@ void OrderManageTest::deduplicateOrdersTest() {
     orders[2] = orders[0];
     ArrayFree(mockedOrders);
 
-    orderManageExposed_._setMockedOrders(orders);
-    orderManageExposed_.deduplicateOrders();
-    orderManageExposed_._getMockedOrders(mockedOrders);
+    orderFind_.setMockedOrders(orders);
+    deduplicateOrders();
+    orderFind_.getMockedOrders(mockedOrders);
 
     unitTest.assertEquals(
         1,
@@ -360,7 +172,7 @@ void OrderManageTest::deduplicateOrdersTest() {
         mockedOrders[0]
     );
 
-    orderManageExposed_._setMockedOrders();
+    orderFind_.setMockedOrders();
 }
 
 void OrderManageTest::emergencySwitchOffTest() {
@@ -377,9 +189,9 @@ void OrderManageTest::emergencySwitchOffTest() {
 
     Order mockedOrders[];
 
-    orderManageExposed_._setMockedOrders(orders);
-    orderManageExposed_.emergencySwitchOff();
-    orderManageExposed_._getMockedOrders(mockedOrders);
+    orderFind_.setMockedOrders(orders);
+    emergencySwitchOff();
+    orderFind_.getMockedOrders(mockedOrders);
 
     unitTest.assertEquals(
         3,
@@ -389,9 +201,9 @@ void OrderManageTest::emergencySwitchOffTest() {
     orders[1].magicNumber = 9999999;
     ArrayFree(mockedOrders);
 
-    orderManageExposed_._setMockedOrders(orders);
-    orderManageExposed_.emergencySwitchOff();
-    orderManageExposed_._getMockedOrders(mockedOrders);
+    orderFind_.setMockedOrders(orders);
+    emergencySwitchOff();
+    orderFind_.getMockedOrders(mockedOrders);
 
     unitTest.assertEquals(
         2, // deleteAllOrders() only deletes orders with BotMagicNumber()
@@ -408,13 +220,13 @@ void OrderManageTest::emergencySwitchOffTest() {
         mockedOrders[1]
     );
 
-    orderManageExposed_._setMockedOrders();
+    orderFind_.setMockedOrders();
 }
 
 void OrderManageTest::lossLimiterTest() {
     UnitTest unitTest("lossLimiterTest");
 
-    const double maxAllowedLosses = AccountEquity() * orderManageExposed_.maxAllowedLossesPercent_;
+    const double maxAllowedLosses = AccountEquity() * maxAllowedLossesPercent_;
 
     Order orders[];
     ArrayResize(orders, 3);
@@ -435,9 +247,9 @@ void OrderManageTest::lossLimiterTest() {
 
     Order mockedOrders[];
 
-    orderManageExposed_._setMockedOrders(orders);
-    orderManageExposed_.lossLimiter();
-    orderManageExposed_._getMockedOrders(mockedOrders);
+    orderFind_.setMockedOrders(orders);
+    lossLimiter();
+    orderFind_.getMockedOrders(mockedOrders);
 
     unitTest.assertEquals(
         orders,
@@ -448,9 +260,9 @@ void OrderManageTest::lossLimiterTest() {
     orders[1].profit = - maxAllowedLosses / 2 + 1;
     ArrayFree(mockedOrders);
 
-    orderManageExposed_._setMockedOrders(orders);
-    orderManageExposed_.lossLimiter();
-    orderManageExposed_._getMockedOrders(mockedOrders);
+    orderFind_.setMockedOrders(orders);
+    lossLimiter();
+    orderFind_.getMockedOrders(mockedOrders);
 
     unitTest.assertEquals(
         orders,
@@ -460,9 +272,9 @@ void OrderManageTest::lossLimiterTest() {
     orders[1].profit = - maxAllowedLosses;
     ArrayFree(mockedOrders);
 
-    orderManageExposed_._setMockedOrders(orders);
-    orderManageExposed_.lossLimiter();
-    orderManageExposed_._getMockedOrders(mockedOrders);
+    orderFind_.setMockedOrders(orders);
+    lossLimiter();
+    orderFind_.getMockedOrders(mockedOrders);
 
     unitTest.assertEquals(
         1, // deleteAllOrders() only deletes orders with BotMagicNumber()
@@ -474,19 +286,19 @@ void OrderManageTest::lossLimiterTest() {
         mockedOrders[0]
     );
 
-    orders[1].closeTime = (datetime) (TimeCurrent() - orderManageExposed_.lossLimiterTime_ - 10);
+    orders[1].closeTime = (datetime) (TimeCurrent() - lossLimiterTime_ - 10);
     ArrayFree(mockedOrders);
 
-    orderManageExposed_._setMockedOrders(orders);
-    orderManageExposed_.lossLimiter();
-    orderManageExposed_._getMockedOrders(mockedOrders);
+    orderFind_.setMockedOrders(orders);
+    lossLimiter();
+    orderFind_.getMockedOrders(mockedOrders);
 
     unitTest.assertEquals(
         orders,
         mockedOrders
     );
 
-    orderManageExposed_._setMockedOrders();
+    orderFind_.setMockedOrders();
 }
 
 void OrderManageTest::deleteAllOrdersTest() {
@@ -500,9 +312,9 @@ void OrderManageTest::deleteAllOrdersTest() {
 
     Order mockedOrders[];
 
-    orderManageExposed_._setMockedOrders(orders);
-    orderManageExposed_.deleteAllOrders();
-    orderManageExposed_._getMockedOrders(mockedOrders);
+    orderFind_.setMockedOrders(orders);
+    deleteAllOrders();
+    orderFind_.getMockedOrders(mockedOrders);
 
     unitTest.assertEquals(
         0,
@@ -512,9 +324,9 @@ void OrderManageTest::deleteAllOrdersTest() {
     orders[0].symbol = "CIAO";
     ArrayFree(mockedOrders);
 
-    orderManageExposed_._setMockedOrders(orders);
-    orderManageExposed_.deleteAllOrders();
-    orderManageExposed_._getMockedOrders(mockedOrders);
+    orderFind_.setMockedOrders(orders);
+    deleteAllOrders();
+    orderFind_.getMockedOrders(mockedOrders);
 
     unitTest.assertEquals(
         1,
@@ -530,9 +342,9 @@ void OrderManageTest::deleteAllOrdersTest() {
     orders[0].magicNumber = (BotMagicNumber() == 2044240) ? 2044060 : 2044240;
     ArrayFree(mockedOrders);
 
-    orderManageExposed_._setMockedOrders(orders);
-    orderManageExposed_.deleteAllOrders();
-    orderManageExposed_._getMockedOrders(mockedOrders);
+    orderFind_.setMockedOrders(orders);
+    deleteAllOrders();
+    orderFind_.getMockedOrders(mockedOrders);
 
     unitTest.assertEquals(
         1,
@@ -544,7 +356,7 @@ void OrderManageTest::deleteAllOrdersTest() {
         mockedOrders[0]
     );
 
-    orderManageExposed_._setMockedOrders();
+    orderFind_.setMockedOrders();
 }
 
 void OrderManageTest::deletePendingOrdersTest() {
@@ -560,9 +372,9 @@ void OrderManageTest::deletePendingOrdersTest() {
 
     Order mockedOrders[];
 
-    orderManageExposed_._setMockedOrders(orders);
-    orderManageExposed_.deletePendingOrders();
-    orderManageExposed_._getMockedOrders(mockedOrders);
+    orderFind_.setMockedOrders(orders);
+    deletePendingOrders();
+    orderFind_.getMockedOrders(mockedOrders);
 
     unitTest.assertEquals(
         0,
@@ -572,9 +384,9 @@ void OrderManageTest::deletePendingOrdersTest() {
     orders[0].symbol = "CIAO";
     ArrayFree(mockedOrders);
 
-    orderManageExposed_._setMockedOrders(orders);
-    orderManageExposed_.deletePendingOrders();
-    orderManageExposed_._getMockedOrders(mockedOrders);
+    orderFind_.setMockedOrders(orders);
+    deletePendingOrders();
+    orderFind_.getMockedOrders(mockedOrders);
 
     unitTest.assertEquals(
         1,
@@ -590,9 +402,9 @@ void OrderManageTest::deletePendingOrdersTest() {
     orders[1].type = OP_SELL;
     ArrayFree(mockedOrders);
 
-    orderManageExposed_._setMockedOrders(orders);
-    orderManageExposed_.deletePendingOrders();
-    orderManageExposed_._getMockedOrders(mockedOrders);
+    orderFind_.setMockedOrders(orders);
+    deletePendingOrders();
+    orderFind_.getMockedOrders(mockedOrders);
 
     unitTest.assertEquals(
         1,
@@ -604,72 +416,5 @@ void OrderManageTest::deletePendingOrdersTest() {
         mockedOrders[0]
     );
 
-    orderManageExposed_._setMockedOrders();
-}
-
-void OrderManageTest::buildOrderCommentTest() {
-    UnitTest unitTest("buildOrderCommentTest");
-
-    unitTest.assertEquals(
-        StringConcatenate("A P", Period(), " ", orderManageExposed_.sizeFactorCommentIdentifier_, "1 R3 S10"),
-        orderManageExposed_.buildOrderComment(1, 3, 10)
-    );
-
-    unitTest.assertEquals(
-        StringConcatenate("A P", Period(), " ", orderManageExposed_.sizeFactorCommentIdentifier_, "1.2 R2.8 S12"),
-        orderManageExposed_.buildOrderComment(1.2, 2.8, 12.1)
-    );
-
-    unitTest.assertEquals(
-        StringConcatenate(orderManageExposed_.sizeFactorCommentIdentifier_, "1"),
-        orderManageExposed_.buildOrderComment(1, 2, 12345678901234)
-    );
-}
-
-void OrderManageTest::getSizeFactorFromCommentTest() {
-    UnitTest unitTest("getSizeFactorFromCommentTest");
-
-    string comment = StringConcatenate("A P", Period(), " ",
-        orderManageExposed_.sizeFactorCommentIdentifier_, "1.3 R3 S10");
-
-    unitTest.assertEquals(
-        1.3,
-        orderManageExposed_.getSizeFactorFromComment(comment)
-    );
-
-    comment = StringConcatenate("A P", Period(), " ",
-        orderManageExposed_.sizeFactorCommentIdentifier_, "1 R3 S10");
-
-    unitTest.assertEquals(
-        1.0,
-        orderManageExposed_.getSizeFactorFromComment(comment)
-    );
-
-    comment = StringConcatenate(orderManageExposed_.sizeFactorCommentIdentifier_, "0.8");
-
-    unitTest.assertEquals(
-        0.8,
-        orderManageExposed_.getSizeFactorFromComment(comment)
-    );
-
-    comment = StringConcatenate("A P", Period(), " W1 R3 S10");
-
-    unitTest.assertEquals(
-        -1.0,
-        orderManageExposed_.getSizeFactorFromComment(comment)
-    );
-
-    comment = StringConcatenate("W1");
-
-    unitTest.assertEquals(
-        -1.0,
-        orderManageExposed_.getSizeFactorFromComment(comment)
-    );
-
-    comment = StringConcatenate("asdasdM123asdasd");
-
-    unitTest.assertEquals(
-        123.0,
-        orderManageExposed_.getSizeFactorFromComment(comment)
-    );
+    orderFind_.setMockedOrders();
 }

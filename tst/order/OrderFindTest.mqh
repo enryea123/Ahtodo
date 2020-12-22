@@ -8,14 +8,12 @@
 #include "../../src/order/OrderFind.mqh"
 
 
-class OrderFindTest {
+class OrderFindTest: public OrderFind {
     public:
         void getOrdersListTest();
         void getFilteredOrdersListTest();
 
     private:
-        OrderFind orderFind_;
-
         void buildOrderMocks(Order & []);
 };
 
@@ -23,7 +21,7 @@ void OrderFindTest::getOrdersListTest() {
     UnitTest unitTest("getOrdersListTest");
 
     // This test checks the real functionality of orderFind
-    orderFind_.setMockedOrders();
+    setMockedOrders();
 
     const int randomOrderPos = 5;
 
@@ -36,7 +34,7 @@ void OrderFindTest::getOrdersListTest() {
 
     Order orders[];
 
-    orderFind_.getOrdersList(orders);
+    getOrdersList(orders);
 
     unitTest.assertEquals(
         OrdersTotal(),
@@ -44,7 +42,7 @@ void OrderFindTest::getOrdersListTest() {
     );
 
     ArrayFree(orders);
-    orderFind_.getOrdersList(orders, MODE_HISTORY);
+    getOrdersList(orders, MODE_HISTORY);
 
     if (previouslySelectedOpenPrice != 0) {
         unitTest.assertEquals(
@@ -100,10 +98,10 @@ void OrderFindTest::getFilteredOrdersListTest() {
 
     Order orders[];
     buildOrderMocks(orders);
-    orderFind_.setMockedOrders(orders);
+    setMockedOrders(orders);
 
     OrderFilter orderFilter;
-    orderFind_.getFilteredOrdersList(orders, orderFilter);
+    getFilteredOrdersList(orders, orderFilter);
 
     int totalOrders = ArraySize(orders);
 
@@ -113,7 +111,7 @@ void OrderFindTest::getFilteredOrdersListTest() {
     );
 
     orderFilter.symbolFamily.add(SymbolFamily("EURUSD"));
-    orderFind_.getFilteredOrdersList(orders, orderFilter);
+    getFilteredOrdersList(orders, orderFilter);
     totalOrders--;
 
     unitTest.assertEquals(
@@ -129,7 +127,7 @@ void OrderFindTest::getFilteredOrdersListTest() {
     }
 
     orderFilter.magicNumber.add(ALLOWED_MAGIC_NUMBERS);
-    orderFind_.getFilteredOrdersList(orders, orderFilter);
+    getFilteredOrdersList(orders, orderFilter);
     totalOrders--;
 
     unitTest.assertEquals(
@@ -146,7 +144,7 @@ void OrderFindTest::getFilteredOrdersListTest() {
 
     orderFilter.profit.setFilterType(Exclude);
     orderFilter.profit.add(0);
-    orderFind_.getFilteredOrdersList(orders, orderFilter);
+    getFilteredOrdersList(orders, orderFilter);
     totalOrders--;
 
     unitTest.assertEquals(
@@ -162,7 +160,7 @@ void OrderFindTest::getFilteredOrdersListTest() {
     }
 
     orderFilter.symbol.add("EURUSD");
-    orderFind_.getFilteredOrdersList(orders, orderFilter);
+    getFilteredOrdersList(orders, orderFilter);
     totalOrders--;
 
     unitTest.assertEquals(
@@ -179,7 +177,7 @@ void OrderFindTest::getFilteredOrdersListTest() {
 
     orderFilter.closeTime.setFilterType(Greater);
     orderFilter.closeTime.add(filterDate);
-    orderFind_.getFilteredOrdersList(orders, orderFilter);
+    getFilteredOrdersList(orders, orderFilter);
     totalOrders -= 2;
 
     unitTest.assertEquals(
