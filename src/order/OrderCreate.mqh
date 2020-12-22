@@ -22,7 +22,7 @@ class OrderCreate {
         int calculateOrderTypeFromSetups(int);
         int morningLookBackCandles(int);
         double calculateSizeFactor(int, double, string);
-        double calculateOrderLots(double, double);
+        double calculateOrderLots(int, double);
 
         string buildOrderComment(int, double, double, int);
         double getSizeFactorFromComment(string);
@@ -31,6 +31,7 @@ class OrderCreate {
         OrderFind orderFind_;
 
         static const int maxCommentCharacters_;
+        static const double trendLineSetupMaxPipsDistance_;
         static const string periodCommentIdentifier_;
         static const string sizeFactorCommentIdentifier_;
 
@@ -40,7 +41,6 @@ class OrderCreate {
     private:
         static const int orderCandlesDuration_;
         static const double takeProfitFactor_;
-        static const double trandLineSetupMaxDistance_;
 
         static datetime antiPatternTimeStamp_;
         static datetime foundPatternTimeStamp_;
@@ -50,12 +50,12 @@ class OrderCreate {
 };
 
 const int OrderCreate::maxCommentCharacters_ = 20;
+const double OrderCreate::trendLineSetupMaxPipsDistance_ = 3;
 const string OrderCreate::periodCommentIdentifier_ = "P";
 const string OrderCreate::sizeFactorCommentIdentifier_ = "M";
 
 const int OrderCreate::orderCandlesDuration_ = 6;
 const double OrderCreate::takeProfitFactor_ = 3;
-const double OrderCreate::trandLineSetupMaxDistance_ = 3 * Pips();
 
 datetime OrderCreate::antiPatternTimeStamp_ = -1;
 datetime OrderCreate::foundPatternTimeStamp_ = -1;
@@ -90,7 +90,7 @@ void OrderCreate::newOrder() {
         return;
     }
 
-    if (!IsFirstRankSymbolFamily()) {
+    if (!IsFirstRankSymbolFamily()) { /// togliere ste 3
         Sleep(300);
     }
     if (Period() == PERIOD_H1) { /// necessario? abbastanza tempo?? non qui ma ANCORA prima
@@ -216,12 +216,11 @@ int OrderCreate::calculateOrderTypeFromSetups(int timeIndex) {
     }
 
     Pattern pattern;
-    for (int t = 1; t < timeIndex + 1; t++) {
-        if (pattern.isAntiPattern(t)) {
-            antiPatternTimeStamp_ = PrintTimer(antiPatternTimeStamp_, StringConcatenate(
-                "AntiPattern found at time: ", TimeToStr(Time[t])));
-            return -1;
-        }
+
+    if (pattern.isAntiPattern(timeIndex)) {
+        antiPatternTimeStamp_ = PrintTimer(antiPatternTimeStamp_, StringConcatenate(
+            "AntiPattern found at time: ", TimeToStr(Time[timeIndex])));
+        return -1;
     }
 
     if (!pattern.isSellPattern(timeIndex) && !pattern.isBuyPattern(timeIndex)) {
@@ -238,16 +237,16 @@ int OrderCreate::calculateOrderTypeFromSetups(int timeIndex) {
         }
 
         const double trendLineSetupValue = ObjectGetValueByShift(ObjectName(i), timeIndex);
-        const double trandLineDistanceFromMin = MathAbs(iExtreme(Min, timeIndex) - trendLineSetupValue);
-        const double trandLineDistanceFromMax = MathAbs(iExtreme(Max, timeIndex) - trendLineSetupValue);
+        const double trendLineDistanceFromMin = MathAbs(iExtreme(Min, timeIndex) - trendLineSetupValue);
+        const double trendLineDistanceFromMax = MathAbs(iExtreme(Max, timeIndex) - trendLineSetupValue);
 
-        if (pattern.isSellPattern(timeIndex) && trandLineDistanceFromMin < trandLineSetupMaxDistance_) {
+        if (pattern.isSellPattern(timeIndex) && trendLineDistanceFromMin < trendLineSetupMaxPipsDistance_ * Pips()) {
             sellSetupTimeStamp_ = PrintTimer(sellSetupTimeStamp_, StringConcatenate(
                 "Found OP_SELLSTOP setup at Time: ", TimeToStr(Time[timeIndex]), " for TrendLine: ", ObjectName(i)));
             return OP_SELLSTOP;
         }
 
-        if (pattern.isBuyPattern(timeIndex) && trandLineDistanceFromMax < trandLineSetupMaxDistance_) {
+        if (pattern.isBuyPattern(timeIndex) && trendLineDistanceFromMax < trendLineSetupMaxPipsDistance_ * Pips()) {
             buySetupTimeStamp_ = PrintTimer(buySetupTimeStamp_, StringConcatenate(
                 "Found OP_BUYSTOP setup at Time: ", TimeToStr(Time[timeIndex]), " for TrendLine: ", ObjectName(i)));
             return OP_BUYSTOP;
@@ -418,13 +417,13 @@ int OrderCreate::morningLookBackCandles(int period = NULL) {
  * Calculates the size for a new order, and makes sure that it's divisible by 2,
  * so that the position can be later split.
  */
-double OrderCreate::calculateOrderLots(double stopLossPips, double sizeFactor) {
+double OrderCreate::calculateOrderLots(int stopLossPips, double sizeFactor) {
     if (sizeFactor == 0) {
         return 0;
     }
 
     const double absoluteRisk = (PERCENT_RISK / 100) * AccountEquity() / MarketInfo(Symbol(), MODE_TICKVALUE);
-    const double stopLossTicks = stopLossPips / 10;
+    const int stopLossTicks = stopLossPips * 10;
     const double rawOrderLots = absoluteRisk / stopLossTicks;
 
     double orderLots = 2 * NormalizeDouble(rawOrderLots * sizeFactor / 2, 2);

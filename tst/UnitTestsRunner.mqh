@@ -51,6 +51,9 @@ void UnitTestsRunner::runAllUnitTests() {
     OrderCreateTest orderCreateTest;
     orderCreateTest.areThereRecentOrdersTest();
     orderCreateTest.areThereBetterOrdersTest();
+    orderCreateTest.calculateOrderTypeFromSetupsTest();
+    orderCreateTest.calculateSizeFactorTest();
+    orderCreateTest.calculateOrderLotsTest();
     orderCreateTest.buildOrderCommentTest();
     orderCreateTest.getSizeFactorFromCommentTest();
 

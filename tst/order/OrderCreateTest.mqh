@@ -11,6 +11,9 @@ class OrderCreateTest: public OrderCreate {
     public:
         void areThereRecentOrdersTest();
         void areThereBetterOrdersTest();
+        void calculateOrderTypeFromSetupsTest();
+        void calculateSizeFactorTest();
+        void calculateOrderLotsTest();
         void buildOrderCommentTest();
         void getSizeFactorFromCommentTest();
 };
@@ -154,10 +157,198 @@ void OrderCreateTest::areThereBetterOrdersTest() {
     orderFind_.setMockedOrders();
 }
 
+void OrderCreateTest::calculateOrderTypeFromSetupsTest() {
+    UnitTest unitTest("calculateOrderTypeFromSetupsTest");
+
+    unitTest.assertEquals(
+        -1,
+        calculateOrderTypeFromSetups(0)
+    );
+
+    Pattern pattern;
+
+    const int totalAssertions = 3;
+    int checkedAssertions = 0;
+
+    bool antiPatternTested = false;
+    bool patternTested = false;
+    bool trendLineTested = false;
+
+    for (int i = 1; i < 100; i++) {
+        if (checkedAssertions == totalAssertions) {
+            break;
+        }
+
+        if (!antiPatternTested && pattern.isAntiPattern(i)) {
+            unitTest.assertEquals(
+                -1,
+                calculateOrderTypeFromSetups(i)
+            );
+            checkedAssertions++;
+            antiPatternTested = true;
+        } else if (!patternTested && (!pattern.isSellPattern(i) && !pattern.isBuyPattern(i))) {
+            unitTest.assertEquals(
+                -1,
+                calculateOrderTypeFromSetups(i)
+            );
+            checkedAssertions++;
+            patternTested = true;
+        } else if (!trendLineTested && (pattern.isSellPattern(i) || pattern.isBuyPattern(i))) {
+            TrendLine trendLine;
+
+            const Discriminator discriminator = (pattern.isSellPattern(i)) ? Min : Max;
+            const int expectedOrder = (discriminator == Min) ? OP_SELLSTOP : OP_BUYSTOP;
+            const double currentExtreme = iExtreme(discriminator, i);
+
+            string trendLineName = trendLine.buildTrendLineName(50 + i, 20 + i, 0, discriminator);
+            ObjectCreate(trendLineName, OBJ_TREND, 0, Time[50 + i], currentExtreme, Time[20 + i], currentExtreme);
+
+            unitTest.assertEquals(
+                expectedOrder,
+                calculateOrderTypeFromSetups(i), "1"
+            );
+
+            ObjectDelete(trendLineName);
+            trendLineName = trendLine.buildTrendLineName(50 + i, 20 + i, 0, discriminator);
+            ObjectCreate(trendLineName, OBJ_TREND, 0,
+                Time[50 + i], currentExtreme + (trendLineSetupMaxPipsDistance_ - 1) * Pips(),
+                Time[20 + i], currentExtreme + (trendLineSetupMaxPipsDistance_ - 1) * Pips()
+            );
+
+            unitTest.assertEquals(
+                expectedOrder,
+                calculateOrderTypeFromSetups(i), "2"
+            );
+
+            ObjectDelete(trendLineName);
+            trendLineName = trendLine.buildTrendLineName(50 + i, 20 + i, 0, discriminator);
+            ObjectCreate(trendLineName, OBJ_TREND, 0,
+                Time[50 + i], currentExtreme + (trendLineSetupMaxPipsDistance_ + 1) * Pips(),
+                Time[20 + i], currentExtreme + (trendLineSetupMaxPipsDistance_ + 1) * Pips()
+            );
+
+            unitTest.assertEquals(
+                -1,
+                calculateOrderTypeFromSetups(i)
+            );
+
+            ObjectDelete(trendLineName);
+            trendLineName = trendLine.buildTrendLineName(50 + i, 20 + i, 0, discriminator);
+            ObjectCreate(trendLineName, OBJ_TREND, 0,
+                Time[50 + i], currentExtreme - (trendLineSetupMaxPipsDistance_ + 1) * Pips(),
+                Time[20 + i], currentExtreme - (trendLineSetupMaxPipsDistance_ + 1) * Pips()
+            );
+
+            unitTest.assertEquals(
+                -1,
+                calculateOrderTypeFromSetups(i)
+            );
+
+            ObjectDelete(trendLineName);
+            trendLineName = trendLine.buildBadTrendLineName(50 + i, 20 + i, 0, discriminator);
+            ObjectCreate(trendLineName, OBJ_TREND, 0, Time[50 + i], currentExtreme, Time[20 + i], currentExtreme);
+
+            unitTest.assertEquals(
+                -1,
+                calculateOrderTypeFromSetups(i)
+            );
+
+            ObjectDelete(trendLineName);
+            trendLineName = trendLine.buildTrendLineName(50 + i, i, 0, discriminator);
+            ObjectCreate(trendLineName, OBJ_TREND, 0, Time[50 + i], currentExtreme, Time[i], currentExtreme);
+
+            unitTest.assertEquals(
+                -1,
+                calculateOrderTypeFromSetups(i)
+            );
+
+            ObjectDelete(trendLineName);
+
+            checkedAssertions++;
+            trendLineTested = true;
+        }
+    }
+
+    if (checkedAssertions < totalAssertions) {
+        Print(checkedAssertions, "/", totalAssertions, " checks run, some skipped..");
+    }
+}
+
+void OrderCreateTest::calculateSizeFactorTest() {
+    UnitTest unitTest("calculateSizeFactorTest");
+
+    const double price = GetAsk();
+    const string symbol = Symbol();
+
+    unitTest.assertEquals(
+        0.0,
+        calculateSizeFactor(OP_SELL, price, symbol)
+    );
+
+    unitTest.assertEquals(
+        0.0,
+        calculateSizeFactor(OP_BUYSTOP, -price, symbol)
+    );
+
+    unitTest.assertEquals(
+        0.0,
+        calculateSizeFactor(OP_SELLSTOP, price, "CIAO")
+    );
+
+    Pivot pivot;
+    if (price > pivot.getPivotRS(symbol, D1, R2) || price < pivot.getPivotRS(symbol, D1, S2)) {
+        // red configuration
+        unitTest.assertEquals(
+            0.0,
+            calculateSizeFactor(OP_BUYSTOP, price, symbol)
+        );
+    } else {
+        unitTest.assertTrue(
+            calculateSizeFactor(OP_BUYSTOP, price, symbol) > 0
+        );
+        unitTest.assertTrue(
+            calculateSizeFactor(OP_BUYSTOP, price, symbol) < 2
+        );
+    }
+}
+
+void OrderCreateTest::calculateOrderLotsTest() {
+    UnitTest unitTest("calculateOrderLotsTest");
+
+    const int stopLossPips = 10;
+
+    unitTest.assertEquals(
+        0.0,
+        calculateOrderLots(stopLossPips, 0)
+    );
+
+    unitTest.assertEquals(
+        NormalizeDouble(calculateOrderLots(stopLossPips, 1) / 2, 2),
+        calculateOrderLots(stopLossPips, 1) / 2
+    );
+
+    unitTest.assertEquals(
+        0.02,
+        calculateOrderLots(stopLossPips, 0.0001)
+    );
+
+    unitTest.assertTrue(
+        calculateOrderLots(stopLossPips, 1.5) > calculateOrderLots(stopLossPips, 1)
+    );
+
+    unitTest.assertTrue(
+        calculateOrderLots(stopLossPips, 1) > 0
+    );
+
+    unitTest.assertTrue(
+        calculateOrderLots(stopLossPips, 1) < 30 // max lots allowed per operation
+    );
+}
+
 void OrderCreateTest::buildOrderCommentTest() {
     UnitTest unitTest("buildOrderCommentTest");
 
-/// commento riguardante lo split degli ordini ed il commmento  (oppure si potrebbe fare che non contenga #from? dipende dal broker quello)
+    // OrderTrail relies on this comment structure for splitPosition
 
     unitTest.assertEquals(
         "A P60 M1 R3 S10",

@@ -149,3 +149,5 @@
 // se si unisce il bot per timeframe multipli, si puo fare mandare prima l'ordine m30, cosi non c'è da aspettare con Sleep.
 
 // pivot possono essere salvati in static variable invece che calcolati ogni volta.
+
+// controlla che nessuna variabile statica chiami nessuna funzione quando inizializzata, perchè causa bug

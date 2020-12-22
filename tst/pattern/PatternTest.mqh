@@ -73,10 +73,9 @@ void PatternTest::isPatternTest() {
             checkedAssertions++;
             isNotDownPinbarTested = true;
         }
+    }
 
-        if (i == maxIndex - 1 && checkedAssertions < totalAssertions) {
-            Print("isBuyPatternTest: ", checkedAssertions, " out of ",
-                totalAssertions, " assertions checked, some skipped..");
-        }
+    if (checkedAssertions < totalAssertions) {
+        Print(checkedAssertions, "/", totalAssertions, " checks run, some skipped..");
     }
 }
