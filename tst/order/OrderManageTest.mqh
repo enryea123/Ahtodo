@@ -22,7 +22,7 @@ void OrderManageTest::areThereOpenOrdersTest() {
     UnitTest unitTest("areThereOpenOrdersTest");
 
     Order order;
-    order.magicNumber = 2044060;
+    order.magicNumber = BASE_MAGIC_NUMBER + PERIOD_H1;
     order.symbolFamily = SymbolFamily();
     order.type = OP_SELLSTOP;
 
@@ -91,7 +91,7 @@ void OrderManageTest::deduplicateOrdersTest() {
 
     Order orders[];
     ArrayResize(orders, 1);
-    orders[0].magicNumber = 2044060;
+    orders[0].magicNumber = BASE_MAGIC_NUMBER + PERIOD_H1;
     orders[0].symbol = Symbol();
     orders[0].symbolFamily = SymbolFamily();
     orders[0].type = OP_SELLSTOP;
@@ -180,9 +180,10 @@ void OrderManageTest::emergencySwitchOffTest() {
 
     Order orders[];
     ArrayResize(orders, 3);
-    orders[0].magicNumber = BotMagicNumber();
-    orders[1].magicNumber = BotMagicNumber();
-    orders[2].magicNumber = (BotMagicNumber() == 2044240) ? 2044060 : 2044240;
+    orders[0].magicNumber = MagicNumber();
+    orders[1].magicNumber = MagicNumber();
+    orders[2].magicNumber = (MagicNumber() == BASE_MAGIC_NUMBER + PERIOD_H4) ?
+        BASE_MAGIC_NUMBER + PERIOD_H1 : BASE_MAGIC_NUMBER + PERIOD_H4;
     orders[0].symbol = Symbol();
     orders[1].symbol = orders[0].symbol;
     orders[2].symbol = orders[0].symbol;
@@ -206,7 +207,7 @@ void OrderManageTest::emergencySwitchOffTest() {
     orderFind_.getMockedOrders(mockedOrders);
 
     unitTest.assertEquals(
-        2, // deleteAllOrders() only deletes orders with BotMagicNumber()
+        2, // deleteAllOrders() only deletes orders with MagicNumber()
         ArraySize(mockedOrders)
     );
 
@@ -230,8 +231,8 @@ void OrderManageTest::lossLimiterTest() {
 
     Order orders[];
     ArrayResize(orders, 3);
-    orders[0].magicNumber = BotMagicNumber();
-    orders[1].magicNumber = BotMagicNumber();
+    orders[0].magicNumber = MagicNumber();
+    orders[1].magicNumber = MagicNumber();
     orders[2].magicNumber = 9999999;
     orders[0].symbol = Symbol();
     orders[1].symbol = orders[0].symbol;
@@ -277,7 +278,7 @@ void OrderManageTest::lossLimiterTest() {
     orderFind_.getMockedOrders(mockedOrders);
 
     unitTest.assertEquals(
-        1, // deleteAllOrders() only deletes orders with BotMagicNumber()
+        1, // deleteAllOrders() only deletes orders with MagicNumber()
         ArraySize(mockedOrders)
     );
 
@@ -306,7 +307,7 @@ void OrderManageTest::deleteAllOrdersTest() {
 
     Order orders[];
     ArrayResize(orders, 2);
-    orders[0].magicNumber = BotMagicNumber();
+    orders[0].magicNumber = MagicNumber();
     orders[0].symbol = Symbol();
     orders[1] = orders[0];
 
@@ -339,7 +340,8 @@ void OrderManageTest::deleteAllOrdersTest() {
     );
 
     orders[0].symbol = Symbol();
-    orders[0].magicNumber = (BotMagicNumber() == 2044240) ? 2044060 : 2044240;
+    orders[0].magicNumber = (MagicNumber() == BASE_MAGIC_NUMBER + PERIOD_H4) ?
+        BASE_MAGIC_NUMBER + PERIOD_H1 : BASE_MAGIC_NUMBER + PERIOD_H4;
     ArrayFree(mockedOrders);
 
     orderFind_.setMockedOrders(orders);
@@ -364,7 +366,7 @@ void OrderManageTest::deletePendingOrdersTest() {
 
     Order orders[];
     ArrayResize(orders, 2);
-    orders[0].magicNumber = BotMagicNumber();
+    orders[0].magicNumber = MagicNumber();
     orders[0].symbol = Symbol();
     orders[0].type = OP_BUYSTOP;
     orders[1] = orders[0];

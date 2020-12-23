@@ -24,7 +24,7 @@ void OrderCreateTest::areThereRecentOrdersTest() {
     const datetime filterDate = (datetime) "2020-09-01";
 
     Order order;
-    order.magicNumber = 2044060;
+    order.magicNumber = BASE_MAGIC_NUMBER + PERIOD_H1;
     order.symbolFamily = SymbolFamily();
     order.type = OP_SELL;
     order.closeTime = (datetime) "2020-08-20";
@@ -66,7 +66,7 @@ void OrderCreateTest::areThereBetterOrdersTest() {
     const double stopLossSize = 20 * Pips();
 
     Order order;
-    order.magicNumber = 2044060;
+    order.magicNumber = BASE_MAGIC_NUMBER + PERIOD_H1;
     order.symbol = Symbol();
     order.symbolFamily = SymbolFamily();
     order.type = OP_SELLSTOP;
@@ -140,7 +140,7 @@ void OrderCreateTest::areThereBetterOrdersTest() {
         areThereBetterOrders(order.symbol, OP_SELLSTOP, stopLossSize, 0)
     );
 
-    order.magicNumber = 2044060;
+    order.magicNumber = BASE_MAGIC_NUMBER + PERIOD_H1;
 
     Order orders[];
     ArrayResize(orders, 2);

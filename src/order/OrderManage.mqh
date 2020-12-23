@@ -119,7 +119,7 @@ void OrderManage::emergencySwitchOff() {
         const string exceptionMessage = StringConcatenate(
             "Emergency switchOff invoked for magicNumber: ", orders[0].magicNumber);
 
-        if (INITIALIZATION_COMPLETED) {
+        if (UNIT_TESTS_COMPLETED) {
             ThrowFatalException(__FUNCTION__, exceptionMessage);
         } else {
             ThrowException(__FUNCTION__, exceptionMessage);
@@ -155,7 +155,7 @@ void OrderManage::lossLimiter() {
             const string exceptionMessage = StringConcatenate(
                 "Emergency switchOff invoked for total losses: ", totalLosses);
 
-            if (INITIALIZATION_COMPLETED) {
+            if (UNIT_TESTS_COMPLETED) {
                 ThrowFatalException(__FUNCTION__, exceptionMessage);
             } else {
                 ThrowException(__FUNCTION__, exceptionMessage);
@@ -189,7 +189,7 @@ bool OrderManage::findBestOrder(Order & order1, Order & order2) {
  */
 void OrderManage::deleteAllOrders() {
     OrderFilter orderFilter;
-    orderFilter.magicNumber.add(BotMagicNumber());
+    orderFilter.magicNumber.add(MagicNumber());
     orderFilter.symbol.add(Symbol());
 
     Order orders[];
@@ -203,7 +203,7 @@ void OrderManage::deleteAllOrders() {
  */
 void OrderManage::deletePendingOrders() {
     OrderFilter orderFilter;
-    orderFilter.magicNumber.add(BotMagicNumber());
+    orderFilter.magicNumber.add(MagicNumber());
     orderFilter.symbol.add(Symbol());
 
     orderFilter.type.setFilterType(Exclude);
@@ -228,23 +228,24 @@ void OrderManage::deleteOrdersFromList(Order & orders[]) {
  * Delete a single order.
  */
 void OrderManage::deleteSingleOrder(Order & order) {
-    if (INITIALIZATION_COMPLETED) {
-        const int ticket = order.ticket;
-        bool deletedOrder = false;
-
-        if (order.type == OP_BUY || order.type == OP_SELL) {
-            deletedOrder = OrderClose(ticket, order.lots, order.closePrice, 3);
-        } else {
-            deletedOrder = OrderDelete(ticket);
-        }
-
-        if (deletedOrder) {
-            Print(__FUNCTION__, " | Deleted order: ", ticket);
-        } else {
-            ThrowException(__FUNCTION__, StringConcatenate("Failed to delete order: ", ticket));
-        }
-    } else {
+    if (!UNIT_TESTS_COMPLETED) {
         // Needed for unit tests
         orderFind_.deleteMockedOrder(order);
+        return;
+    }
+
+    const int ticket = order.ticket;
+    bool deletedOrder = false;
+
+    if (order.type == OP_BUY || order.type == OP_SELL) {
+        deletedOrder = OrderClose(ticket, order.lots, order.closePrice, 3);
+    } else {
+        deletedOrder = OrderDelete(ticket);
+    }
+
+    if (deletedOrder) {
+        Print(__FUNCTION__, " | Deleted order: ", ticket);
+    } else {
+        ThrowException(__FUNCTION__, StringConcatenate("Failed to delete order: ", ticket));
     }
 }

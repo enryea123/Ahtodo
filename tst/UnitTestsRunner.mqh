@@ -10,6 +10,7 @@
 #include "order/OrderFindTest.mqh"
 #include "order/OrderCreateTest.mqh"
 #include "order/OrderManageTest.mqh"
+#include "order/OrderTrailTest.mqh"
 #include "pattern/PatternTest.mqh"
 #include "pivot/PivotTest.mqh"
 #include "pivot/PivotStyleTest.mqh"
@@ -70,6 +71,10 @@ void UnitTestsRunner::runAllUnitTests() {
     orderManageTest.deleteAllOrdersTest();
     orderManageTest.deletePendingOrdersTest();
 
+    OrderTrailTest orderTrailTest;
+    orderTrailTest.splitPositionTest();
+    orderTrailTest.breakEvenStopLossTest();
+
     PatternTest patternTest;
     patternTest.isPatternTest();
 
@@ -91,5 +96,6 @@ void UnitTestsRunner::runAllUnitTests() {
     trendLineTest.trendLineNameTest();
     trendLineTest.trendLineSetupsTest();
 
+    UNIT_TESTS_COMPLETED = true;
     Print("All unit tests run in ", TimeLocal() - startTime, " seconds");
 }

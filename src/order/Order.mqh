@@ -77,7 +77,13 @@ int Order::getPeriod() {
         return ThrowException(-1, __FUNCTION__, "MagicNumber not initialized");
     }
 
-    return (magicNumber - BOT_MAGIC_NUMBER);
+    for (int i = 0; i < ArraySize(ALLOWED_MAGIC_NUMBERS); i++) {
+        if (magicNumber == ALLOWED_MAGIC_NUMBERS[i]) {
+            return (magicNumber - BASE_MAGIC_NUMBER);
+        }
+    }
+
+    return ThrowException(-1, __FUNCTION__, "Could not get period for unknown magicNumber");
 }
 
 int Order::getStopLossPips() {

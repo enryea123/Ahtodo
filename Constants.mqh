@@ -2,21 +2,22 @@
 #property link "https://www.linkedin.com/in/enryea123"
 #property strict
 
-input double PERCENT_RISK = 1.0; /// getPercentRisk: if !PercentRisk -> get from list of account owners
+input double PERCENT_RISK = 1.5;
 
 const bool IS_DEBUG = false;
+const bool SPLIT_POSITION = true;
 
-bool INITIALIZATION_COMPLETED = false; // oppure dovrebbe chiamarsi UNIT_TESTS_FINISHED
+bool UNIT_TESTS_COMPLETED = false;
 
-const int BOT_MAGIC_NUMBER = 2044000; // then pass a different bot base number to each strategy Order's thing
-
-const datetime BOT_EXPIRATION_DATE = (datetime) "2021-06-30"; /// usare __DATETIME__? o __DATE__ meglio
+const datetime BOT_EXPIRATION_DATE = (datetime) "2021-06-30";
 const datetime BOT_TESTS_EXPIRATION_DATE = (datetime) "2025-01-01";
 
 const int CANDLES_VISIBLE_IN_GRAPH_2X = 940; /// questa non dovrebbe essere un config pero
 const int PATTERN_MINIMUM_SIZE_PIPS = 7;
 const int PATTERN_MAXIMUM_SIZE_PIPS = 22;
 const string NAME_SEPARATOR = "_";
+/// crea variabile " | ", magari anche senza spazi
+
 
 /// credo che le variabili qui mi piacciano, devo spostarne di piu allora
 
@@ -39,9 +40,11 @@ const int ALLOWED_PERIODS [] = {
     PERIOD_H4
 };
 
-const int ALLOWED_MAGIC_NUMBERS [] = { // shouldn't be here, should be inside the code used by each strategy
+const int BASE_MAGIC_NUMBER = 2044000;
+
+const int ALLOWED_MAGIC_NUMBERS [] = {
     2044030,
-    2044060,
+    2044060, // c'è modo di riutilizzare la variabile sopra?
     2044240
 };
 
@@ -263,18 +266,12 @@ double GetAsk(string symbol = NULL) { /// to be used for pips setups
     return MarketInfo(symbol, MODE_ASK); /// check where used and replace
 }
 
-int BotMagicNumber() {
-    return (BOT_MAGIC_NUMBER + Period());
+Discriminator GetOrderDiscriminator(int orderType) {
+    return (orderType == OP_BUY || orderType == OP_BUYSTOP || orderType == OP_BUYLIMIT) ? Max : Min; ///// INIZIA AD USARLO OVUNQUE, CERCA "== OP_"
 }
 
-bool IsUnknownMagicNumber(int magicNumber) {
-    for (int i = 0; i < ArraySize(ALLOWED_MAGIC_NUMBERS); i++) {
-        if (magicNumber == ALLOWED_MAGIC_NUMBERS[i]) {
-            return true;
-        }
-    }
-
-    return false;
+int MagicNumber() {
+    return (BASE_MAGIC_NUMBER + Period());
 }
 
 double GetMarketVolatility() { // Needs testing as well (price class with iCandle and Pips?)
@@ -315,21 +312,6 @@ string SymbolFamily(string symbol = NULL) {
     } else {
         return StringSubstr(symbol, 0, 3);
     }
-}
-
-bool IsFirstRankSymbolFamily(string symbol = NULL) {
-    if (symbol == NULL) {
-        symbol = Symbol();
-    }
-
-    const string family = SymbolFamily(symbol);
-
-/// SI MA NON DISTINGUE TRA GBPUSD E GBPCHF PER ESEMPIO
-    if (family == "EUR" || family == "GBP" || family == "USD") { /// fare array variabile, e mettere sta funzione in OrderQualcosa
-        return true;
-    }
-
-    return false;
 }
 
 template <typename T> void ArrayCopyClass(T & destination[], T & source[]) {
@@ -403,7 +385,7 @@ datetime AlertTimer(datetime timeStamp, string message) {
 void OptionalAlert(string message) { // should be private if it goes in a class
     const string fullMessage = buildAlertMessage(message);
 
-    if (INITIALIZATION_COMPLETED) {
+    if (UNIT_TESTS_COMPLETED) {
         Alert(fullMessage);
     } else {
         Print(fullMessage);

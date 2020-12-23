@@ -151,3 +151,5 @@
 // pivot possono essere salvati in static variable invece che calcolati ogni volta.
 
 // controlla che nessuna variabile statica chiami nessuna funzione quando inizializzata, perchè causa bug
+
+// ora che gli unittest ereditano, magari si possono muovere piu funzioni in protected

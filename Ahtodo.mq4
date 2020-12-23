@@ -40,7 +40,6 @@ void OnInit() {
     drawer.drawEverything();
 
     Print("Initialization completed in ", TimeLocal() - startTime, " seconds");
-    INITIALIZATION_COMPLETED = true;
 }
 
 void OnTick() {
@@ -84,5 +83,5 @@ void OnDeinit(const int reason) {
     drawer.setChartDefaultColors();
 
     ObjectsDeleteAll();
-    INITIALIZATION_COMPLETED = false;
+    UNIT_TESTS_COMPLETED = false;
 }

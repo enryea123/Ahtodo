@@ -38,7 +38,7 @@ void OrderFind::getFilteredOrdersList(Order & orders[], OrderFilter & orderFilte
 }
 
 void OrderFind::getOrdersList(Order & orders[], int pool = MODE_TRADES) {
-    if (ArraySize(mockedOrders_) > 0 && !INITIALIZATION_COMPLETED) {
+    if (ArraySize(mockedOrders_) > 0 && !UNIT_TESTS_COMPLETED) {
         getMockedOrders(orders);
         return;
     }

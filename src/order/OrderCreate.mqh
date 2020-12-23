@@ -83,21 +83,11 @@ void OrderCreate::newOrder() {
     if (!IsTradeAllowed()) {
         return;
     }
-    if (Minute() == 0 || Minute() == 59 || Minute() == 30 || Minute() == 29) { /// extract in new class?
+    if (Minute() == 0 || Minute() == 59 || Minute() == 30 || Minute() == 29) {
         return;
     }
     if (areThereRecentOrders()) {
         return;
-    }
-
-    if (!IsFirstRankSymbolFamily()) { /// togliere ste 3
-        Sleep(300);
-    }
-    if (Period() == PERIOD_H1) { /// necessario? abbastanza tempo?? non qui ma ANCORA prima
-        Sleep(300);
-    }
-    if (Period() == PERIOD_H4) {
-        Sleep(500);
     }
 
     createNewOrder(1);
@@ -121,7 +111,7 @@ void OrderCreate::createNewOrder(int startIndexForOrder) {
 
     Order order;
     order.symbol = Symbol();
-    order.magicNumber = BotMagicNumber();
+    order.magicNumber = MagicNumber();
     order.type = calculateOrderTypeFromSetups(startIndexForOrder);
 
     if (order.type != OP_BUYSTOP && order.type != OP_SELLSTOP) {
@@ -164,6 +154,10 @@ void OrderCreate::createNewOrder(int startIndexForOrder) {
  * Creates a new pending order.
  */
 void OrderCreate::sendOrder(Order & order) {
+    if (!UNIT_TESTS_COMPLETED) {
+        return;
+    }
+
     ResetLastError();
 
     order.ticket = OrderSend(
