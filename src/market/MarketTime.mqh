@@ -150,7 +150,7 @@ int MarketTime::timeShiftInHours(datetime date1, datetime date2) {
  * Returns true if the daylight saving time correction is on in EU.
  */
 int MarketTime::getDaylightSavingCorrectionCET(datetime date = NULL) {
-    if (!date) {
+    if (date == NULL) {
         date = TimeGMT();
     }
 
@@ -171,7 +171,7 @@ int MarketTime::getDaylightSavingCorrectionCET(datetime date = NULL) {
  * Returns true if the daylight saving time correction is on in US.
  */
 int MarketTime::getDaylightSavingCorrectionUSA(datetime date = NULL) {
-    if (!date) {
+    if (date == NULL) {
         date = TimeGMT();
     }
 
@@ -206,7 +206,7 @@ datetime MarketTime::findDayOfWeekOccurrenceInMonth(int year, int month, int day
     if (occurrence > 0) {
         startDay = MathMin(1 + 7 * (occurrence - 1), daysInMonth - 7);
         endDay = MathMin(7 * occurrence, daysInMonth);
-    } else if(occurrence < 0) {
+    } else if (occurrence < 0) {
         startDay = MathMax(1 + daysInMonth + 7 * occurrence, 1);
         endDay = MathMax(daysInMonth + 7 * (occurrence + 1), 7);
     } else {

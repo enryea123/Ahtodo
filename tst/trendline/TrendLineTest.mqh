@@ -139,7 +139,7 @@ void TrendLineTest::trendLineSetupsTest() {
             areTrendLineSetupsGood(50, 20, Min),
             "Incorrect slope test - Min"
         );
-    }else if (iExtreme(Max, 50) < iExtreme(Max, 20)) {
+    } else if (iExtreme(Max, 50) < iExtreme(Max, 20)) {
         unitTest.assertFalse(
             areTrendLineSetupsGood(50, 20, Max),
             "Incorrect slope test - Max"
@@ -157,7 +157,7 @@ void TrendLineTest::trendLineSetupsTest() {
             areTrendLineSetupsGood(50, 20, Min),
             "TrendLine positive slope volatility"
         );
-    }else if (slopeMax < 0 && MathAbs(slopeMax) >
+    } else if (slopeMax < 0 && MathAbs(slopeMax) >
         TRENDLINE_NEGATIVE_SLOPE_VOLATILITY * getVolatility()) {
         unitTest.assertFalse(
             areTrendLineSetupsGood(50, 20, Max),

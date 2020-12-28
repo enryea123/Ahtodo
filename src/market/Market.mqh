@@ -47,6 +47,8 @@ class Market {
         bool forceIsLiveAccountForTesting_;
 };
 
+const int Market::incorrectClockErrorSeconds_ = 60;
+
 Market::Market():
     forceIsLiveAccountForTesting_(false) {
 }
@@ -56,8 +58,6 @@ Market::~Market() {
     spreadTimeStamp_ = -1;
     wrongClockTimeStamp_ = -1;
 }
-
-const int Market::incorrectClockErrorSeconds_ = 60;
 
 bool Market::isHoliday_ = false;
 datetime Market::spreadTimeStamp_ = -1;
@@ -139,7 +139,7 @@ void Market::marketConditionsValidation() {
  * Check if the current account number is allowed to run the bot.
  */
 bool Market::isAllowedAccountNumber(int accountNumber = NULL) {
-    if (!accountNumber) {
+    if (accountNumber == NULL) {
         accountNumber = AccountNumber();
     }
 
@@ -162,7 +162,7 @@ bool Market::isAllowedAccountNumber(int accountNumber = NULL) {
  * Check if the bot has expired and it's no more allowed to run.
  */
 bool Market::isAllowedExecutionDate(datetime date = NULL) {
-    if (!date) {
+    if (date == NULL) {
         date = TimeGMT();
     }
 
@@ -182,7 +182,7 @@ bool Market::isAllowedExecutionDate(datetime date = NULL) {
  * Check if the current period is supported to run the bot.
  */
 bool Market::isAllowedPeriod(int period = NULL) {
-    if (!period) {
+    if (period == NULL) {
         period = Period();
     }
 
@@ -198,8 +198,8 @@ bool Market::isAllowedPeriod(int period = NULL) {
 /**
  * Check if the current symbol is supported to run the bot.
  */
-bool Market::isAllowedSymbol(string symbol = "") {
-    if (symbol == "") {
+bool Market::isAllowedSymbol(string symbol = NULL) {
+    if (symbol == NULL) {
         symbol = Symbol();
     }
 
@@ -220,8 +220,8 @@ bool Market::isAllowedSymbol(string symbol = "") {
  * Check if the current broker is supported to run the bot. This is because
  * different brokers with different digits and options haven't been tested yet.
  */
-bool Market::isAllowedBroker(string broker = "") {
-    if (broker == "") {
+bool Market::isAllowedBroker(string broker = NULL) {
+    if (broker == NULL) {
         broker = AccountCompany();
     }
 
@@ -241,11 +241,11 @@ bool Market::isAllowedBroker(string broker = "") {
 /**
  * Check if the current period/symbol combo is supported to run the bot.
  */
-bool Market::isAllowedSymbolPeriodCombo(string symbol = "", int period = NULL) {
-    if (symbol == "") {
+bool Market::isAllowedSymbolPeriodCombo(string symbol = NULL, int period = NULL) {
+    if (symbol == NULL) {
         symbol = Symbol();
     }
-    if (!period) {
+    if (period == NULL) {
         period = Period();
     }
 
@@ -267,7 +267,7 @@ bool Market::isAllowedSymbolPeriodCombo(string symbol = "", int period = NULL) {
  * Check if the current account is demo or live. It allows to override the real value for unit tests.
  */
 bool Market::isDemoTrading(int accountNumber = NULL) {
-    if (!accountNumber) {
+    if (accountNumber == NULL) {
         accountNumber = AccountNumber();
     }
 

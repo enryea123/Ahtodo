@@ -122,8 +122,10 @@ bool OrderTrail::splitPosition(Order & order, double newStopLoss) {
 
     if ((order.type == OP_BUY && newStopLoss > order.openPrice) ||
         (order.type == OP_SELL && newStopLoss < order.openPrice)) {
-        // Avoid splitting two times if there is a trailing,
-        // since the sign of newStopLossPips is not checked
+        /**
+         * Avoid splitting two times if there is a trailing,
+         * since the sign of newStopLossPips is not checked.
+         */
         return false;
     }
 
@@ -192,9 +194,9 @@ double OrderTrail::trailer(double openPrice, double stopLoss, double takeProfit)
     double trailerStopLoss = currentExtreme - initialStopLossDistance * trailer;
 
     // Trailing StopLoss
-    if(discriminator > 0){
+    if (discriminator > 0) {
         stopLoss = MathMax(stopLoss, trailerStopLoss);
-    }else{
+    } else {
         stopLoss = MathMin(stopLoss, trailerStopLoss);
     }
 
