@@ -10,6 +10,9 @@
 #include "../pivot/Pivot.mqh"
 
 
+/**
+ * This class allows to modify and trail an already existing opened order.
+ */
 class OrderTrail {
     public:
         ~OrderTrail();
@@ -26,21 +29,8 @@ class OrderTrail {
         double trailer(double, double, double);
 
     private:
-        static const int breakEvenSteps_;
-        static const int breakEvenPips_;
-        static const int commissionPips_;
-        static const int takeProfitOneSaverPips_;
-
         static datetime orderModifiedTimeStamp_;
-
-        int getBreakEvenPips(int, int);
-        int getBreakEvenPoint(int, int);
 };
-
-const int OrderTrail::breakEvenSteps_ = 2;
-const int OrderTrail::breakEvenPips_ = 6;
-const int OrderTrail::commissionPips_ = 2;
-const int OrderTrail::takeProfitOneSaverPips_ = 25;
 
 datetime OrderTrail::orderModifiedTimeStamp_ = -1;
 
@@ -48,6 +38,9 @@ OrderTrail::~OrderTrail() {
     orderModifiedTimeStamp_ = -1;
 }
 
+/**
+ * Gets the list of opened orders that need to be managed.
+ */
 void OrderTrail::manageOpenOrders() {
     OrderFilter orderFilter;
     orderFilter.magicNumber.add(MagicNumber());
@@ -63,6 +56,9 @@ void OrderTrail::manageOpenOrders() {
     }
 }
 
+/**
+ * Manages a single opened order, calculates its new stoploss, and updates it.
+ */
 void OrderTrail::manageOpenOrder(Order & order) {
     double newStopLoss = breakEvenStopLoss(order);
 
@@ -70,6 +66,9 @@ void OrderTrail::manageOpenOrder(Order & order) {
     splitPosition(order, newStopLoss);
 }
 
+/**
+ * Send the update request for an already existing order, if its stopLoss or takeProfit have changed.
+ */
 void OrderTrail::updateOrder(Order & order, double newStopLoss, double newTakeProfit = NULL) {
     if (!UNIT_TESTS_COMPLETED) {
         return;
@@ -81,8 +80,8 @@ void OrderTrail::updateOrder(Order & order, double newStopLoss, double newTakePr
 
     const string symbol = order.symbol;
 
-    if (MathRound(MathAbs(newTakeProfit - order.takeProfit) / Pips(symbol)) > 0 ||
-        MathRound(MathAbs(newStopLoss - order.stopLoss) / Pips(symbol)) > 0) {
+    if (MathRound(MathAbs(newTakeProfit - order.takeProfit) / Pip(symbol)) > 0 ||
+        MathRound(MathAbs(newStopLoss - order.stopLoss) / Pip(symbol)) > 0) {
 
         orderModifiedTimeStamp_ = PrintTimer(orderModifiedTimeStamp_, StringConcatenate(
             "Modifying the existing order: ", order.ticket));
@@ -106,17 +105,20 @@ void OrderTrail::updateOrder(Order & order, double newStopLoss, double newTakePr
     }
 }
 
+/**
+ * Splits an order by closing half position, if the stopLoss lies exactly at the breakEven point.
+ */
 bool OrderTrail::splitPosition(Order & order, double newStopLoss) {
     if (!SPLIT_POSITION) {
         return false;
     }
 
-    if (order.type != OP_BUY && order.type != OP_SELL) {
+    if (!order.isOpen()) {
         return ThrowException(false, __FUNCTION__, "Cannot split pending position");
     }
 
     const int period = order.getPeriod();
-    const double newStopLossPips = MathRound(MathAbs(order.openPrice - newStopLoss) / Pips(order.symbol));
+    const double newStopLossPips = MathRound(MathAbs(order.openPrice - newStopLoss) / Pip(order.symbol));
 
     if ((order.type == OP_BUY && newStopLoss > order.openPrice) ||
         (order.type == OP_SELL && newStopLoss < order.openPrice)) {
@@ -126,7 +128,7 @@ bool OrderTrail::splitPosition(Order & order, double newStopLoss) {
     }
 
     if (StringContains(order.comment, StringConcatenate("A P", period)) &&
-        newStopLossPips == getBreakEvenPips(period, 0)) {
+        newStopLossPips == PeriodFactor(period) * BREAKEVEN_STEPS.getValues(0)) {
 
         if (UNIT_TESTS_COMPLETED) {
             const bool splitOrder = OrderClose(order.ticket, order.lots / 2, order.closePrice, 3);
@@ -142,20 +144,24 @@ bool OrderTrail::splitPosition(Order & order, double newStopLoss) {
     return false;
 }
 
+/**
+ * Calculates the new stopLoss for an already existing order that might need to be updated.
+ */
 double OrderTrail::breakEvenStopLoss(Order & order) {
     const int period = order.getPeriod();
-    const int type = order.type;
     const double openPrice = order.openPrice;
     const string symbol = order.symbol;
 
-    const Discriminator discriminator = (type == OP_BUY || type == OP_BUYSTOP || type == OP_BUYLIMIT) ? Max : Min;
+    const Discriminator discriminator = order.getDiscriminator();
     const double currentExtreme = iExtreme(discriminator, 0);
 
     double stopLoss = order.stopLoss;
 
-    for (int i = 0; i < breakEvenSteps_; i++) {
-        double breakEvenPoint = openPrice + discriminator * getBreakEvenPoint(period, i) * Pips(symbol);
-        double breakEvenStopLoss = openPrice - discriminator * getBreakEvenPips(period, i) * Pips(symbol);
+    for (int i = 0; i < BREAKEVEN_STEPS.size(); i++) {
+        double breakEvenPoint = openPrice + discriminator *
+            PeriodFactor(period) * Pip(symbol) * BREAKEVEN_STEPS.getKeys(i);
+        double breakEvenStopLoss = openPrice - discriminator *
+            PeriodFactor(period) * Pip(symbol) * BREAKEVEN_STEPS.getValues(i);
 
         if (discriminator == Max && currentExtreme > breakEvenPoint) {
             stopLoss = MathMax(stopLoss, breakEvenStopLoss);
@@ -168,6 +174,9 @@ double OrderTrail::breakEvenStopLoss(Order & order) {
     return stopLoss;
 }
 
+/**
+ * Trails the stopLoss and the takeProfit for and already existing order.
+ */
 double OrderTrail::trailer(double openPrice, double stopLoss, double takeProfit) {
     const Discriminator discriminator = (takeProfit > openPrice) ? Max : Min;
     const double currentExtreme = iExtreme(discriminator, 0);
@@ -179,8 +188,7 @@ double OrderTrail::trailer(double openPrice, double stopLoss, double takeProfit)
 
     const double trailer = trailerBaseDistance - trailerPercent * currentExtremeToOpenDistance / profitToOpenDistance;
 
-    const double takeProfitFactor_ = 3; // not defined here, assumed as constant
-    double initialStopLossDistance = profitToOpenDistance / takeProfitFactor_;
+    double initialStopLossDistance = profitToOpenDistance / BASE_TAKE_PROFIT_FACTOR;
     double trailerStopLoss = currentExtreme - initialStopLossDistance * trailer;
 
     // Trailing StopLoss
@@ -202,26 +210,4 @@ double OrderTrail::trailer(double openPrice, double stopLoss, double takeProfit)
     }
     return takeProfit;
     */
-}
-
-int OrderTrail::getBreakEvenPoint(int period, int step) {
-    if (step == 0) {
-        return breakEvenPips_ * PeriodFactor(period);
-    }
-    if (step == 1) {
-        return takeProfitOneSaverPips_ * PeriodFactor(period);
-    }
-
-    return ThrowException(-100, __FUNCTION__, StringConcatenate("Invalid break even step: ", step));
-}
-
-int OrderTrail::getBreakEvenPips(int period, int step) {
-    if (step == 0) {
-        return breakEvenPips_ * PeriodFactor(period) - commissionPips_;
-    }
-    if (step == 1) {
-        return 0;
-    }
-
-    return ThrowException(-100, __FUNCTION__, StringConcatenate("Invalid break even step: ", step));
 }

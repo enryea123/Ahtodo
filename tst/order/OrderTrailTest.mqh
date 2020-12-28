@@ -23,7 +23,7 @@ void OrderTrailTest::splitPositionTest() {
     order.openPrice = GetAsk(order.symbol);
     order.comment = "A P60";
 
-    double newStopLoss = order.openPrice - 4 * Pips(order.symbol);
+    double newStopLoss = order.openPrice - 4 * Pip(order.symbol);
 
     if (!SPLIT_POSITION) {
         unitTest.assertFalse(
@@ -58,70 +58,69 @@ void OrderTrailTest::splitPositionTest() {
     order.type = OP_BUY;
 
     unitTest.assertFalse(
-        splitPosition(order, newStopLoss + Pips(order.symbol))
+        splitPosition(order, newStopLoss + Pip(order.symbol))
     );
 
     order.magicNumber = BASE_MAGIC_NUMBER + PERIOD_H4;
     order.comment = "A P240";
 
     unitTest.assertTrue(
-        splitPosition(order, order.openPrice - 10 * Pips(order.symbol))
+        splitPosition(order, order.openPrice - 8 * Pip(order.symbol))
     );
 }
 
 void OrderTrailTest::breakEvenStopLossTest() {
     UnitTest unitTest("breakEvenStopLossTest");
 
-
     Order order;
     order.magicNumber = BASE_MAGIC_NUMBER + PERIOD_H1;
     order.symbol = Symbol();
     order.type = OP_BUY;
-    order.openPrice = iExtreme(Max, 0) - 5 * Pips(order.symbol);
-    order.stopLoss = order.openPrice - 10 * Pips(order.symbol);
+    order.openPrice = iExtreme(Max, 0) - 5 * Pip(order.symbol);
+    order.stopLoss = order.openPrice - 10 * Pip(order.symbol);
 
     unitTest.assertEquals(
         order.stopLoss,
         breakEvenStopLoss(order)
     );
 
-    order.openPrice = iExtreme(Max, 0) - 7 * Pips(order.symbol);
-    order.stopLoss = order.openPrice - 10 * Pips(order.symbol);
+    order.openPrice = iExtreme(Max, 0) - 7 * Pip(order.symbol);
+    order.stopLoss = order.openPrice - 10 * Pip(order.symbol);
 
     unitTest.assertEquals(
-        order.openPrice - 4 * Pips(order.symbol),
+        order.openPrice - 4 * Pip(order.symbol),
         breakEvenStopLoss(order)
     );
 
     order.magicNumber = BASE_MAGIC_NUMBER + PERIOD_H4;
-    order.openPrice = iExtreme(Max, 0) - 9 * Pips(order.symbol);
-    order.stopLoss = order.openPrice - 20 * Pips(order.symbol);
+    order.openPrice = iExtreme(Max, 0) - 9 * Pip(order.symbol);
+    order.stopLoss = order.openPrice - 20 * Pip(order.symbol);
 
     unitTest.assertEquals(
         order.stopLoss,
         breakEvenStopLoss(order)
     );
 
-    order.openPrice = iExtreme(Max, 0) - 14 * Pips(order.symbol);
-    order.stopLoss = order.openPrice - 20 * Pips(order.symbol);
+    order.openPrice = iExtreme(Max, 0) - 14 * Pip(order.symbol);
+    order.stopLoss = order.openPrice - 20 * Pip(order.symbol);
 
     unitTest.assertEquals(
-        order.openPrice - 10 * Pips(order.symbol),
+        order.openPrice - 8 * Pip(order.symbol),
         breakEvenStopLoss(order)
     );
 
     order.magicNumber = BASE_MAGIC_NUMBER + PERIOD_H1;
     order.type = OP_SELL;
-    order.openPrice = iExtreme(Min, 0) + 9 * Pips(order.symbol);
-    order.stopLoss = order.openPrice + 20 * Pips(order.symbol);
+    order.openPrice = iExtreme(Min, 0) + 9 * Pip(order.symbol);
+    order.stopLoss = order.openPrice + 20 * Pip(order.symbol);
 
     unitTest.assertEquals(
-        order.openPrice + 4 * Pips(order.symbol),
+        order.openPrice + 4 * Pip(order.symbol),
         breakEvenStopLoss(order)
     );
 
-    order.openPrice = iExtreme(Min, 0) + 27 * Pips(order.symbol);
-    order.stopLoss = order.openPrice + 20 * Pips(order.symbol);
+    order.openPrice = iExtreme(Min, 0) + 27 * Pip(order.symbol);
+    order.stopLoss = order.openPrice + 20 * Pip(order.symbol);
 
     unitTest.assertEquals(
         order.openPrice,

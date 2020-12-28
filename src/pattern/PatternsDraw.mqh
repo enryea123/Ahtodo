@@ -7,13 +7,16 @@
 #include "Pattern.mqh"
 
 
+/**
+ * This class contains drawing informaiton for the patterns.
+ */
 class PatternsDraw {
     public:
         void drawAllPatterns();
 
     private:
         Pattern pattern_;
-        static const int numberOfCandlesForPatternsDraw_;
+
         static const string patternNamePrefix_;
 
         void drawAllColoredDots(int);
@@ -21,11 +24,13 @@ class PatternsDraw {
         void drawPatternRectangle(int, int, color);
 };
 
-const int PatternsDraw::numberOfCandlesForPatternsDraw_ = 200;
 const string PatternsDraw::patternNamePrefix_ = "Pattern";
 
+/**
+ * Draws all the patterns.
+ */
 void PatternsDraw::drawAllPatterns() {
-    const int maxCandles = IS_DEBUG ? CANDLES_VISIBLE_IN_GRAPH_2X : numberOfCandlesForPatternsDraw_;
+    const int maxCandles = IS_DEBUG ? CANDLES_VISIBLE_IN_GRAPH_2X : PATTERN_DRAW_MAX_CANDLES;
 
     // Draw a rectangle for each pattern
     for (int i = 1; i < maxCandles; i++) {
@@ -63,6 +68,9 @@ void PatternsDraw::drawAllPatterns() {
     }
 }
 
+/**
+ * Draws a single pattern rectangle.
+ */
 void PatternsDraw::drawPatternRectangle(int timeIndex, int patternLength, color patternColor) {
     if (!pattern_.isPatternSizeGood(timeIndex)) {
         if (IS_DEBUG) {
@@ -88,6 +96,9 @@ void PatternsDraw::drawPatternRectangle(int timeIndex, int patternLength, color 
     ObjectSet(patternName, OBJPROP_COLOR, patternColor);
 }
 
+/**
+ * Draws all colored dots that represent the candles types.
+ */
 void PatternsDraw::drawAllColoredDots(int maxCandles) {
     Candle candle;
 
@@ -111,6 +122,9 @@ void PatternsDraw::drawAllColoredDots(int maxCandles) {
     }
 }
 
+/**
+ * Draws a single candle colored dot that represents its type.
+ */
 void PatternsDraw::drawCandleColoredDot(int timeIndex, string namePrefix, color inputColor, double shift) {
     const string colouredDotName = StringConcatenate(namePrefix, NAME_SEPARATOR, timeIndex);
 

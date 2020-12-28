@@ -2,7 +2,7 @@
 #property link "https://www.linkedin.com/in/enryea123"
 #property strict
 
-#include "../../Constants.mqh"
+#include "../util/Price.mqh"
 
 enum PivotPeriod {
     D1 = PERIOD_D1,
@@ -20,12 +20,18 @@ enum PivotRS {
 };
 
 
+/**
+ * This class allows to calculate pivots.
+ */
 class Pivot {
     public:
         double getPivot(string, PivotPeriod, int);
         double getPivotRS(string, PivotPeriod, PivotRS);
 };
 
+/**
+ * Returns the pivot for the chosen symbol, period, and index.
+ */
 double Pivot::getPivot(string symbol, PivotPeriod pivotPeriod, int timeIndex) {
     if (!SymbolExists(symbol)) {
         return ThrowException(-1, __FUNCTION__, StringConcatenate("Unexistent symbol: ", symbol));
@@ -45,6 +51,9 @@ double Pivot::getPivot(string symbol, PivotPeriod pivotPeriod, int timeIndex) {
     return pivot;
 }
 
+/**
+ * Returns the pivot RS for the chosen symbol, period, and index.
+ */
 double Pivot::getPivotRS(string symbol, PivotPeriod pivotPeriod, PivotRS pivotRS) {
     if (!SymbolExists(symbol)) {
         return ThrowException(-1, __FUNCTION__, StringConcatenate("Unexistent symbol: ", symbol));

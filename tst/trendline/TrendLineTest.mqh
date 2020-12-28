@@ -30,16 +30,16 @@ void TrendLineTest::isGoodTrendLineFromNameTest() {
     );
 
     const int timeIndex = 1;
-    const int bigTimeIndex = trendLineMinExtremesDistance_ - timeIndex;
+    const int bigTimeIndex = TRENDLINE_MIN_EXTREMES_DISTANCE - timeIndex;
 
     unitTest.assertTrue(
         isGoodTrendLineFromName(buildTrendLineName(
-            20, trendLineMinExtremesDistance_ + timeIndex, 0, Max), timeIndex)
+            20, TRENDLINE_MIN_EXTREMES_DISTANCE + timeIndex, 0, Max), timeIndex)
     );
 
     unitTest.assertFalse(
         isGoodTrendLineFromName(buildTrendLineName(
-            20, trendLineMinExtremesDistance_ + timeIndex, 0, Max), bigTimeIndex)
+            20, TRENDLINE_MIN_EXTREMES_DISTANCE + timeIndex, 0, Max), bigTimeIndex)
     );
 }
 
@@ -152,13 +152,13 @@ void TrendLineTest::trendLineSetupsTest() {
     const double slopeMax = (iExtreme(Max, 20) - iExtreme(Max, 50)) / (50 - 20);
 
     if (slopeMin > 0 && MathAbs(slopeMin) >
-        trendLinePositiveSlopeVolatility_ * GetMarketVolatility()) {
+        TRENDLINE_POSITIVE_SLOPE_VOLATILITY * getVolatility()) {
         unitTest.assertFalse(
             areTrendLineSetupsGood(50, 20, Min),
             "TrendLine positive slope volatility"
         );
     }else if (slopeMax < 0 && MathAbs(slopeMax) >
-        trendLineNegativeSlopeVolatility_ * GetMarketVolatility()) {
+        TRENDLINE_NEGATIVE_SLOPE_VOLATILITY * getVolatility()) {
         unitTest.assertFalse(
             areTrendLineSetupsGood(50, 20, Max),
             "TrendLine negative slope volatility"

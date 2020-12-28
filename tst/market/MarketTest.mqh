@@ -25,18 +25,18 @@ void MarketTest::isMarketOpenedTest() {
         return;
     }
 
-    if (GetMarketSpread() > spreadPipsCloseMarket_ - 1) {
+    if (GetSpread() > SPREAD_PIPS_CLOSE_MARKET - 1) {
         Print("isMarketOpenedTest skipped for high spread..");
         return;
     }
 
     if (Period() != PERIOD_H4) {
         unitTest.assertFalse(
-            isMarketOpened((datetime) "2020-04-06 08:58")
+            isMarketOpened((datetime) "2020-04-06 07:58")
         );
 
         unitTest.assertTrue(
-            isMarketOpened((datetime) "2020-04-06 09:02")
+            isMarketOpened((datetime) "2020-04-06 08:02")
         );
 
         unitTest.assertTrue(

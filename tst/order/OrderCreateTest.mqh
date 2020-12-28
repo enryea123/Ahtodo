@@ -14,6 +14,7 @@ class OrderCreateTest: public OrderCreate {
         void calculateOrderTypeFromSetupsTest();
         void calculateSizeFactorTest();
         void calculateOrderLotsTest();
+        void getPercentRiskTest();
         void buildOrderCommentTest();
         void getSizeFactorFromCommentTest();
 };
@@ -57,13 +58,13 @@ void OrderCreateTest::areThereRecentOrdersTest() {
         areThereRecentOrders(filterDate)
     );
 
-    orderFind_.setMockedOrders();
+    orderFind_.deleteAllMockedOrders();
 }
 
 void OrderCreateTest::areThereBetterOrdersTest() {
     UnitTest unitTest("areThereBetterOrdersTest");
 
-    const double stopLossSize = 20 * Pips();
+    const double stopLossSize = 20 * Pip();
 
     Order order;
     order.magicNumber = BASE_MAGIC_NUMBER + PERIOD_H1;
@@ -101,13 +102,13 @@ void OrderCreateTest::areThereBetterOrdersTest() {
     orderFind_.setMockedOrders(order);
 
     unitTest.assertTrue(
-        areThereBetterOrders(order.symbol, OP_SELLSTOP, stopLossSize - 0.5 * Pips(), 0)
+        areThereBetterOrders(order.symbol, OP_SELLSTOP, stopLossSize - 0.5 * Pip(), 0)
     );
 
     orderFind_.setMockedOrders(order);
 
     unitTest.assertFalse(
-        areThereBetterOrders(order.symbol, OP_SELLSTOP, stopLossSize - 2 * Pips(), 0)
+        areThereBetterOrders(order.symbol, OP_SELLSTOP, stopLossSize - 2 * Pip(), 0)
     );
 
     order.type = OP_BUYSTOP;
@@ -154,7 +155,7 @@ void OrderCreateTest::areThereBetterOrdersTest() {
         areThereBetterOrders(order.symbol, OP_SELLSTOP, stopLossSize * 0.6, 0)
     );
 
-    orderFind_.setMockedOrders();
+    orderFind_.deleteAllMockedOrders();
 }
 
 void OrderCreateTest::calculateOrderTypeFromSetupsTest() {
@@ -211,8 +212,8 @@ void OrderCreateTest::calculateOrderTypeFromSetupsTest() {
             ObjectDelete(trendLineName);
             trendLineName = trendLine.buildTrendLineName(50 + i, 20 + i, 0, discriminator);
             ObjectCreate(trendLineName, OBJ_TREND, 0,
-                Time[50 + i], currentExtreme + (trendLineSetupMaxPipsDistance_ - 1) * Pips(),
-                Time[20 + i], currentExtreme + (trendLineSetupMaxPipsDistance_ - 1) * Pips()
+                Time[50 + i], currentExtreme + (TRENDLINE_SETUP_MAX_PIPS_DISTANCE - 1) * Pip(),
+                Time[20 + i], currentExtreme + (TRENDLINE_SETUP_MAX_PIPS_DISTANCE - 1) * Pip()
             );
 
             unitTest.assertEquals(
@@ -223,8 +224,8 @@ void OrderCreateTest::calculateOrderTypeFromSetupsTest() {
             ObjectDelete(trendLineName);
             trendLineName = trendLine.buildTrendLineName(50 + i, 20 + i, 0, discriminator);
             ObjectCreate(trendLineName, OBJ_TREND, 0,
-                Time[50 + i], currentExtreme + (trendLineSetupMaxPipsDistance_ + 1) * Pips(),
-                Time[20 + i], currentExtreme + (trendLineSetupMaxPipsDistance_ + 1) * Pips()
+                Time[50 + i], currentExtreme + (TRENDLINE_SETUP_MAX_PIPS_DISTANCE + 1) * Pip(),
+                Time[20 + i], currentExtreme + (TRENDLINE_SETUP_MAX_PIPS_DISTANCE + 1) * Pip()
             );
 
             unitTest.assertEquals(
@@ -235,8 +236,8 @@ void OrderCreateTest::calculateOrderTypeFromSetupsTest() {
             ObjectDelete(trendLineName);
             trendLineName = trendLine.buildTrendLineName(50 + i, 20 + i, 0, discriminator);
             ObjectCreate(trendLineName, OBJ_TREND, 0,
-                Time[50 + i], currentExtreme - (trendLineSetupMaxPipsDistance_ + 1) * Pips(),
-                Time[20 + i], currentExtreme - (trendLineSetupMaxPipsDistance_ + 1) * Pips()
+                Time[50 + i], currentExtreme - (TRENDLINE_SETUP_MAX_PIPS_DISTANCE + 1) * Pip(),
+                Time[20 + i], currentExtreme - (TRENDLINE_SETUP_MAX_PIPS_DISTANCE + 1) * Pip()
             );
 
             unitTest.assertEquals(
@@ -296,7 +297,9 @@ void OrderCreateTest::calculateSizeFactorTest() {
     );
 
     Pivot pivot;
-    if (price > pivot.getPivotRS(symbol, D1, R2) || price < pivot.getPivotRS(symbol, D1, S2)) {
+    if ((price > pivot.getPivotRS(symbol, D1, R2) ||
+        price < pivot.getPivotRS(symbol, D1, S2)) &&
+        Period() != PERIOD_H4) {
         // red configuration
         unitTest.assertEquals(
             0.0,
@@ -343,6 +346,22 @@ void OrderCreateTest::calculateOrderLotsTest() {
     unitTest.assertTrue(
         calculateOrderLots(stopLossPips, 1) < 30 // max lots allowed per operation
     );
+}
+
+void OrderCreateTest::getPercentRiskTest() {
+    UnitTest unitTest("getPercentRiskTest");
+
+    if (AccountNumber() == 2100183900) {
+        unitTest.assertEquals(
+            0.015,
+            getPercentRisk()
+        );
+    } else {
+        unitTest.assertEquals(
+            PERCENT_RISK / 100,
+            getPercentRisk()
+        );
+    }
 }
 
 void OrderCreateTest::buildOrderCommentTest() {

@@ -8,6 +8,10 @@
 #include "OrderFind.mqh"
 
 
+/**
+ * This class allows to perform common managing operations on orders,
+ * and to check if emergency conditions are met and the bot should be removed.
+ */
 class OrderManage {
     public:
         bool areThereOpenOrders();
@@ -24,9 +28,6 @@ class OrderManage {
     protected:
         OrderFind orderFind_;
 
-        static const double lossLimiterTime_;
-        static const double maxAllowedLossesPercent_;
-
     private:
         static const int smallerStopLossBufferPips_;
 
@@ -34,9 +35,6 @@ class OrderManage {
         void deleteOrdersFromList(Order & []);
         void deleteSingleOrder(Order &);
 };
-
-const double OrderManage::lossLimiterTime_ = 8 * 3600;
-const double OrderManage::maxAllowedLossesPercent_ = PERCENT_RISK * 5 / 100;
 
 const int OrderManage::smallerStopLossBufferPips_ = 1;
 
@@ -139,17 +137,18 @@ void OrderManage::lossLimiter() {
     orderFilter.profit.add(0);
 
     orderFilter.closeTime.setFilterType(Greater);
-    orderFilter.closeTime.add(TimeCurrent() - lossLimiterTime_);
+    orderFilter.closeTime.add(TimeCurrent() - LOSS_LIMITER_HOURS * 3600);
 
     Order orders[];
     orderFind_.getFilteredOrdersList(orders, orderFilter, MODE_HISTORY);
 
+    const double maxAllowedLosses = AccountEquity() * LOSS_LIMITER_MAX_ALLOWED_LOSSES_PERCENT / 100;
     double totalLosses = 0;
 
     for (int order = 0; order < ArraySize(orders); order++) {
         totalLosses -= orders[order].profit;
 
-        if (totalLosses > AccountEquity() * maxAllowedLossesPercent_) {
+        if (totalLosses > maxAllowedLosses) {
             deleteAllOrders();
 
             const string exceptionMessage = StringConcatenate(
@@ -170,10 +169,10 @@ void OrderManage::lossLimiter() {
  * Finds the best of two orders by comparing the type and the stopLoss size. Returns true if the first one is better.
  */
 bool OrderManage::findBestOrder(Order & order1, Order & order2) {
-    if (order1.type == OP_BUY || order1.type == OP_SELL) {
+    if (order1.isOpen()) {
         return true;
     }
-    if (order2.type == OP_BUY || order2.type == OP_SELL) {
+    if (order2.isOpen()) {
         return false;
     }
 
@@ -237,14 +236,14 @@ void OrderManage::deleteSingleOrder(Order & order) {
     const int ticket = order.ticket;
     bool deletedOrder = false;
 
-    if (order.type == OP_BUY || order.type == OP_SELL) {
+    if (order.isOpen()) {
         deletedOrder = OrderClose(ticket, order.lots, order.closePrice, 3);
     } else {
         deletedOrder = OrderDelete(ticket);
     }
 
     if (deletedOrder) {
-        Print(__FUNCTION__, " | Deleted order: ", ticket);
+        Print(__FUNCTION__, MESSAGE_SEPARATOR, "Deleted order: ", ticket);
     } else {
         ThrowException(__FUNCTION__, StringConcatenate("Failed to delete order: ", ticket));
     }

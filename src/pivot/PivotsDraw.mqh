@@ -7,13 +7,15 @@
 #include "PivotStyle.mqh"
 
 
+/**
+ * This class allows to draw the pivot lines.
+ */
 class PivotsDraw {
     public:
         void drawAllPivots();
 
     private:
         Pivot pivot_;
-        static const int maxCandlesPivotLinesDraw_;
         static const int pivotLabelFontSize_;
         static const int pivotRSLineLength_;
 
@@ -26,7 +28,6 @@ class PivotsDraw {
         void drawPivotRS(PivotPeriod, PivotRS);
 };
 
-const int PivotsDraw::maxCandlesPivotLinesDraw_ = 100;
 const int PivotsDraw::pivotLabelFontSize_ = 8;
 const int PivotsDraw::pivotRSLineLength_ = 6;
 
@@ -47,6 +48,9 @@ void PivotsDraw::drawAllPivots() {
     }
 }
 
+/**
+ * Draws the pivot lines.
+ */
 void PivotsDraw::drawPivot(PivotPeriod pivotPeriod) {
     PivotStyle pivotStyle(pivotPeriod);
 
@@ -78,10 +82,16 @@ void PivotsDraw::drawPivot(PivotPeriod pivotPeriod) {
     }
 }
 
+/**
+ * Draws the intraday pivot RS lines for D1.
+ */
 void PivotsDraw::drawPivotRS(PivotRS pivotRS) {
     drawPivotRS(D1, pivotRS);
 }
 
+/**
+ * Draws the pivot RS lines.
+ */
 void PivotsDraw::drawPivotRS(PivotPeriod pivotPeriod, PivotRS pivotRS) {
     PivotStyle pivotStyle(pivotPeriod);
 
@@ -102,11 +112,17 @@ void PivotsDraw::drawPivotRS(PivotPeriod pivotPeriod, PivotRS pivotRS) {
     );
 }
 
+/**
+ * Returns the max index to use to draw pivot lines.
+ */
 int PivotsDraw::getMaxTimeIndex(int pivotPeriodFactor) {
-    const int maxCandles = IS_DEBUG ? CANDLES_VISIBLE_IN_GRAPH_2X : maxCandlesPivotLinesDraw_;
+    const int maxCandles = IS_DEBUG ? CANDLES_VISIBLE_IN_GRAPH_2X : PIVOT_LINES_DRAW_MAX_CANDLES;
     return (int) MathRound(1 + maxCandles * Period() / PERIOD_D1 / pivotPeriodFactor) + 1;
 }
 
+/**
+ * Draws a single pivot label.
+ */
 void PivotsDraw::drawPivotLabel(string pivotLabelName, string pivotLabelText, color pivotColor, double x) {
     ObjectCreate(pivotLabelName, OBJ_TEXT, 0, Time[0], x);
 
@@ -115,6 +131,9 @@ void PivotsDraw::drawPivotLabel(string pivotLabelName, string pivotLabelText, co
     ObjectSet(pivotLabelName, OBJPROP_FONTSIZE, pivotLabelFontSize_);
 }
 
+/**
+ * Draws a single pivot line.
+ */
 void PivotsDraw::drawPivotLine(string lineName, color lineColor, double t1, double t2, double x1, double x2) {
     ObjectCreate(lineName, OBJ_TREND, 0, (datetime) t1, x1, (datetime) t2, x2);
 

@@ -4,8 +4,13 @@
 
 #include "../../Constants.mqh"
 #include "../market/MarketTime.mqh"
+#include "../util/Exception.mqh"
 
 
+/**
+ * This class allows to get information on whether a given date is a major or minor bank holiday.
+ * That information is later used to decide if to close the market, or if to reduce the size.
+ */
 class Holiday {
     public:
         bool isMajorBankHoliday(datetime);
@@ -15,6 +20,9 @@ class Holiday {
         int easterDayOfYear(int);
 };
 
+/**
+ * Bank holidays that affect the US or the majority of the EU countries.
+ */
 bool Holiday::isMajorBankHoliday(datetime date = NULL) {
     if (date == NULL) {
         MarketTime marketTime;
@@ -138,6 +146,9 @@ bool Holiday::isMajorBankHoliday(datetime date = NULL) {
     return false;
 }
 
+/**
+ * Bank holidays that affect only one or two EU countries.
+ */
 bool Holiday::isMinorBankHoliday(datetime date = NULL) {
     if (date == NULL) {
         MarketTime marketTime;
@@ -225,6 +236,9 @@ bool Holiday::isMinorBankHoliday(datetime date = NULL) {
     return false;
 }
 
+/**
+ * Returns information of the day number of Easter. It supports a few years in the future.
+ */
 int Holiday::easterDayOfYear(int year) {
     if (year == 2020) {
         return 103;

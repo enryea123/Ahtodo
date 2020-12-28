@@ -2,7 +2,6 @@
 #property link "https://www.linkedin.com/in/enryea123"
 #property strict
 
-#include "../../Constants.mqh"
 #include "../market/Holiday.mqh"
 #include "../market/MarketTime.mqh"
 #include "../pattern/PatternsDraw.mqh"
@@ -10,6 +9,10 @@
 #include "../trendline/TrendLinesDraw.mqh"
 
 
+/**
+ * This class handles the drawings on the chart. Makes sure that the colors are set properly,
+ * and that patterns, trendLines, and pivots are refreshed only once per candle.
+ */
 class Drawer {
     public:
         void drawEverything();
@@ -35,6 +38,9 @@ const int Drawer::openMarketLinesPipsShift_ = 10;
 const string Drawer::lastDrawingTimePrefix_ = "LastDrawingTime";
 const string Drawer::openMarketLinePrefix_ = "OpenMarketLine";
 
+/**
+ * Updates the drawings when a new candle appears.
+ */
 void Drawer::drawEverything() {
     if (areDrawingsUpdated()) {
         return;
@@ -59,6 +65,9 @@ void Drawer::drawEverything() {
     }
 }
 
+/**
+ * Sets the colors of the chart when starting the bot.
+ */
 void Drawer::setChartDefaultColors() {
     ChartSetInteger(0, CHART_COLOR_FOREGROUND, clrBlack);
     ChartSetInteger(0, CHART_MODE, CHART_CANDLES);
@@ -72,20 +81,32 @@ void Drawer::setChartDefaultColors() {
     setChartMarketOpenedColors();
 }
 
+/**
+ * Sets some colors of the chart to show that the market is opened.
+ */
 void Drawer::setChartMarketOpenedColors() {
     ChartSetInteger(0, CHART_COLOR_BACKGROUND, clrWhite);
     ChartSetInteger(0, CHART_COLOR_GRID, clrSilver);
 }
 
+/**
+ * Sets some colors of the chart to show that the market is closed.
+ */
 void Drawer::setChartMarketClosedColors() {
     ChartSetInteger(0, CHART_COLOR_BACKGROUND, clrSilver);
     ChartSetInteger(0, CHART_COLOR_GRID, clrWhite);
 }
 
+/**
+ * Checks if the drawings need to be updated.
+ */
 bool Drawer::areDrawingsUpdated() {
     return (ObjectFind(getLastDrawingTimeSignalName()) >= 0);
 }
 
+/**
+ * Draws the arrow that signals the drawings update time, which is then used to determine if drawings are updated.
+ */
 void Drawer::drawLastDrawingTimeSignal() {
     const string lastDrawingTimeSignal = getLastDrawingTimeSignalName();
 
@@ -104,10 +125,16 @@ void Drawer::drawLastDrawingTimeSignal() {
     ObjectSet(lastDrawingTimeSignal, OBJPROP_WIDTH, 4);
 }
 
+/**
+ * The drawings update arrow name.
+ */
 string Drawer::getLastDrawingTimeSignalName() {
     return StringConcatenate(lastDrawingTimePrefix_, NAME_SEPARATOR, Time[1]);
 }
 
+/**
+ * Returns the color of the drawings update arrow, depending on the holiday situation.
+ */
 color Drawer::getLastDrawingTimeSignalColor() {
     Holiday holiday;
 
@@ -120,6 +147,9 @@ color Drawer::getLastDrawingTimeSignalColor() {
     return clrForestGreen;
 }
 
+/**
+ * Draws some lines to show when the market was opened in the last days/weeks. Used only in debug mode.
+ */
 void Drawer::drawOpenMarketLines() {
     MarketTime marketTime;
 
@@ -146,10 +176,10 @@ void Drawer::drawOpenMarketLines() {
             0,
             thisDayStart,
             MathMin(iCandle(I_low, Symbol(), PERIOD_MN1, 0),
-                iCandle(I_low, Symbol(), PERIOD_MN1, 1)) - openMarketLinesPipsShift_ * Pips(),
+                iCandle(I_low, Symbol(), PERIOD_MN1, 1)) - openMarketLinesPipsShift_ * Pip(),
             thisDayEnd,
             MathMin(iCandle(I_low, Symbol(), PERIOD_MN1, 0),
-                iCandle(I_low, Symbol(), PERIOD_MN1, 1)) - openMarketLinesPipsShift_ * Pips()
+                iCandle(I_low, Symbol(), PERIOD_MN1, 1)) - openMarketLinesPipsShift_ * Pip()
         );
 
         ObjectSet(openMarketLineName, OBJPROP_RAY_RIGHT, false);

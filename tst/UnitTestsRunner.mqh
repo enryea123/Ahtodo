@@ -15,15 +15,33 @@
 #include "pivot/PivotTest.mqh"
 #include "pivot/PivotStyleTest.mqh"
 #include "trendline/TrendLineTest.mqh"
+#include "util/ArrayTest.mqh"
+#include "util/PriceTest.mqh"
+#include "util/UtilTest.mqh"
 
 
+/**
+ * This class allows to run all the unit tests.
+ */
 class UnitTestsRunner {
     public:
         void runAllUnitTests();
 };
 
+/**
+ * Runs all the unit tests and prints the execution time.
+ */
 void UnitTestsRunner::runAllUnitTests() {
     const datetime startTime = TimeLocal();
+
+    ArrayTest arrayTest;
+    arrayTest.arrayTest();
+
+    PriceTest priceTest;
+    priceTest.priceTest();
+
+    UtilTest utilTest;
+    utilTest.utilTest();
 
     ArrowStyleTest arrowStyleTest;
     arrowStyleTest.drawExtremeArrowTest();
@@ -55,6 +73,7 @@ void UnitTestsRunner::runAllUnitTests() {
     orderCreateTest.calculateOrderTypeFromSetupsTest();
     orderCreateTest.calculateSizeFactorTest();
     orderCreateTest.calculateOrderLotsTest();
+    orderCreateTest.getPercentRiskTest();
     orderCreateTest.buildOrderCommentTest();
     orderCreateTest.getSizeFactorFromCommentTest();
 

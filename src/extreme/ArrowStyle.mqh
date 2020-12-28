@@ -3,8 +3,12 @@
 #property strict
 
 #include "../../Constants.mqh"
+#include "../util/Price.mqh"
 
 
+/**
+ * This class contains styling information for the arrows that represent extremes.
+ */
 class ArrowStyle {
     public:
         void drawExtremeArrow(int, Discriminator, bool);
@@ -23,6 +27,9 @@ class ArrowStyle {
 const string ArrowStyle::arrowNamePrefix_ = "Arrow";
 const string ArrowStyle::validArrowNameSuffix_ = "Valid";
 
+/**
+ * Draws an extreme arrow and sets its properties.
+ */
 void ArrowStyle::drawExtremeArrow(int timeIndex, Discriminator discriminator, bool isValidExtreme) {
     string arrowName = buildArrowName(timeIndex, discriminator, isValidExtreme);
 
@@ -39,22 +46,37 @@ void ArrowStyle::drawExtremeArrow(int timeIndex, Discriminator discriminator, bo
     ObjectSet(arrowName, OBJPROP_WIDTH, getArrowSize(isValidExtreme));
 }
 
+/**
+ * Returns the arrow color depending on the extreme being valid or not.
+ */
 color ArrowStyle::getArrowColor(bool isValidExtreme) {
     return isValidExtreme ? clrOrange : clrRed;
 }
 
+/**
+ * Returns the arrow size depending on the extreme being valid or not.
+ */
 int ArrowStyle::getArrowSize(bool isValidExtreme) {
     return isValidExtreme ? 5 : 1;
 }
 
+/**
+ * Returns the arrow anchor position depending on the type of extreme (Max, Min).
+ */
 double ArrowStyle::getArrowAnchor(Discriminator discriminator) {
     return (discriminator == Max) ? ANCHOR_BOTTOM : ANCHOR_TOP;
 }
 
+/**
+ * Returns the arrow object to draw depending on the type of extreme (Max, Min).
+ */
 int ArrowStyle::getArrowObjectType(Discriminator discriminator) {
     return (discriminator == Max) ? OBJ_ARROW_DOWN : OBJ_ARROW_UP;
 }
 
+/**
+ * Builds the arrow name.
+ */
 string ArrowStyle::buildArrowName(int timeIndex, Discriminator discriminator, bool isValidExtreme) {
     string arrowName = StringConcatenate(arrowNamePrefix_, NAME_SEPARATOR,
         timeIndex, NAME_SEPARATOR, EnumToString(discriminator));

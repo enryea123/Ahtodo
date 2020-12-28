@@ -12,6 +12,9 @@ enum FilterType {
     Smaller,
 };
 
+/**
+ * This class provides a base filter that supports different types of filtering.
+ */
 class Filter {
     public:
         Filter(): values_(NULL), filterType_(Include) {}
@@ -21,7 +24,9 @@ class Filter {
             values_ = NULL;
         }
 
-        // Setter
+        /**
+         * Setter and overloads.
+         */
         template <typename T> void add(T v) {
             if (filterType_ == Include || filterType_ == Exclude) {
                 values_ = StringConcatenate(values_, separator_, v, separator_);
@@ -35,7 +40,9 @@ class Filter {
         template <typename T> void add(T v1, T v2, T v3, T v4) {add(v1); add(v2); add(v3); add(v4);}
         template <typename T> void add(T & v[]) {for (int i = 0; i < ArraySize(v); i++) {add(v[i]);}}
 
-        // Getter
+        /**
+         * Getter.
+         */
         template <typename T> bool get(T v) {
             if (values_ == NULL) {
                 return false;
@@ -62,6 +69,10 @@ class Filter {
 
 const string Filter::separator_ = "|";
 
+
+/**
+ * This class provides a set of filters for some order attributes.
+ */
 class OrderFilter {
     public:
         Filter closeTime;

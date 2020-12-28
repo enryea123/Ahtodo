@@ -7,21 +7,28 @@
 #include "OrderFilter.mqh"
 
 
+/**
+ * This class allows to find orders and to filter them based on some attributes.
+ * It also allows to mock orders to improve unit tests functionalities.
+ */
 class OrderFind {
     public:
         void getFilteredOrdersList(Order & [], OrderFilter &, int);
         void getOrdersList(Order & [], int);
 
-        void deleteMockedOrder(Order &);
-        void setMockedOrders();
         void setMockedOrders(Order &);
         void setMockedOrders(Order & []);
         void getMockedOrders(Order & []);
+        void deleteMockedOrder(Order &);
+        void deleteAllMockedOrders();
 
     private:
         Order mockedOrders_[];
 };
 
+/**
+ * Gets a list of orders in a pool, filtered based on the provided filter.
+ */
 void OrderFind::getFilteredOrdersList(Order & orders[], OrderFilter & orderFilter, int pool = MODE_TRADES) {
     getOrdersList(orders, pool);
 
@@ -37,6 +44,9 @@ void OrderFind::getFilteredOrdersList(Order & orders[], OrderFilter & orderFilte
     }
 }
 
+/**
+ * Gets the list of all the orders beloning to a certain pool. The default pool is opened or pending orders.
+ */
 void OrderFind::getOrdersList(Order & orders[], int pool = MODE_TRADES) {
     if (ArraySize(mockedOrders_) > 0 && !UNIT_TESTS_COMPLETED) {
         getMockedOrders(orders);
@@ -87,6 +97,31 @@ void OrderFind::getOrdersList(Order & orders[], int pool = MODE_TRADES) {
     }
 }
 
+/**
+ * Allows to create one mocked order.
+ */
+void OrderFind::setMockedOrders(Order & order) {
+    ArrayResize(mockedOrders_, 1);
+    mockedOrders_[0] = order;
+}
+
+/**
+ * Allows to create a list of mocked orders.
+ */
+void OrderFind::setMockedOrders(Order & orders[]) {
+    ArrayCopyClass(mockedOrders_, orders);
+}
+
+/**
+ * Allows to get the list of mocked orders.
+ */
+void OrderFind::getMockedOrders(Order & orders[]) {
+    ArrayCopyClass(orders, mockedOrders_);
+}
+
+/**
+ * Allows to delete a mocked order.
+ */
 void OrderFind::deleteMockedOrder(Order & order) {
     for (int i = 0; i < ArraySize(mockedOrders_); i++) {
         if (mockedOrders_[i] == order) {
@@ -96,19 +131,9 @@ void OrderFind::deleteMockedOrder(Order & order) {
     }
 }
 
-void OrderFind::setMockedOrders() {
+/**
+ * Allows to delete all mocked order.
+ */
+void OrderFind::deleteAllMockedOrders() {
     ArrayFree(mockedOrders_);
-}
-
-void OrderFind::setMockedOrders(Order & order) {
-    ArrayResize(mockedOrders_, 1);
-    mockedOrders_[0] = order;
-}
-
-void OrderFind::setMockedOrders(Order & orders[]) {
-    ArrayCopyClass(mockedOrders_, orders);
-}
-
-void OrderFind::getMockedOrders(Order & orders[]) {
-    ArrayCopyClass(orders, mockedOrders_);
 }

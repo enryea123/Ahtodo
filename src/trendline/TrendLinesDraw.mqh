@@ -7,28 +7,23 @@
 #include "TrendLine.mqh"
 
 
+/**
+ * This class contains drawing informaiton for the trendLines.
+ */
 class TrendLinesDraw {
     public:
         void drawTrendLines();
 
     private:
         TrendLine trendLine_;
-        static const color trendLineColor_;
-        static const color badTrendLineColor_;
-        static const int numberOfBeams_;
-        static const int trendLineWidth_;
-        static const int badTrendLineWidth_;
 
         void drawSingleTrendLine(string, int, int, int, Discriminator);
         void drawDiscriminatedTrendLines(int & [], Discriminator);
 };
 
-const color TrendLinesDraw::trendLineColor_ = clrYellow;
-const color TrendLinesDraw::badTrendLineColor_ = clrMistyRose;
-const int TrendLinesDraw::numberOfBeams_ = 2;
-const int TrendLinesDraw::trendLineWidth_ = 5;
-const int TrendLinesDraw::badTrendLineWidth_ = 1;
-
+/**
+ * Draws all the trendLines and extremes creating them.
+ */
 void TrendLinesDraw::drawTrendLines() {
     int maximums[], minimums[];
 
@@ -40,10 +35,13 @@ void TrendLinesDraw::drawTrendLines() {
     drawDiscriminatedTrendLines(minimums, Min);
 }
 
+/**
+ * Draws all the trendLines, discriminated by sign.
+ */
 void TrendLinesDraw::drawDiscriminatedTrendLines(int & indexes[], Discriminator discriminator) {
     for (int i = 0; i < ArraySize(indexes) - 1; i++) {
         for (int j = i + 1; j < ArraySize(indexes); j++) {
-            for (int beam = -numberOfBeams_; beam <= numberOfBeams_; beam++) {
+            for (int beam = -TRENDLINE_BEAMS; beam <= TRENDLINE_BEAMS; beam++) {
 
                 if (trendLine_.areTrendLineSetupsGood(indexes[i], indexes[j], discriminator)) {
                     const string trendLineName = trendLine_.buildTrendLineName(
@@ -63,6 +61,9 @@ void TrendLinesDraw::drawDiscriminatedTrendLines(int & indexes[], Discriminator 
     }
 }
 
+/**
+ * Draws a single trendLine and sets its properties.
+ */
 void TrendLinesDraw::drawSingleTrendLine(string trendLineName, int indexI, int indexJ,
                                          int beam, Discriminator discriminator) {
     ObjectCreate(
@@ -70,9 +71,9 @@ void TrendLinesDraw::drawSingleTrendLine(string trendLineName, int indexI, int i
         OBJ_TREND,
         0,
         Time[indexI],
-        iExtreme(discriminator, indexI) + Pips() * beam / numberOfBeams_,
+        iExtreme(discriminator, indexI) + Pip() * beam / TRENDLINE_BEAMS,
         Time[indexJ],
-        iExtreme(discriminator, indexJ) - Pips() * beam / numberOfBeams_
+        iExtreme(discriminator, indexJ) - Pip() * beam / TRENDLINE_BEAMS
     );
 
     if (trendLine_.isExistingTrendLineBad(trendLineName, discriminator)) {
@@ -81,9 +82,9 @@ void TrendLinesDraw::drawSingleTrendLine(string trendLineName, int indexI, int i
     }
 
     const int trendLineWidth = !trendLine_.isBadTrendLineFromName(trendLineName) ?
-        trendLineWidth_ : badTrendLineWidth_;
+        TRENDLINE_WIDTH : BAD_TRENDLINE_WIDTH;
     const color trendLineColor = !trendLine_.isBadTrendLineFromName(trendLineName) ?
-        trendLineColor_ : badTrendLineColor_;
+        TRENDLINE_COLOR : BAD_TRENDLINE_COLOR;
 
     ObjectSet(trendLineName, OBJPROP_WIDTH, trendLineWidth);
     ObjectSet(trendLineName, OBJPROP_COLOR, trendLineColor);

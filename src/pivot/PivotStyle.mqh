@@ -6,6 +6,9 @@
 #include "Pivot.mqh"
 
 
+/**
+ * This class contains styling informaiton for pivots.
+ */
 class PivotStyle {
     public:
         PivotStyle();
@@ -40,6 +43,9 @@ void PivotStyle::setPivotPeriod(PivotPeriod pivotPeriod) {
     pivotPeriod_ = pivotPeriod;
 }
 
+/**
+ * Returns the color for the pivot lines depending on the type.
+ */
 color PivotStyle::pivotColor() {
     if (pivotPeriod_ == (PivotPeriod) PERIOD_D1) {
         return clrMagenta;
@@ -54,10 +60,16 @@ color PivotStyle::pivotColor() {
     return NULL;
 }
 
+/**
+ * Returns the color for the pivot RS lines depending on the type.
+ */
 color PivotStyle::pivotRSLabelColor(PivotRS pivotRS) {
     return StringContains(EnumToString(pivotRS), "R") ? clrRed : clrGreen;
 }
 
+/**
+ * Returns the pivot factor depending on the type, which is used to determine for how many candles to draw the lines.
+ */
 int PivotStyle::pivotPeriodFactor() {
     if (pivotPeriod_ == (PivotPeriod) PERIOD_D1) {
         return 1;
@@ -72,6 +84,9 @@ int PivotStyle::pivotPeriodFactor() {
     return NULL;
 }
 
+/**
+ * Returns the pivot labels text.
+ */
 string PivotStyle::pivotLabelText() {
     if (pivotPeriod_ == (PivotPeriod) PERIOD_D1) {
         return "DP";
@@ -86,25 +101,40 @@ string PivotStyle::pivotLabelText() {
     return NULL;
 }
 
+/**
+ * Returns the pivot label name.
+ */
 string PivotStyle::pivotLabelName() {
     return StringConcatenate("PivotLabel", NAME_SEPARATOR, EnumToString(pivotPeriod_));
 }
 
+/**
+ * Returns the horizontal pivot line object name.
+ */
 string PivotStyle::horizontalPivotLineName(int timeIndex) {
     return StringConcatenate("PivotLineHorizontal", NAME_SEPARATOR,
         EnumToString(pivotPeriod_), NAME_SEPARATOR, timeIndex);
 }
 
+/**
+ * Returns the vertical pivot line object name.
+ */
 string PivotStyle::verticalPivotLineName(int timeIndex) {
     return StringConcatenate("PivotLineVertical", NAME_SEPARATOR,
         EnumToString(pivotPeriod_), NAME_SEPARATOR, timeIndex);
 }
 
+/**
+ * Returns the pivot RS label name.
+ */
 string PivotStyle::pivotRSLabelName(PivotRS pivotRS) {
     return StringConcatenate("PivotLabelRS", NAME_SEPARATOR, EnumToString(pivotRS),
         NAME_SEPARATOR, EnumToString(pivotPeriod_));
 }
 
+/**
+ * Returns the pivot RS line object name.
+ */
 string PivotStyle::pivotRSLineName(PivotRS pivotRS) {
     return StringConcatenate("PivotLineRS", NAME_SEPARATOR, EnumToString(pivotRS),
         NAME_SEPARATOR, EnumToString(pivotPeriod_));

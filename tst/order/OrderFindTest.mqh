@@ -21,7 +21,7 @@ void OrderFindTest::getOrdersListTest() {
     UnitTest unitTest("getOrdersListTest");
 
     // This test checks the real functionality of orderFind
-    setMockedOrders();
+    deleteAllMockedOrders();
 
     const int randomOrderPos = 5;
 
@@ -192,6 +192,9 @@ void OrderFindTest::getFilteredOrdersListTest() {
     }
 }
 
+/**
+ * Returns a list of mocked orders needed for this unit tests.
+ */
 void OrderFindTest::buildOrderMocks(Order & orders[]) {
     const int initialOrders = 7;
     ArrayResize(orders, initialOrders);

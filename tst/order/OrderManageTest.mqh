@@ -53,7 +53,7 @@ void OrderManageTest::areThereOpenOrdersTest() {
         areThereOpenOrders()
     );
 
-    orderFind_.setMockedOrders();
+    orderFind_.deleteAllMockedOrders();
 }
 
 void OrderManageTest::findBestOrderTest() {
@@ -64,7 +64,7 @@ void OrderManageTest::findBestOrderTest() {
     orders[0].symbol = Symbol();
     orders[0].type = OP_SELLSTOP;
     orders[0].openPrice = GetAsk(orders[0].symbol);
-    orders[0].stopLoss = orders[0].openPrice + 20 * Pips();
+    orders[0].stopLoss = orders[0].openPrice + 20 * Pip();
 
     orders[1] = orders[0];
 
@@ -79,7 +79,7 @@ void OrderManageTest::findBestOrderTest() {
     );
 
     orders[1].type = OP_SELLSTOP;
-    orders[1].stopLoss -= 2 * Pips();
+    orders[1].stopLoss -= 2 * Pip();
 
     unitTest.assertFalse(
         findBestOrder(orders[0], orders[1])
@@ -96,7 +96,7 @@ void OrderManageTest::deduplicateOrdersTest() {
     orders[0].symbolFamily = SymbolFamily();
     orders[0].type = OP_SELLSTOP;
     orders[0].openPrice = GetAsk(orders[0].symbol);
-    orders[0].stopLoss = orders[0].openPrice + 20 * Pips();
+    orders[0].stopLoss = orders[0].openPrice + 20 * Pip();
 
     Order mockedOrders[];
 
@@ -172,7 +172,7 @@ void OrderManageTest::deduplicateOrdersTest() {
         mockedOrders[0]
     );
 
-    orderFind_.setMockedOrders();
+    orderFind_.deleteAllMockedOrders();
 }
 
 void OrderManageTest::emergencySwitchOffTest() {
@@ -221,13 +221,13 @@ void OrderManageTest::emergencySwitchOffTest() {
         mockedOrders[1]
     );
 
-    orderFind_.setMockedOrders();
+    orderFind_.deleteAllMockedOrders();
 }
 
 void OrderManageTest::lossLimiterTest() {
     UnitTest unitTest("lossLimiterTest");
 
-    const double maxAllowedLosses = AccountEquity() * maxAllowedLossesPercent_;
+    const double maxAllowedLosses = AccountEquity() * LOSS_LIMITER_MAX_ALLOWED_LOSSES_PERCENT / 100;
 
     Order orders[];
     ArrayResize(orders, 3);
@@ -287,7 +287,7 @@ void OrderManageTest::lossLimiterTest() {
         mockedOrders[0]
     );
 
-    orders[1].closeTime = (datetime) (TimeCurrent() - lossLimiterTime_ - 10);
+    orders[1].closeTime = (datetime) (TimeCurrent() - LOSS_LIMITER_HOURS * 3600 - 10);
     ArrayFree(mockedOrders);
 
     orderFind_.setMockedOrders(orders);
@@ -299,7 +299,7 @@ void OrderManageTest::lossLimiterTest() {
         mockedOrders
     );
 
-    orderFind_.setMockedOrders();
+    orderFind_.deleteAllMockedOrders();
 }
 
 void OrderManageTest::deleteAllOrdersTest() {
@@ -358,7 +358,7 @@ void OrderManageTest::deleteAllOrdersTest() {
         mockedOrders[0]
     );
 
-    orderFind_.setMockedOrders();
+    orderFind_.deleteAllMockedOrders();
 }
 
 void OrderManageTest::deletePendingOrdersTest() {
@@ -418,5 +418,5 @@ void OrderManageTest::deletePendingOrdersTest() {
         mockedOrders[0]
     );
 
-    orderFind_.setMockedOrders();
+    orderFind_.deleteAllMockedOrders();
 }

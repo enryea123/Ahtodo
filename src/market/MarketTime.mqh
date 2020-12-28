@@ -3,6 +3,7 @@
 #property strict
 
 #include "../../Constants.mqh"
+#include "../util/Exception.mqh"
 
 enum MonthNumber {
     JANUARY = 1,
@@ -20,6 +21,10 @@ enum MonthNumber {
 };
 
 
+/**
+ * This class contains time information related to the market, such as
+ * market opening/closing, timezones, DTS corrections.
+ */
 class MarketTime {
     public:
         ~MarketTime();
@@ -43,16 +48,7 @@ class MarketTime {
         int getDaylightSavingCorrectionUSA(datetime);
 
     private:
-        static const int marketOpenHour_;
-        static const int marketOpenHourH4_;
-        static const int marketCloseHour_;
-        static const int marketCloseHourH4_;
-        static const int marketCloseHourPending_;
-        static const int marketOpenDay_;
-        static const int marketCloseDay_;
-
         static const int findDayMaxYearsRange_;
-        static const string knownTimeZoneBrokers_;
 
         static datetime today_;
 
@@ -60,17 +56,7 @@ class MarketTime {
         bool isLeapYear(int);
 };
 
-// TimeZone Milano
-const int MarketTime::marketOpenHour_ = 9;
-const int MarketTime::marketOpenHourH4_ = 8;
-const int MarketTime::marketCloseHour_ = 17;
-const int MarketTime::marketCloseHourH4_ = 20;
-const int MarketTime::marketCloseHourPending_ = 16;
-const int MarketTime::marketOpenDay_ = 1;
-const int MarketTime::marketCloseDay_ = 5;
-
 const int MarketTime::findDayMaxYearsRange_ = 5;
-const string MarketTime::knownTimeZoneBrokers_ = "KEY TO MARKETS";
 
 datetime MarketTime::today_ = -1;
 
@@ -78,35 +64,58 @@ MarketTime::~MarketTime() {
     today_ = -1;
 }
 
+/**
+ * Returns the market open hour after checking the period.
+ */
 int MarketTime::marketOpenHour() {
-    return (Period() != PERIOD_H4) ? marketOpenHour_ : marketOpenHourH4_;
+    return (Period() != PERIOD_H4) ? MARKET_OPEN_HOUR : MARKET_OPEN_HOUR_H4;
 }
 
+/**
+ * Returns the market close hour after checking the period.
+ */
 int MarketTime::marketCloseHour() {
-    return (Period() != PERIOD_H4) ? marketCloseHour_ : marketCloseHourH4_;
+    return (Period() != PERIOD_H4) ? MARKET_CLOSE_HOUR : MARKET_CLOSE_HOUR_H4;
 }
 
+/**
+ * Returns the market close pending hour after checking the period.
+ */
 int MarketTime::marketCloseHourPending() {
-    return marketCloseHourPending_;
+    return MARKET_CLOSE_HOUR_PENDING;
 }
 
+/**
+ * Returns the market open day.
+ */
 int MarketTime::marketOpenDay() {
-    return marketOpenDay_;
+    return MARKET_OPEN_DAY;
 }
 
+/**
+ * Returns the market close day.
+ */
 int MarketTime::marketCloseDay() {
-    return marketCloseDay_;
+    return MARKET_CLOSE_DAY;
 }
 
+/**
+ * Returns the time in Italy, by manually calculating the DST correction.
+ */
 datetime MarketTime::timeItaly() {
     return TimeGMT() + 3600 * (1 + getDaylightSavingCorrectionCET());
 }
 
+/**
+ * Returns the time of the Broker, by manually calculating the DST US correction.
+ */
 datetime MarketTime::timeBroker() {
     const string broker = AccountCompany();
 
-    if (StringContains(broker, knownTimeZoneBrokers_)) {
-        return TimeGMT() + 3600 * (2 + getDaylightSavingCorrectionUSA());
+    for (int i = 0; i < ArraySize(ALLOWED_BROKERS); i++) {
+        if (broker == ALLOWED_BROKERS[i]) {
+            return TimeGMT() + 3600 * (2 + getDaylightSavingCorrectionUSA());
+        }
     }
 
     return ThrowException(-1, __FUNCTION__, StringConcatenate("Error for broker:", broker));
@@ -123,20 +132,22 @@ bool MarketTime::hasDateChanged(datetime date) {
     return false;
 }
 
+/**
+ * Returns the date without time information.
+ */
 datetime MarketTime::timeAtMidnight(datetime date) {
     return date - (date % (PERIOD_D1 * 60));
 }
 
-// Can also be negative
+/**
+ * Returns the time shift between two datetimes. It can also be negative.
+ */
 int MarketTime::timeShiftInHours(datetime date1, datetime date2) {
     return (int) MathRound((date1 - date2) / (double) 3600);
 }
 
 /**
- * This method returns true if the daylight saving time correction is on.
- *
- * @param {datetime=} date The date for which to check DST
- * @return boolean
+ * Returns true if the daylight saving time correction is on in EU.
  */
 int MarketTime::getDaylightSavingCorrectionCET(datetime date = NULL) {
     if (!date) {
@@ -156,6 +167,9 @@ int MarketTime::getDaylightSavingCorrectionCET(datetime date = NULL) {
     return 0;
 }
 
+/**
+ * Returns true if the daylight saving time correction is on in US.
+ */
 int MarketTime::getDaylightSavingCorrectionUSA(datetime date = NULL) {
     if (!date) {
         date = TimeGMT();
@@ -175,7 +189,9 @@ int MarketTime::getDaylightSavingCorrectionUSA(datetime date = NULL) {
 }
 
 /**
- * Considerata la possibilita di usare anche -1 e -2 bisogna spiegare bene e mettere constraints su occurrence
+ * Allows to find the date of a certain occurrence of a day in a month, e.g. the third Monday of September 2021.
+ * It also supports negative indexes, in case the last or penultimate occurrence are required.
+ * The occurrence index 0 is the only unsupported one.
  */
 datetime MarketTime::findDayOfWeekOccurrenceInMonth(int year, int month, int dayOfWeek, int occurrence) {
     const int daysInMonth = getDaysInMonth(year, month);
@@ -208,6 +224,9 @@ datetime MarketTime::findDayOfWeekOccurrenceInMonth(int year, int month, int day
     return ThrowException(-1, __FUNCTION__, "Could not calculate date");
 }
 
+/**
+ * Contains information on the number of days for each month. It accounts for leap years.
+ */
 int MarketTime::getDaysInMonth(int year, int month) {
     if (month == JANUARY) {
         return 31;
@@ -249,6 +268,9 @@ int MarketTime::getDaysInMonth(int year, int month) {
     return ThrowException(-1, __FUNCTION__, StringConcatenate("Could not calculate days in month: ", month));
 }
 
+/**
+ * Returns true if the given year is a leap year.
+ */
 bool MarketTime::isLeapYear(int year) {
     bool leapYearCondition = (year % 4 == 0) && (year % 100 != 0 || year % 400 == 0);
     return leapYearCondition;

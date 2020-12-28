@@ -6,36 +6,40 @@
 #include "ArrowStyle.mqh"
 
 
+/**
+ * This class calculates all the extremes and draws the arrows representing them.
+ */
 class ExtremesDraw {
     public:
         void drawExtremes(int & [], Discriminator);
 
     private:
         ArrowStyle arrowStyle_;
-        static const int minimumCandlesBetweenExtremes_;
-        static const int smallestAllowedExtremeIndex_;
 
         void calculateAllExtremes(int & [], Discriminator);
         void calculateValidExtremes(int & [], Discriminator);
 };
 
-const int ExtremesDraw::minimumCandlesBetweenExtremes_ = 1;
-const int ExtremesDraw::smallestAllowedExtremeIndex_ = 4;
-
+/**
+ * Draws the extremes on the graph.
+ */
 void ExtremesDraw::drawExtremes(int & extremes[], Discriminator discriminator) {
     calculateValidExtremes(extremes, discriminator);
 }
 
+/**
+ * Calculates all the extremes on the graph.
+ */
 void ExtremesDraw::calculateAllExtremes(int & allExtremes[], Discriminator discriminator) {
     int numberOfExtremes = 0;
     ArrayResize(allExtremes, CANDLES_VISIBLE_IN_GRAPH_2X);
 
-    for (int i = smallestAllowedExtremeIndex_; i < CANDLES_VISIBLE_IN_GRAPH_2X; i++) {
+    for (int i = SMALLEST_ALLOWED_EXTREME_INDEX; i < CANDLES_VISIBLE_IN_GRAPH_2X; i++) {
         bool isBeatingNeighbours = true;
 
-        for (int j = -minimumCandlesBetweenExtremes_; j < minimumCandlesBetweenExtremes_ + 1; j++) {
-            if ((iExtreme(discriminator, i) > iExtreme(discriminator, i + j) + Pips() && discriminator == Min) ||
-                (iExtreme(discriminator, i) < iExtreme(discriminator, i + j) - Pips() && discriminator == Max)) {
+        for (int j = -MINIMUM_CANDLES_BETWEEN_EXTREMES; j < MINIMUM_CANDLES_BETWEEN_EXTREMES + 1; j++) {
+            if ((iExtreme(discriminator, i) > iExtreme(discriminator, i + j) + Pip() && discriminator == Min) ||
+                (iExtreme(discriminator, i) < iExtreme(discriminator, i + j) - Pip() && discriminator == Max)) {
                 isBeatingNeighbours = false;
                 break;
             }
@@ -48,19 +52,22 @@ void ExtremesDraw::calculateAllExtremes(int & allExtremes[], Discriminator discr
 
             allExtremes[numberOfExtremes] = i;
             numberOfExtremes++;
-            i += minimumCandlesBetweenExtremes_;
+            i += MINIMUM_CANDLES_BETWEEN_EXTREMES;
         }
     }
 
     ArrayResize(allExtremes, numberOfExtremes);
 }
 
+/**
+ * Filters out all the valid extremes out of all the extremes found on the graph.
+ */
 void ExtremesDraw::calculateValidExtremes(int & validExtremes[], Discriminator discriminator) {
     int allExtremes[];
     calculateAllExtremes(allExtremes, discriminator);
 
     int numberOfValidExtremes = 0;
-    ArrayResize(validExtremes, (int) MathRound(CANDLES_VISIBLE_IN_GRAPH_2X / (minimumCandlesBetweenExtremes_ + 1)));
+    ArrayResize(validExtremes, (int) MathRound(CANDLES_VISIBLE_IN_GRAPH_2X / (MINIMUM_CANDLES_BETWEEN_EXTREMES + 1)));
 
     for (int i = ArraySize(allExtremes) - 1; i >= 0; i--) {
         bool isValidExtreme = true;

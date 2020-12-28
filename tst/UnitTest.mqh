@@ -2,9 +2,12 @@
 #property link "https://www.linkedin.com/in/enryea123"
 #property strict
 
-#include "../Constants.mqh"
+#include "../src/util/Exception.mqh"
 
 
+/**
+ * This class represents a framework for unit tests.
+ */
 class UnitTest {
     public:
         UnitTest(string);
@@ -40,6 +43,9 @@ UnitTest::~UnitTest() {
     getTestResult();
 }
 
+/**
+ * Asserts that two given values are equal.
+ */
 template <typename T> bool UnitTest::assertEquals(T expected, T actual, string message = NULL) {
     if (expected == actual) {
         return setSuccess(message);
@@ -48,6 +54,9 @@ template <typename T> bool UnitTest::assertEquals(T expected, T actual, string m
     }
 }
 
+/**
+ * Asserts that two given objects are equal.
+ */
 template <typename T> bool UnitTest::assertEquals(T & expected, T & actual, string message = NULL) {
     if (expected == actual) {
         return setSuccess(message);
@@ -56,6 +65,9 @@ template <typename T> bool UnitTest::assertEquals(T & expected, T & actual, stri
     }
 }
 
+/**
+ * Asserts that two given arrays are equal.
+ */
 template <typename T> bool UnitTest::assertEquals(T & expected[], T & actual[], string message = NULL) {
     if (!assertEquals(StringConcatenate("size: ", ArraySize(expected)),
         StringConcatenate("size: ", ArraySize(actual)), message)) {
@@ -71,6 +83,9 @@ template <typename T> bool UnitTest::assertEquals(T & expected[], T & actual[], 
     return setSuccess(message);
 }
 
+/**
+ * Asserts that two given values are not equal.
+ */
 template <typename T> bool UnitTest::assertNotEquals(T expected, T actual, string message = NULL) {
     if (expected != actual) {
         return setSuccess(message);
@@ -79,6 +94,9 @@ template <typename T> bool UnitTest::assertNotEquals(T expected, T actual, strin
     }
 }
 
+/**
+ * Asserts that two given objects are not equal. Assumes the objects have a toString method.
+ */
 template <typename T> bool UnitTest::assertNotEquals(T & expected, T & actual, string message = NULL) {
     if (expected != actual) {
         return setSuccess(message);
@@ -87,6 +105,9 @@ template <typename T> bool UnitTest::assertNotEquals(T & expected, T & actual, s
     }
 }
 
+/**
+ * Asserts that a condition is true.
+ */
 bool UnitTest::assertTrue(bool condition, string message = NULL) {
     if (condition) {
         return setSuccess(message);
@@ -95,6 +116,9 @@ bool UnitTest::assertTrue(bool condition, string message = NULL) {
     }
 }
 
+/**
+ * Asserts that a condition is false.
+ */
 bool UnitTest::assertFalse(bool condition, string message = NULL) {
     if (!condition) {
         return setSuccess(message);
@@ -103,6 +127,9 @@ bool UnitTest::assertFalse(bool condition, string message = NULL) {
     }
 }
 
+/**
+ * Checks if a unit test that depends on an hardcoded date has expired.
+ */
 bool UnitTest::hasDateDependentTestExpired() {
     if (TimeGMT() > BOT_TESTS_EXPIRATION_DATE) {
         return ThrowException(true, __FUNCTION__, StringConcatenate("Skipping expired test: ", testName_));
@@ -111,6 +138,9 @@ bool UnitTest::hasDateDependentTestExpired() {
     return false;
 }
 
+/**
+ * Sets the failure scenario for unit tests, in case one or more assertions failed.
+ */
 template <typename T> bool UnitTest::setFailure(T expected, T actual, string message = NULL) {
     totalAssertions_++;
     Print("Assertion failed");
@@ -124,6 +154,9 @@ template <typename T> bool UnitTest::setFailure(T expected, T actual, string mes
     return false;
 }
 
+/**
+ * Sets the success scenario for unit tests, in case all assertions succeeded.
+ */
 bool UnitTest::setSuccess(string message = NULL) {
     passedAssertions_++;
     totalAssertions_++;
@@ -135,6 +168,9 @@ bool UnitTest::setSuccess(string message = NULL) {
     return true;
 }
 
+/**
+ * Wraps up the test when the destructor is invoked, and removes the bot in case of failure.
+ */
 void UnitTest::getTestResult() {
     const string baseMessage = StringConcatenate("Test ", testName_,
         " %s with ", passedAssertions_, "/", totalAssertions_);

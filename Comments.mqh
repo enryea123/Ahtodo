@@ -3,8 +3,6 @@
 
 // alla fine compara le differenze con ahtodo_old, soprattutto in OnInit e OnTick. Sarà difficile.
 
-// PORTARE TUTTE LE VARIABILI IN ALTO (ANCHE IN PIVOT). usare enum quando necessari
-
 // Definire funzione throwexception con messaggio e throwfatalexception
 
 // eurjpy bug???: DrawPatternRectangle ha bisogno del nome del pattern
@@ -97,23 +95,17 @@
 
 // dopo che la pending hour è passata metti il grafico grigio se non ci sono ordini aperti
 
-// mettere alert a losslimiter e altre cose in cui è utile
-
 // sistemare breakeven per farli esattamente a zero? Commissione?
 
 // mettere tutti gli spazi giusti tra if/for e mettere tutte le graffe. Non permettere operatori senza graffe!!
 
-// alert in unittest (senza farli fallire) se TimeLocal != TimeItaly
-
-// fare JDOCS?
+// fare JDOCS? Si farli per tutto, anche per utils
 
 // stampare tutti i log con stringa DEBUG invece che non stamparli? o non stamparli ma aggiungere comunque DEBUG
 
 // check timezone of drawOpenMarketLines()
 
 // const function arguments when they don't have to change
-
-// Ora che le exception fanno alert, si possono mettere in ancora piu punti per verificare il codice
 
 // posso fare molti piu print sulle trendline per gli ordini se sono 1 volta a candela!
 
@@ -153,3 +145,5 @@
 // controlla che nessuna variabile statica chiami nessuna funzione quando inizializzata, perchè causa bug
 
 // ora che gli unittest ereditano, magari si possono muovere piu funzioni in protected
+
+// gli imports sono ancora da sistemare. Inizia poi a sistemare comments

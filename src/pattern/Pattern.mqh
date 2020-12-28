@@ -6,6 +6,9 @@
 #include "Candle.mqh"
 
 
+/**
+ * This class contains information on the types of patterns that exist.
+ */
 class Pattern: public Candle {
     public:
         bool isBuyPattern(int);
@@ -24,14 +27,13 @@ class Pattern: public Candle {
         bool isPatternSizeGood(int);
 
     private:
-        static const int antiPatternMinSizeSumPips_;
-
         bool pattern1(int, Discriminator);
         bool pattern3(int, Discriminator);
 };
 
-const int Pattern::antiPatternMinSizeSumPips_ = 50;
-
+/**
+ * Returns true if the given candles combination is a buy pattern.
+ */
 bool Pattern::isBuyPattern(int timeIndex) {
     if (isPatternSizeGood(timeIndex)) {
         if (buyPattern1(timeIndex) || buyPattern2(timeIndex) ||
@@ -43,6 +45,9 @@ bool Pattern::isBuyPattern(int timeIndex) {
     return false;
 }
 
+/**
+ * Returns true if the given candles combination is a sell pattern.
+ */
 bool Pattern::isSellPattern(int timeIndex) {
     if (isPatternSizeGood(timeIndex)) {
         if (sellPattern1(timeIndex) || sellPattern2(timeIndex) ||
@@ -54,6 +59,9 @@ bool Pattern::isSellPattern(int timeIndex) {
     return false;
 }
 
+/**
+ * Returns true if the given candles combination is an antiPattern.
+ */
 bool Pattern::isAntiPattern(int timeIndex) {
     if (antiPattern1(timeIndex) || antiPattern1(timeIndex + 1) || antiPattern1(timeIndex + 2)) {
         return true;
@@ -63,56 +71,56 @@ bool Pattern::isAntiPattern(int timeIndex) {
 }
 
 /**
- * Low doji followed by big bull bar
+ * Low doji followed by big bull bar.
  */
 bool Pattern::sellPattern1(int timeIndex) {
     return pattern1(timeIndex, Min);
 }
 
 /**
- * High doji followed by big bear bar
+ * High doji followed by big bear bar.
  */
 bool Pattern::buyPattern1(int timeIndex) {
     return pattern1(timeIndex, Max);
 }
 
 /**
- * Down pinbar
+ * Down pinbar.
  */
 bool Pattern::sellPattern2(int timeIndex) {
     return downPinbar(timeIndex);
 }
 
 /**
- * Up pinbar
+ * Up pinbar.
  */
 bool Pattern::buyPattern2(int timeIndex) {
     return upPinbar(timeIndex);
 }
 
 /**
- * High doji followed by big bear bar and then big bull bar
+ * High doji followed by big bear bar and then big bull bar.
  */
 bool Pattern::sellPattern3(int timeIndex) {
     return pattern3(timeIndex, Min);
 }
 
 /**
- * Low doji followed by big bull bar and then big bear bar
+ * Low doji followed by big bull bar and then big bear bar.
  */
 bool Pattern::buyPattern3(int timeIndex) {
     return pattern3(timeIndex, Max);
 }
 
 /**
- * slimDoji, only for H4
+ * slimDoji, only for H4.
  */
 bool Pattern::sellBuyPattern4(int timeIndex) {
     return (slimDoji(timeIndex) && Period() == PERIOD_H4);
 }
 
 /**
- * 3 dojis or discording pinbars in a row
+ * 3 dojis or discording pinbars in a row.
  */
 bool Pattern::antiPattern1(int timeIndex) {
     if ((doji(timeIndex) && doji(timeIndex + 1) && doji(timeIndex + 2)) ||
@@ -130,7 +138,7 @@ bool Pattern::antiPattern1(int timeIndex) {
         (upPinbar(timeIndex) && downPinbar(timeIndex + 1) && doji(timeIndex + 2))) {
 
         if (candleSize(timeIndex) + candleSize(timeIndex + 1) + candleSize(timeIndex + 2) >
-            antiPatternMinSizeSumPips_ * PeriodFactor() * Pips()) {
+            ANTIPATTERN_MIN_SIZE_SUM_PIPS * PeriodFactor() * Pip()) {
             return true;
         }
     }
@@ -138,15 +146,21 @@ bool Pattern::antiPattern1(int timeIndex) {
     return false;
 }
 
+/**
+ * Returns true if the pattern size is within the allowed range.
+ */
 bool Pattern::isPatternSizeGood(int timeIndex) {
-    if (candleSize(timeIndex) >= PATTERN_MINIMUM_SIZE_PIPS * PeriodFactor() * Pips() &&
-        candleSize(timeIndex) <= PATTERN_MAXIMUM_SIZE_PIPS * PeriodFactor() * Pips()) {
+    if (candleSize(timeIndex) >= PATTERN_MINIMUM_SIZE_PIPS * PeriodFactor() * Pip() &&
+        candleSize(timeIndex) <= PATTERN_MAXIMUM_SIZE_PIPS * PeriodFactor() * Pip()) {
         return true;
     }
 
     return false;
 }
 
+/**
+ * Pattern1 implementation.
+ */
 bool Pattern::pattern1(int timeIndex, Discriminator discriminator) {
     bool isBuyPattern = (discriminator == Max);
 
@@ -171,13 +185,17 @@ bool Pattern::pattern1(int timeIndex, Discriminator discriminator) {
         return false;
     }
 
-    if (MathAbs(iExtreme(discriminator, timeIndex + 1) - iExtreme(discriminator, timeIndex)) > 3 * ErrorPips()) {
+    if (MathAbs(iExtreme(discriminator, timeIndex + 1) - iExtreme(discriminator, timeIndex)) >
+        6 * PeriodFactor() * Pip()) {
         return false;
     }
 
     return true;
 }
 
+/**
+ * Pattern3 implementation.
+ */
 bool Pattern::pattern3(int timeIndex, Discriminator discriminator) {
     bool isBuyPattern = (discriminator == Max);
 
@@ -208,12 +226,13 @@ bool Pattern::pattern3(int timeIndex, Discriminator discriminator) {
         return false;
     }
 
-    if (iExtreme(Min, timeIndex + 1) > candleBodyMin(timeIndex) + 2 * ErrorPips() ||
-        iExtreme(Max, timeIndex + 1) < candleBodyMax(timeIndex) - 2 * ErrorPips()) {
+    if (iExtreme(Min, timeIndex + 1) > candleBodyMin(timeIndex) + 4 * PeriodFactor() * Pip() ||
+        iExtreme(Max, timeIndex + 1) < candleBodyMax(timeIndex) - 4 * PeriodFactor() * Pip()) {
         return false;
     }
 
-    if (MathAbs(iExtreme(discriminator, timeIndex + 1) - iExtreme(discriminator, timeIndex)) > 3 * ErrorPips()) {
+    if (MathAbs(iExtreme(discriminator, timeIndex + 1) - iExtreme(discriminator, timeIndex)) >
+        6 * PeriodFactor() * Pip()) {
         return false;
     }
 
