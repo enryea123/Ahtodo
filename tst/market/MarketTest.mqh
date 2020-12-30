@@ -25,6 +25,17 @@ void MarketTest::isMarketOpenedTest() {
         return;
     }
 
+    /**
+     * Running a test on news only for the current time. The other tests should never be affected,
+     * as they are run on past dates for which no news information is available.
+     */
+    NewsDraw newsDraw;
+    if (newsDraw.isNewsTimeWindow()) {
+        unitTest.assertFalse(
+            isMarketOpened()
+        );
+    }
+
     if (GetSpread() > SPREAD_PIPS_CLOSE_MARKET - 1) {
         Print("isMarketOpenedTest skipped for high spread..");
         return;

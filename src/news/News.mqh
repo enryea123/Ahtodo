@@ -2,6 +2,8 @@
 #property link "https://www.linkedin.com/in/enryea123"
 #property strict
 
+#include "../../Constants.mqh"
+
 
 /**
  * This class is an interface for market news. It provides basic attributes
@@ -9,7 +11,7 @@
  */
 class News {
     public:
-        News::News();
+        News();
 
         string title;
         string country;

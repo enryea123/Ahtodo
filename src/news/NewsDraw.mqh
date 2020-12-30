@@ -2,6 +2,7 @@
 #property link "https://www.linkedin.com/in/enryea123"
 #property strict
 
+#include "../../Constants.mqh"
 #include "../util/Exception.mqh"
 #include "../util/Util.mqh"
 #include "../util/Price.mqh"
@@ -15,6 +16,7 @@
 class NewsDraw {
     public:
         void drawNewsLines();
+        bool isNewsTimeWindow();
 
     private:
         static const int newsLabelFontSize_;
@@ -78,6 +80,23 @@ void NewsDraw::drawSingleNewsLine(News & news) {
 }
 
 /**
+ * Returns true if there is a high impact news for the current symbol within the current time window.
+ */
+bool NewsDraw::isNewsTimeWindow() {
+    for (int i = ObjectsTotal() - 1; i >= 0; i--) {
+        const int timeDistanceFromBrokerTime = (int) MathAbs(TimeCurrent() - ObjectGet(ObjectName(i), OBJPROP_TIME1));
+
+        if (StringContains(ObjectName(i), newsLineNamePrefix_) &&
+            timeDistanceFromBrokerTime < 60 * NEWS_TIME_WINDOW_MINUTES &&
+            ObjectGet(ObjectName(i), OBJPROP_COLOR) == getNewsColorFromImpact("High")) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
  * Returns the color associated with each news type, which is then used to color the line and label.
  */
 color NewsDraw::getNewsColorFromImpact(string impact) {
@@ -99,9 +118,9 @@ color NewsDraw::getNewsColorFromImpact(string impact) {
  */
 int NewsDraw::getNewsLineWidthFromImpact(string impact) {
     if (impact == "High") {
-        return 4;
-    } else if (impact == "Medium") {
         return 2;
+    } else if (impact == "Medium") {
+        return 1;
     } else if (impact == "Low") {
         return 1;
     } else if (impact == "Holiday") {

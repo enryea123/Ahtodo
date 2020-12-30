@@ -19,6 +19,8 @@ enum Discriminator {
    Min = -1,
 };
 
+// Constants start here
+
 const bool IS_DEBUG = false;
 const bool SPLIT_POSITION = true;
 
@@ -127,11 +129,15 @@ const double TRENDLINE_NEGATIVE_SLOPE_VOLATILITY = 0.0038;
 const double TRENDLINE_POSITIVE_SLOPE_VOLATILITY = 0.0024;
 const double TRENDLINE_BALANCE_RATIO_THRESHOLD = 0.92;
 
+const int NEWS_TIME_WINDOW_MINUTES = 60;
+
+// Associative Maps
 Map<int, int> BREAKEVEN_STEPS;
 Map<int, double> PERCENT_RISK_ACCOUNT_EXCEPTIONS;
 Map<int, int> MORNING_LOOKBACK_CANDLES;
 Map<string, int> RESTRICTED_SYMBOLS;
 
+// Maps need to be initialized by OnInit
 void InitializeMaps() {
     BREAKEVEN_STEPS.put(6, 4);
     BREAKEVEN_STEPS.put(25, 0);
@@ -149,3 +155,17 @@ void InitializeMaps() {
     RESTRICTED_SYMBOLS.put("GBPJPY", PERIOD_H4);
     RESTRICTED_SYMBOLS.lock();
 }
+
+// TimeStamps for filtered AlertTimer and PrintTimer
+datetime NEWS_TIMESTAMP = -1;
+datetime SPREAD_TIMESTAMP = -1;
+datetime WRONG_CLOCK_TIMESTAMP = -1;
+
+datetime ANTIPATTERN_TIMESTAMP = -1;
+datetime FOUND_PATTERN_TIMESTAMP = -1;
+datetime SELL_SETUP_TIMESTAMP = -1;
+datetime BUY_SETUP_TIMESTAMP = -1;
+datetime NO_SETUP_TIMESTAMP = -1;
+
+datetime VOLATILITY_TIMESTAMP = -1;
+datetime ORDER_MODIFIED_TIMESTAMP = -1;

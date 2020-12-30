@@ -15,7 +15,6 @@
  */
 class OrderTrail {
     public:
-        ~OrderTrail();
         void manageOpenOrders();
 
     protected:
@@ -27,16 +26,7 @@ class OrderTrail {
         bool splitPosition(Order &, double);
         double breakEvenStopLoss(Order &);
         double trailer(double, double, double);
-
-    private:
-        static datetime orderModifiedTimeStamp_;
 };
-
-datetime OrderTrail::orderModifiedTimeStamp_ = -1;
-
-OrderTrail::~OrderTrail() {
-    orderModifiedTimeStamp_ = -1;
-}
 
 /**
  * Gets the list of opened orders that need to be managed.
@@ -83,7 +73,7 @@ void OrderTrail::updateOrder(Order & order, double newStopLoss, double newTakePr
     if (MathRound(MathAbs(newTakeProfit - order.takeProfit) / Pip(symbol)) > 0 ||
         MathRound(MathAbs(newStopLoss - order.stopLoss) / Pip(symbol)) > 0) {
 
-        orderModifiedTimeStamp_ = PrintTimer(orderModifiedTimeStamp_, StringConcatenate(
+        ORDER_MODIFIED_TIMESTAMP = PrintTimer(ORDER_MODIFIED_TIMESTAMP, StringConcatenate(
             "Modifying the existing order: ", order.ticket));
 
         ResetLastError();

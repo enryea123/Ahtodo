@@ -4,6 +4,7 @@
 
 #include "../market/Holiday.mqh"
 #include "../market/MarketTime.mqh"
+#include "../news/NewsDraw.mqh"
 #include "../pattern/PatternsDraw.mqh"
 #include "../pivot/PivotsDraw.mqh"
 #include "../trendline/TrendLinesDraw.mqh"
@@ -56,6 +57,9 @@ void Drawer::drawEverything() {
 
     PivotsDraw pivotsDraw;
     pivotsDraw.drawAllPivots();
+
+    NewsDraw newsDraw;
+    newsDraw.drawNewsLines();
 
     drawLastDrawingTimeSignal();
 

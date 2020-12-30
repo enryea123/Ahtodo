@@ -11,7 +11,7 @@
  */
 class Order {
     public:
-        Order::Order();
+        Order();
 
         int magicNumber;
         int ticket;

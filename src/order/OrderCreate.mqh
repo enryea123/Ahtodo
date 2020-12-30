@@ -16,7 +16,6 @@
  */
 class OrderCreate {
     public:
-        ~OrderCreate();
         void newOrder();
 
         bool areThereRecentOrders(datetime);
@@ -38,31 +37,10 @@ class OrderCreate {
 
         void createNewOrder(int);
         void sendOrder(Order &);
-
-    private:
-        static datetime antiPatternTimeStamp_;
-        static datetime foundPatternTimeStamp_;
-        static datetime sellSetupTimeStamp_;
-        static datetime buySetupTimeStamp_;
-        static datetime noSetupTimeStamp_;
 };
 
 const string OrderCreate::periodCommentIdentifier_ = "P";
 const string OrderCreate::sizeFactorCommentIdentifier_ = "M";
-
-datetime OrderCreate::antiPatternTimeStamp_ = -1;
-datetime OrderCreate::foundPatternTimeStamp_ = -1;
-datetime OrderCreate::sellSetupTimeStamp_ = -1;
-datetime OrderCreate::buySetupTimeStamp_ = -1;
-datetime OrderCreate::noSetupTimeStamp_ = -1;
-
-OrderCreate::~OrderCreate() {
-    antiPatternTimeStamp_ = -1;
-    foundPatternTimeStamp_ = -1;
-    sellSetupTimeStamp_ = -1;
-    buySetupTimeStamp_ = -1;
-    noSetupTimeStamp_ = -1;
-}
 
 /**
  * Checks if some preconditions are met, and then tries to create new orders.
@@ -205,13 +183,13 @@ int OrderCreate::calculateOrderTypeFromSetups(int timeIndex) {
     Pattern pattern;
 
     if (pattern.isAntiPattern(timeIndex)) {
-        antiPatternTimeStamp_ = PrintTimer(antiPatternTimeStamp_, StringConcatenate(
+        ANTIPATTERN_TIMESTAMP = PrintTimer(ANTIPATTERN_TIMESTAMP, StringConcatenate(
             "AntiPattern found at time: ", TimeToStr(Time[timeIndex])));
         return -1;
     }
 
     if (!pattern.isSellPattern(timeIndex) && !pattern.isBuyPattern(timeIndex)) {
-        foundPatternTimeStamp_ = PrintTimer(foundPatternTimeStamp_, StringConcatenate(
+        FOUND_PATTERN_TIMESTAMP = PrintTimer(FOUND_PATTERN_TIMESTAMP, StringConcatenate(
             "No patterns found at time: ", TimeToStr(Time[timeIndex])));
         return -1;
     }
@@ -228,19 +206,19 @@ int OrderCreate::calculateOrderTypeFromSetups(int timeIndex) {
         const double trendLineDistanceFromMax = MathAbs(iExtreme(Max, timeIndex) - trendLineSetupValue);
 
         if (pattern.isSellPattern(timeIndex) && trendLineDistanceFromMin < TRENDLINE_SETUP_MAX_PIPS_DISTANCE * Pip()) {
-            sellSetupTimeStamp_ = PrintTimer(sellSetupTimeStamp_, StringConcatenate(
+            SELL_SETUP_TIMESTAMP = PrintTimer(SELL_SETUP_TIMESTAMP, StringConcatenate(
                 "Found OP_SELLSTOP setup at Time: ", TimeToStr(Time[timeIndex]), " for TrendLine: ", ObjectName(i)));
             return OP_SELLSTOP;
         }
 
         if (pattern.isBuyPattern(timeIndex) && trendLineDistanceFromMax < TRENDLINE_SETUP_MAX_PIPS_DISTANCE * Pip()) {
-            buySetupTimeStamp_ = PrintTimer(buySetupTimeStamp_, StringConcatenate(
+            BUY_SETUP_TIMESTAMP = PrintTimer(BUY_SETUP_TIMESTAMP, StringConcatenate(
                 "Found OP_BUYSTOP setup at Time: ", TimeToStr(Time[timeIndex]), " for TrendLine: ", ObjectName(i)));
             return OP_BUYSTOP;
         }
     }
 
-    noSetupTimeStamp_ = PrintTimer(noSetupTimeStamp_, StringConcatenate(
+    NO_SETUP_TIMESTAMP = PrintTimer(NO_SETUP_TIMESTAMP, StringConcatenate(
         "No setups found at Time: ", TimeToStr(Time[timeIndex])));
     return -1;
 }
@@ -428,7 +406,8 @@ string OrderCreate::buildOrderComment(int period, double sizeFactor, double take
     );
 
     if (StringLen(comment) > MAX_ORDER_COMMENT_CHARACTERS) {
-        return ThrowException(StringSubstr(comment, 0, MAX_ORDER_COMMENT_CHARACTERS), __FUNCTION__, "Order comment too long");
+        const string truncatedComment = StringSubstr(comment, 0, MAX_ORDER_COMMENT_CHARACTERS);
+        return ThrowException(truncatedComment, __FUNCTION__, "Order comment too long");
     }
 
     return comment;

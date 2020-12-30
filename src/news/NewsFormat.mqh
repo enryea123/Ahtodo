@@ -42,8 +42,6 @@ void NewsFormat::readNewsFromCalendar(News & news[]) {
     if (fileHandle == INVALID_HANDLE || !FileIsExist(calendarFile_) || fileHeader != calendarHeader_) {
         ThrowException(__FUNCTION__, StringConcatenate(
             "Error when opening calendar file: ", calendarFile_));
-Alert(TerminalPath());
-Alert("NOT FOUND THE FILE: ", calendarFile_);
         return;
     }
 
@@ -77,6 +75,7 @@ datetime NewsFormat::formatDate(string date, string time) {
     StringSplit(time, StringGetCharacter(":", 0), splitTime);
 
     int formattedHour = (int) splitTime[0];
+    int formattedMinute = (int) splitTime[1];
 
     if (StringContains(splitTime[1], "pm") && formattedHour != 12) {
         formattedHour += 12;
@@ -85,7 +84,7 @@ datetime NewsFormat::formatDate(string date, string time) {
     }
 
     datetime formattedDate = StringToTime(StringConcatenate(
-        splitDate[2], ".", splitDate[0], ".", splitDate[1], " ", formattedHour, ":00"));
+        splitDate[2], ".", splitDate[0], ".", splitDate[1], " ", formattedHour, ":", formattedMinute));
 
     // Converting the date from UTC to the broker time
     MarketTime marketTime;

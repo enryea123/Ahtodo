@@ -13,8 +13,6 @@
  */
 class TrendLine {
     public:
-        ~TrendLine();
-
         bool areTrendLineSetupsGood(int, int, Discriminator);
         bool isExistingTrendLineBad(string, Discriminator);
         bool isBadTrendLineFromName(string);
@@ -32,9 +30,6 @@ class TrendLine {
         static const string trendLineNameFirstIndexIdentifier_;
         static const string trendLineNameSecondIndexIdentifier_;
 
-        static double volatility_;
-        static datetime volatilityTimeStamp_;
-
         int getTrendLineIndex(string, string);
         double getMaxTrendLineSlope(double);
 };
@@ -44,14 +39,6 @@ const string TrendLine::trendLineBadNameSuffix_ = "Bad";
 const string TrendLine::trendLineNameBeamIdentifier_ = "b";
 const string TrendLine::trendLineNameFirstIndexIdentifier_ = "i";
 const string TrendLine::trendLineNameSecondIndexIdentifier_ = "j";
-
-datetime TrendLine::volatilityTimeStamp_ = -1;
-double TrendLine::volatility_ = -1;
-
-TrendLine::~TrendLine() {
-    volatilityTimeStamp_ = -1;
-    volatility_ = -1;
-}
 
 /**
  * Checks if the setups of a trendLine are good, before it has been created.
@@ -224,7 +211,9 @@ double TrendLine::getMaxTrendLineSlope(double trendLineSlope) {
  * Calculates the market volatility at the trendLines zoom.
  */
 double TrendLine::getVolatility() {
-    if (volatilityTimeStamp_ != Time[0]) {
+    static double volatility;
+
+    if (VOLATILITY_TIMESTAMP != Time[0] || volatility == 0) {
         double marketMax = -10000, marketMin = 10000;
 
         for (int i = 0; i < CANDLES_VISIBLE_IN_GRAPH_3X; i++) {
@@ -232,11 +221,11 @@ double TrendLine::getVolatility() {
             marketMin = MathMin(marketMin, iExtreme(Min, i));
         }
 
-        volatility_ = MathAbs(marketMax - marketMin);
-        volatilityTimeStamp_ = Time[0];
+        volatility = MathAbs(marketMax - marketMin);
+        VOLATILITY_TIMESTAMP = Time[0];
     }
 
-    return volatility_;
+    return volatility;
 }
 
 /**

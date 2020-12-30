@@ -3,6 +3,7 @@
 #property strict
 
 #include "../../Constants.mqh"
+#include "../news/NewsDraw.mqh"
 #include "../util/Exception.mqh"
 #include "../util/Util.mqh"
 #include "Holiday.mqh"
@@ -16,7 +17,6 @@
 class Market {
     public:
         Market();
-        ~Market();
 
         bool isMarketOpened(datetime);
         bool isMarketOpenLookBackTimeWindow();
@@ -38,12 +38,7 @@ class Market {
     private:
         static const int incorrectClockErrorSeconds_;
 
-        static bool isHoliday_;
-        static datetime spreadTimeStamp_;
-        static datetime wrongClockTimeStamp_;
-
         MarketTime marketTime_;
-
         bool forceIsLiveAccountForTesting_;
 };
 
@@ -52,16 +47,6 @@ const int Market::incorrectClockErrorSeconds_ = 60;
 Market::Market():
     forceIsLiveAccountForTesting_(false) {
 }
-
-Market::~Market() {
-    isHoliday_ = false;
-    spreadTimeStamp_ = -1;
-    wrongClockTimeStamp_ = -1;
-}
-
-bool Market::isHoliday_ = false;
-datetime Market::spreadTimeStamp_ = -1;
-datetime Market::wrongClockTimeStamp_ = -1;
 
 /**
  * Checks if the market is opened in the default timezone.
@@ -80,17 +65,20 @@ bool Market::isMarketOpened(datetime date = NULL) {
         return false;
     }
 
-    if (marketTime_.hasDateChanged(date)) {
-        Holiday holiday;
-        isHoliday_ = holiday.isMajorBankHoliday(date);
-    }
-    if (isHoliday_) {
+    Holiday holiday;
+    if (holiday.isMajorBankHoliday(date)) {
         return false;
     }
 
     const double spread = GetSpread();
     if (spread > SPREAD_PIPS_CLOSE_MARKET) {
-        spreadTimeStamp_ = AlertTimer(spreadTimeStamp_, StringConcatenate("Market closed for spread: ", spread));
+        SPREAD_TIMESTAMP = AlertTimer(SPREAD_TIMESTAMP, StringConcatenate("Market closed for spread: ", spread));
+        return false;
+    }
+
+    NewsDraw newsDraw;
+    if (newsDraw.isNewsTimeWindow()) {
+        NEWS_TIMESTAMP = PrintTimer(NEWS_TIMESTAMP, "Market closed for news");
         return false;
     }
 
@@ -123,7 +111,7 @@ void Market::marketConditionsValidation() {
 
         // This doesn't catch an incorrect clock, only a different timezone
         if (MathAbs(marketTime_.timeItaly() - TimeLocal()) > incorrectClockErrorSeconds_) {
-            wrongClockTimeStamp_ = AlertTimer(wrongClockTimeStamp_,
+            WRONG_CLOCK_TIMESTAMP = AlertTimer(WRONG_CLOCK_TIMESTAMP,
                 "The computer clock is not on the CET timezone, untested scenario");
         }
 
