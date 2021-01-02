@@ -36,13 +36,9 @@ class Market {
         void accountTypeOverrideReset();
 
     private:
-        static const int incorrectClockErrorSeconds_;
-
         MarketTime marketTime_;
         bool forceIsLiveAccountForTesting_;
 };
-
-const int Market::incorrectClockErrorSeconds_ = 60;
 
 Market::Market():
     forceIsLiveAccountForTesting_(false) {
@@ -77,7 +73,7 @@ bool Market::isMarketOpened(datetime date = NULL) {
     }
 
     NewsDraw newsDraw;
-    if (newsDraw.isNewsTimeWindow()) {
+    if (newsDraw.isNewsTimeWindow(date)) {
         NEWS_TIMESTAMP = PrintTimer(NEWS_TIMESTAMP, "Market closed for news");
         return false;
     }
@@ -110,7 +106,7 @@ void Market::marketConditionsValidation() {
         isAllowedBroker() && isAllowedSymbol() && isAllowedSymbolPeriodCombo()) {
 
         // This doesn't catch an incorrect clock, only a different timezone
-        if (MathAbs(marketTime_.timeItaly() - TimeLocal()) > incorrectClockErrorSeconds_) {
+        if (MathAbs(marketTime_.timeItaly() - TimeLocal()) > INCORRECT_CLOCK_ERROR_SECONDS) {
             WRONG_CLOCK_TIMESTAMP = AlertTimer(WRONG_CLOCK_TIMESTAMP,
                 "The computer clock is not on the CET timezone, untested scenario");
         }

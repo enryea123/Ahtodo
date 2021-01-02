@@ -17,14 +17,10 @@ class PatternsDraw {
     private:
         Pattern pattern_;
 
-        static const string patternNamePrefix_;
-
         void drawAllColoredDots(int);
         void drawCandleColoredDot(int, string, color, double);
         void drawPatternRectangle(int, int, color);
 };
-
-const string PatternsDraw::patternNamePrefix_ = "Pattern";
 
 /**
  * Draws all the patterns.
@@ -80,7 +76,7 @@ void PatternsDraw::drawPatternRectangle(int timeIndex, int patternLength, color 
         }
     }
 
-    const string patternName = StringConcatenate(patternNamePrefix_, NAME_SEPARATOR, timeIndex,
+    const string patternName = StringConcatenate(PATTERN_NAME_PREFIX, NAME_SEPARATOR, timeIndex,
         NAME_SEPARATOR, patternLength, NAME_SEPARATOR, patternColor);
 
     ObjectCreate(

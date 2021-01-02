@@ -16,8 +16,6 @@ class PivotsDraw {
 
     private:
         Pivot pivot_;
-        static const int pivotLabelFontSize_;
-        static const int pivotRSLineLength_;
 
         int getMaxTimeIndex(int);
         void drawPivotLabel(string, string, color, double);
@@ -27,9 +25,6 @@ class PivotsDraw {
         void drawPivotRS(PivotRS);
         void drawPivotRS(PivotPeriod, PivotRS);
 };
-
-const int PivotsDraw::pivotLabelFontSize_ = 8;
-const int PivotsDraw::pivotRSLineLength_ = 6;
 
 void PivotsDraw::drawAllPivots() {
     drawPivot(D1);
@@ -102,11 +97,13 @@ void PivotsDraw::drawPivotRS(PivotPeriod pivotPeriod, PivotRS pivotRS) {
         pivot_.getPivotRS(Symbol(), pivotPeriod, pivotRS)
     );
 
+    const int pivotRSLineLength = 6;
+
     drawPivotLine(
         pivotStyle.pivotRSLineName(pivotRS),
         pivotStyle.pivotRSLabelColor(pivotRS),
         iCandle(I_time, Symbol(), pivotPeriod, -1),
-        Time[pivotRSLineLength_],
+        Time[pivotRSLineLength],
         pivot_.getPivotRS(Symbol(), pivotPeriod, pivotRS),
         pivot_.getPivotRS(Symbol(), pivotPeriod, pivotRS)
     );
@@ -128,7 +125,7 @@ void PivotsDraw::drawPivotLabel(string pivotLabelName, string pivotLabelText, co
 
     ObjectSetString(0, pivotLabelName, OBJPROP_TEXT, pivotLabelText);
     ObjectSet(pivotLabelName, OBJPROP_COLOR, pivotColor);
-    ObjectSet(pivotLabelName, OBJPROP_FONTSIZE, pivotLabelFontSize_);
+    ObjectSet(pivotLabelName, OBJPROP_FONTSIZE, 8);
 }
 
 /**

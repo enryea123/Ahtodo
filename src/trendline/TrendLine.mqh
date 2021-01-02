@@ -24,21 +24,9 @@ class TrendLine {
         string buildBadTrendLineName(int, int, int, Discriminator);
 
     private:
-        static const string trendLineNamePrefix_;
-        static const string trendLineBadNameSuffix_;
-        static const string trendLineNameBeamIdentifier_;
-        static const string trendLineNameFirstIndexIdentifier_;
-        static const string trendLineNameSecondIndexIdentifier_;
-
         int getTrendLineIndex(string, string);
         double getMaxTrendLineSlope(double);
 };
-
-const string TrendLine::trendLineNamePrefix_ = "TrendLine";
-const string TrendLine::trendLineBadNameSuffix_ = "Bad";
-const string TrendLine::trendLineNameBeamIdentifier_ = "b";
-const string TrendLine::trendLineNameFirstIndexIdentifier_ = "i";
-const string TrendLine::trendLineNameSecondIndexIdentifier_ = "j";
 
 /**
  * Checks if the setups of a trendLine are good, before it has been created.
@@ -126,8 +114,8 @@ bool TrendLine::isExistingTrendLineBad(string trendLineName, Discriminator discr
  * Returns true if the given name identifies a bad trendLine.
  */
 bool TrendLine::isBadTrendLineFromName(string trendLineName) {
-    if (StringContains(trendLineName, trendLineNamePrefix_) &&
-        StringContains(trendLineName, trendLineBadNameSuffix_)) {
+    if (StringContains(trendLineName, TRENDLINE_NAME_PREFIX) &&
+        StringContains(trendLineName, TRENDLINE_BAD_NAME_SUFFIX)) {
         return true;
     }
 
@@ -139,8 +127,8 @@ bool TrendLine::isBadTrendLineFromName(string trendLineName) {
  * the minimum index of the trendLine needs to be far enough from the input timeIndex.
  */
 bool TrendLine::isGoodTrendLineFromName(string trendLineName, int timeIndex = 1) {
-    if (!StringContains(trendLineName, trendLineNamePrefix_) ||
-        StringContains(trendLineName, trendLineBadNameSuffix_)) {
+    if (!StringContains(trendLineName, TRENDLINE_NAME_PREFIX) ||
+        StringContains(trendLineName, TRENDLINE_BAD_NAME_SUFFIX)) {
         return false;
     }
 
@@ -156,16 +144,16 @@ bool TrendLine::isGoodTrendLineFromName(string trendLineName, int timeIndex = 1)
  * Returns the value of the trendLine given inxed.
  */
 int TrendLine::getTrendLineIndex(string trendLineName, string indexDisambiguator) {
-    if (!StringContains(trendLineName, trendLineNamePrefix_)) {
+    if (!StringContains(trendLineName, TRENDLINE_NAME_PREFIX)) {
         return -1;
     }
 
-    if (indexDisambiguator != trendLineNameFirstIndexIdentifier_ &&
-        indexDisambiguator != trendLineNameSecondIndexIdentifier_) {
+    if (indexDisambiguator != TRENDLINE_NAME_FIRST_INDEX_IDENTIFIER &&
+        indexDisambiguator != TRENDLINE_NAME_SECOND_INDEX_IDENTIFIER) {
         return -1;
     }
 
-    const int positionInName = (indexDisambiguator == trendLineNameFirstIndexIdentifier_) ? 1 : 2;
+    const int positionInName = (indexDisambiguator == TRENDLINE_NAME_FIRST_INDEX_IDENTIFIER) ? 1 : 2;
 
     string splittedTrendLineName[];
     StringSplit(trendLineName, StringGetCharacter(NAME_SEPARATOR, 0), splittedTrendLineName);
@@ -188,14 +176,14 @@ int TrendLine::getTrendLineIndex(string trendLineName, string indexDisambiguator
  * Returns the value of the first index of the trendLine.
  */
 int TrendLine::getTrendLineMaxIndex(string trendLineName) {
-    return getTrendLineIndex(trendLineName, trendLineNameFirstIndexIdentifier_);
+    return getTrendLineIndex(trendLineName, TRENDLINE_NAME_FIRST_INDEX_IDENTIFIER);
 }
 
 /**
  * Returns the value of the second index of the trendLine.
  */
 int TrendLine::getTrendLineMinIndex(string trendLineName) {
-    return getTrendLineIndex(trendLineName, trendLineNameSecondIndexIdentifier_);
+    return getTrendLineIndex(trendLineName, TRENDLINE_NAME_SECOND_INDEX_IDENTIFIER);
 }
 
 /**
@@ -232,10 +220,10 @@ double TrendLine::getVolatility() {
  * Builds the trendLine name.
  */
 string TrendLine::buildTrendLineName(int indexI, int indexJ, int beam, Discriminator discriminator) {
-    return StringConcatenate(trendLineNamePrefix_,
-        NAME_SEPARATOR, trendLineNameFirstIndexIdentifier_, indexI,
-        NAME_SEPARATOR, trendLineNameSecondIndexIdentifier_, indexJ,
-        NAME_SEPARATOR, trendLineNameBeamIdentifier_, beam,
+    return StringConcatenate(TRENDLINE_NAME_PREFIX,
+        NAME_SEPARATOR, TRENDLINE_NAME_FIRST_INDEX_IDENTIFIER, indexI,
+        NAME_SEPARATOR, TRENDLINE_NAME_SECOND_INDEX_IDENTIFIER, indexJ,
+        NAME_SEPARATOR, TRENDLINE_NAME_BEAM_IDENTIFIER, beam,
         NAME_SEPARATOR, EnumToString(discriminator));
 }
 
@@ -244,5 +232,5 @@ string TrendLine::buildTrendLineName(int indexI, int indexJ, int beam, Discrimin
  */
 string TrendLine::buildBadTrendLineName(int indexI, int indexJ, int beam, Discriminator discriminator) {
     return StringConcatenate(buildTrendLineName(indexI, indexJ, beam, discriminator),
-        NAME_SEPARATOR, trendLineBadNameSuffix_);
+        NAME_SEPARATOR, TRENDLINE_BAD_NAME_SUFFIX);
 }

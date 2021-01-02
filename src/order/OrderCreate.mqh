@@ -32,15 +32,9 @@ class OrderCreate {
     protected:
         OrderFind orderFind_;
 
-        static const string periodCommentIdentifier_;
-        static const string sizeFactorCommentIdentifier_;
-
         void createNewOrder(int);
         void sendOrder(Order &);
 };
-
-const string OrderCreate::periodCommentIdentifier_ = "P";
-const string OrderCreate::sizeFactorCommentIdentifier_ = "M";
 
 /**
  * Checks if some preconditions are met, and then tries to create new orders.
@@ -399,8 +393,8 @@ string OrderCreate::buildOrderComment(int period, double sizeFactor, double take
 
     const string comment = StringConcatenate(
         strategyPrefix,
-        " ", periodCommentIdentifier_, period,
-        " ", sizeFactorCommentIdentifier_, NormalizeDouble(sizeFactor, 1),
+        " ", PERIOD_COMMENT_IDENTIFIER, period,
+        " ", SIZE_FACTOR_COMMENT_IDENTIFIER, NormalizeDouble(sizeFactor, 1),
         " R", NormalizeDouble(takeProfitFactor, 1),
         " S", stopLossPips
     );
@@ -421,8 +415,8 @@ double OrderCreate::getSizeFactorFromComment(string comment) {
     StringSplit(comment, StringGetCharacter(" ", 0), splittedComment);
 
     for (int i = 0; i < ArraySize(splittedComment); i++) {
-        if (StringContains(splittedComment[i], sizeFactorCommentIdentifier_)) {
-            StringSplit(splittedComment[i], StringGetCharacter(sizeFactorCommentIdentifier_, 0), splittedComment);
+        if (StringContains(splittedComment[i], SIZE_FACTOR_COMMENT_IDENTIFIER)) {
+            StringSplit(splittedComment[i], StringGetCharacter(SIZE_FACTOR_COMMENT_IDENTIFIER, 0), splittedComment);
             break;
         }
     }

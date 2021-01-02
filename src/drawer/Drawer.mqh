@@ -22,22 +22,12 @@ class Drawer {
         void setChartMarketClosedColors();
 
     private:
-        static const int drawOpenMarketLinesMaxDays_;
-        static const int openMarketLinesPipsShift_;
-        static const string lastDrawingTimePrefix_;
-        static const string openMarketLinePrefix_;
-
         bool areDrawingsUpdated();
         string getLastDrawingTimeSignalName();
         color getLastDrawingTimeSignalColor();
         void drawLastDrawingTimeSignal();
         void drawOpenMarketLines();
 };
-
-const int Drawer::drawOpenMarketLinesMaxDays_ = 40;
-const int Drawer::openMarketLinesPipsShift_ = 10;
-const string Drawer::lastDrawingTimePrefix_ = "LastDrawingTime";
-const string Drawer::openMarketLinePrefix_ = "OpenMarketLine";
 
 /**
  * Updates the drawings when a new candle appears.
@@ -119,12 +109,10 @@ void Drawer::drawLastDrawingTimeSignal() {
         OBJ_ARROW_UP,
         0,
         Time[1],
-        iExtreme(Min, 1) * 0.999
+        iExtreme(Min, 1) - 20 * Pip()
     );
 
-    const color lastDrawingTimeSignalColor = getLastDrawingTimeSignalColor();
-
-    ObjectSet(lastDrawingTimeSignal, OBJPROP_COLOR, lastDrawingTimeSignalColor);
+    ObjectSet(lastDrawingTimeSignal, OBJPROP_COLOR, getLastDrawingTimeSignalColor());
     ObjectSet(lastDrawingTimeSignal, OBJPROP_ARROWCODE, 233);
     ObjectSet(lastDrawingTimeSignal, OBJPROP_WIDTH, 4);
 }
@@ -133,7 +121,7 @@ void Drawer::drawLastDrawingTimeSignal() {
  * The drawings update arrow name.
  */
 string Drawer::getLastDrawingTimeSignalName() {
-    return StringConcatenate(lastDrawingTimePrefix_, NAME_SEPARATOR, Time[1]);
+    return StringConcatenate(LAST_DRAWING_TIME_PREFIX, NAME_SEPARATOR, Time[1]);
 }
 
 /**
@@ -160,7 +148,7 @@ void Drawer::drawOpenMarketLines() {
     const datetime today = marketTime.timeAtMidnight(marketTime.timeItaly());
     const int brokerHoursShift = marketTime.timeShiftInHours(marketTime.timeBroker(), marketTime.timeItaly());
 
-    for (int day = 0; day < drawOpenMarketLinesMaxDays_; day++) {
+    for (int day = 0; day < DRAW_OPEN_MARKET_LINES_MAX_DAYS; day++) {
         const datetime thisDayStart = StringToTime(StringConcatenate(today, " ",
             marketTime.marketOpenHour() + brokerHoursShift, ":00")) - 86400 * day;
 
@@ -172,7 +160,7 @@ void Drawer::drawOpenMarketLines() {
             continue;
         }
 
-        const string openMarketLineName = StringConcatenate(openMarketLinePrefix_, NAME_SEPARATOR, day);
+        const string openMarketLineName = StringConcatenate(OPEN_MARKET_LINE_PREFIX, NAME_SEPARATOR, day);
 
         ObjectCreate(
             openMarketLineName,
@@ -180,10 +168,10 @@ void Drawer::drawOpenMarketLines() {
             0,
             thisDayStart,
             MathMin(iCandle(I_low, Symbol(), PERIOD_MN1, 0),
-                iCandle(I_low, Symbol(), PERIOD_MN1, 1)) - openMarketLinesPipsShift_ * Pip(),
+                iCandle(I_low, Symbol(), PERIOD_MN1, 1)) - OPEN_MARKET_LINES_PIPS_SHIFT * Pip(),
             thisDayEnd,
             MathMin(iCandle(I_low, Symbol(), PERIOD_MN1, 0),
-                iCandle(I_low, Symbol(), PERIOD_MN1, 1)) - openMarketLinesPipsShift_ * Pip()
+                iCandle(I_low, Symbol(), PERIOD_MN1, 1)) - OPEN_MARKET_LINES_PIPS_SHIFT * Pip()
         );
 
         ObjectSet(openMarketLineName, OBJPROP_RAY_RIGHT, false);

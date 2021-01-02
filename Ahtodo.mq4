@@ -20,7 +20,6 @@
  */
 
 
-// News: https://www.mql5.com/en/articles/1502
 // Livelli orizzontali per takeProfit
 // StopLoss trailing sotto al minimo precedente
 // Log quando ordine già a breakeven va sotto 0 (filtra commenti con "#from 123891")
@@ -60,7 +59,7 @@ void OnInit() {
     market.marketConditionsValidation();
     drawer.drawEverything();
 
-    Print("Initialization completed in ", TimeLocal() - startTime, " seconds");
+    Print("Initialization completed in ", (int) (TimeLocal() - startTime), " seconds");
 }
 
 void OnTick() {

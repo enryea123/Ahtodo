@@ -29,14 +29,10 @@ class OrderManage {
         OrderFind orderFind_;
 
     private:
-        static const int smallerStopLossBufferPips_;
-
         void deduplicateDiscriminatedOrders(Discriminator);
         void deleteOrdersFromList(Order & []);
         void deleteSingleOrder(Order &);
 };
-
-const int OrderManage::smallerStopLossBufferPips_ = 1;
 
 /**
  * Checks if there are any already opened orders,
@@ -176,7 +172,7 @@ bool OrderManage::findBestOrder(Order & order1, Order & order2) {
         return false;
     }
 
-    if (order1.getStopLossPips() < order2.getStopLossPips() + smallerStopLossBufferPips_) {
+    if (order1.getStopLossPips() < order2.getStopLossPips() + SMALLER_STOPLOSS_BUFFER_PIPS) {
         return true;
     }
 

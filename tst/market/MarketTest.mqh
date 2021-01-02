@@ -4,6 +4,8 @@
 
 #include "../UnitTest.mqh"
 #include "../../src/market/Market.mqh"
+#include "../../src/news/News.mqh"
+#include "../../src/news/NewsDraw.mqh"
 
 
 class MarketTest: public Market {
@@ -23,17 +25,6 @@ void MarketTest::isMarketOpenedTest() {
 
     if (unitTest.hasDateDependentTestExpired()) {
         return;
-    }
-
-    /**
-     * Running a test on news only for the current time. The other tests should never be affected,
-     * as they are run on past dates for which no news information is available.
-     */
-    NewsDraw newsDraw;
-    if (newsDraw.isNewsTimeWindow()) {
-        unitTest.assertFalse(
-            isMarketOpened()
-        );
     }
 
     if (GetSpread() > SPREAD_PIPS_CLOSE_MARKET - 1) {
@@ -85,6 +76,37 @@ void MarketTest::isMarketOpenedTest() {
     unitTest.assertFalse(
         isMarketOpened((datetime) "2020-12-24 12:00") // Vacation
     );
+
+    News news;
+    news.title = "Fake news for MarketTest";
+    news.country = Symbol();
+    news.impact = "High";
+    news.date = (datetime) "2020-04.07 13:50";
+
+    NewsDraw newsDraw;
+    newsDraw.drawSingleNewsLine(news);
+
+    unitTest.assertFalse(
+        isMarketOpened((datetime) "2020-04.07 13:50")
+    );
+
+    unitTest.assertTrue(
+        isMarketOpened((datetime) "2020-04.07 12:45")
+    );
+
+    unitTest.assertFalse(
+        isMarketOpened((datetime) "2020-04.07 12:55")
+    );
+
+    unitTest.assertTrue(
+        isMarketOpened((datetime) "2020-04.07 14:55")
+    );
+
+    unitTest.assertFalse(
+        isMarketOpened((datetime) "2020-04.07 14:45")
+    );
+
+    ObjectsDeleteAll();
 }
 
 void MarketTest::isAllowedAccountNumberTest() {

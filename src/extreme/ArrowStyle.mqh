@@ -14,18 +14,12 @@ class ArrowStyle {
         void drawExtremeArrow(int, Discriminator, bool);
 
     private:
-        static const string arrowNamePrefix_;
-        static const string validArrowNameSuffix_;
-
         color getArrowColor(bool);
         int getArrowSize(bool);
         int getArrowObjectType(Discriminator);
         double getArrowAnchor(Discriminator);
         string buildArrowName(int, Discriminator, bool);
 };
-
-const string ArrowStyle::arrowNamePrefix_ = "Arrow";
-const string ArrowStyle::validArrowNameSuffix_ = "Valid";
 
 /**
  * Draws an extreme arrow and sets its properties.
@@ -78,11 +72,11 @@ int ArrowStyle::getArrowObjectType(Discriminator discriminator) {
  * Builds the arrow name.
  */
 string ArrowStyle::buildArrowName(int timeIndex, Discriminator discriminator, bool isValidExtreme) {
-    string arrowName = StringConcatenate(arrowNamePrefix_, NAME_SEPARATOR,
+    string arrowName = StringConcatenate(ARROW_NAME_PREFIX, NAME_SEPARATOR,
         timeIndex, NAME_SEPARATOR, EnumToString(discriminator));
 
     if (isValidExtreme) {
-        arrowName = StringConcatenate(arrowName, NAME_SEPARATOR, validArrowNameSuffix_);
+        arrowName = StringConcatenate(arrowName, NAME_SEPARATOR, VALID_ARROW_NAME_SUFFIX);
     }
 
     return arrowName;

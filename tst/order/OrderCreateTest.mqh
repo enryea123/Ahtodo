@@ -180,21 +180,35 @@ void OrderCreateTest::calculateOrderTypeFromSetupsTest() {
             break;
         }
 
-        if (!antiPatternTested && pattern.isAntiPattern(i)) {
+        if (pattern.isAntiPattern(i)) {
+            if (antiPatternTested) {
+                continue;
+            }
+
             unitTest.assertEquals(
                 -1,
                 calculateOrderTypeFromSetups(i)
             );
             checkedAssertions++;
             antiPatternTested = true;
-        } else if (!patternTested && (!pattern.isSellPattern(i) && !pattern.isBuyPattern(i))) {
+
+        } else if (!pattern.isSellPattern(i) && !pattern.isBuyPattern(i)) {
+            if (patternTested) {
+                continue;
+            }
+
             unitTest.assertEquals(
                 -1,
                 calculateOrderTypeFromSetups(i)
             );
             checkedAssertions++;
             patternTested = true;
-        } else if (!trendLineTested && (pattern.isSellPattern(i) || pattern.isBuyPattern(i))) {
+
+        } else {
+            if (trendLineTested) {
+                continue;
+            }
+
             TrendLine trendLine;
 
             const Discriminator discriminator = (pattern.isSellPattern(i)) ? Min : Max;
@@ -206,7 +220,7 @@ void OrderCreateTest::calculateOrderTypeFromSetupsTest() {
 
             unitTest.assertEquals(
                 expectedOrder,
-                calculateOrderTypeFromSetups(i), "1"
+                calculateOrderTypeFromSetups(i)
             );
 
             ObjectDelete(trendLineName);
@@ -218,7 +232,7 @@ void OrderCreateTest::calculateOrderTypeFromSetupsTest() {
 
             unitTest.assertEquals(
                 expectedOrder,
-                calculateOrderTypeFromSetups(i), "2"
+                calculateOrderTypeFromSetups(i)
             );
 
             ObjectDelete(trendLineName);
@@ -273,6 +287,8 @@ void OrderCreateTest::calculateOrderTypeFromSetupsTest() {
     if (checkedAssertions < totalAssertions) {
         Print(checkedAssertions, "/", totalAssertions, " checks run, some skipped..");
     }
+
+    ObjectsDeleteAll();
 }
 
 void OrderCreateTest::calculateSizeFactorTest() {

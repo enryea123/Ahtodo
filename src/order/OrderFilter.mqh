@@ -29,7 +29,7 @@ class Filter {
          */
         template <typename T> void add(T v) {
             if (filterType_ == Include || filterType_ == Exclude) {
-                values_ = StringConcatenate(values_, separator_, v, separator_);
+                values_ = StringConcatenate(values_, FILTER_SEPARATOR, v, FILTER_SEPARATOR);
             }
             if (filterType_ == Greater || filterType_ == Smaller) {
                 values_ = (string) (double) v;
@@ -49,7 +49,7 @@ class Filter {
             }
 
             if (filterType_ == Include || filterType_ == Exclude) {
-                return StringContains(values_, StringConcatenate(separator_, v, separator_)) ?
+                return StringContains(values_, StringConcatenate(FILTER_SEPARATOR, v, FILTER_SEPARATOR)) ?
                     !(filterType_ == Include) : (filterType_ == Include);
             }
             if (filterType_ == Greater || filterType_ == Smaller) {
@@ -61,13 +61,9 @@ class Filter {
         }
 
     private:
-        static const string separator_;
-
         string values_;
         FilterType filterType_;
 };
-
-const string Filter::separator_ = "|";
 
 
 /**

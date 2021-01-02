@@ -89,6 +89,7 @@ const string ALLOWED_SYMBOLS [] = {
 };
 
 const string NAME_SEPARATOR = "_";
+const string FILTER_SEPARATOR = "|";
 const string MESSAGE_SEPARATOR = " | ";
 
 const double BASE_TAKE_PROFIT_FACTOR = 3;
@@ -102,12 +103,20 @@ const int PATTERN_MAXIMUM_SIZE_PIPS = 22;
 const int ANTIPATTERN_MIN_SIZE_SUM_PIPS = 50;
 const int PATTERN_DRAW_MAX_CANDLES = 200;
 const int PIVOT_LINES_DRAW_MAX_CANDLES = 100;
+const string PATTERN_NAME_PREFIX = "Pattern";
+
+const string ARROW_NAME_PREFIX = "Arrow";
+const string VALID_ARROW_NAME_SUFFIX = "Valid";
 
 const int LOSS_LIMITER_HOURS = 8;
 const int LOSS_LIMITER_MAX_ALLOWED_LOSSES_PERCENT = 10;
 
+const int FIND_DAY_MAX_YEARS_RANGE = 5;
+
 const int MINIMUM_CANDLES_BETWEEN_EXTREMES = 1;
 const int SMALLEST_ALLOWED_EXTREME_INDEX = 4;
+
+const int INCORRECT_CLOCK_ERROR_SECONDS = 60;
 
 const int OPEN_MARKET_LOOKBACK_MINUTES = 15;
 const int SPREAD_PIPS_CLOSE_MARKET = 5;
@@ -116,11 +125,26 @@ const int MAX_ORDER_COMMENT_CHARACTERS = 20;
 const int ORDER_CANDLES_DURATION = 6;
 const int TRENDLINE_SETUP_MAX_PIPS_DISTANCE = 3;
 
+const string PERIOD_COMMENT_IDENTIFIER = "P";
+const string SIZE_FACTOR_COMMENT_IDENTIFIER = "M";
+
+const int SMALLER_STOPLOSS_BUFFER_PIPS = 1;
+
+const int DRAW_OPEN_MARKET_LINES_MAX_DAYS = 40;
+const int OPEN_MARKET_LINES_PIPS_SHIFT = 10;
+const string LAST_DRAWING_TIME_PREFIX = "LastDrawingTime";
+const string OPEN_MARKET_LINE_PREFIX = "OpenMarketLine";
+
 const int TRENDLINE_BEAMS = 2;
 const int TRENDLINE_WIDTH = 5;
 const int BAD_TRENDLINE_WIDTH = 1;
 const color TRENDLINE_COLOR = clrYellow;
 const color BAD_TRENDLINE_COLOR = clrMistyRose;
+const string TRENDLINE_NAME_PREFIX = "TrendLine";
+const string TRENDLINE_BAD_NAME_SUFFIX = "Bad";
+const string TRENDLINE_NAME_BEAM_IDENTIFIER = "b";
+const string TRENDLINE_NAME_FIRST_INDEX_IDENTIFIER = "i";
+const string TRENDLINE_NAME_SECOND_INDEX_IDENTIFIER = "j";
 
 const int TRENDLINE_MIN_CANDLES_LENGTH = 10;
 const int TRENDLINE_MIN_EXTREMES_DISTANCE = 3;
@@ -129,7 +153,14 @@ const double TRENDLINE_NEGATIVE_SLOPE_VOLATILITY = 0.0038;
 const double TRENDLINE_POSITIVE_SLOPE_VOLATILITY = 0.0024;
 const double TRENDLINE_BALANCE_RATIO_THRESHOLD = 0.92;
 
+const string CALENDAR_FILE = "ff_calendar_thisweek.csv";
+const string CALENDAR_HEADER = "Title,Country,Date,Time,Impact,Forecast,Previous";
+
 const int NEWS_TIME_WINDOW_MINUTES = 60;
+const int NEWS_LABEL_FONT_SIZE = 10;
+const int NEWS_LABEL_PIPS_SHIFT = 20;
+const string NEWS_LINE_NAME_PREFIX = "NewsLine";
+const string NEWS_LABEL_NAME_PREFIX = "NewsLabel";
 
 // Associative Maps
 Map<int, int> BREAKEVEN_STEPS;

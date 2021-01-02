@@ -7,6 +7,8 @@
 #include "market/HolidayTest.mqh"
 #include "market/MarketTest.mqh"
 #include "market/MarketTimeTest.mqh"
+#include "news/NewsDrawTest.mqh"
+#include "news/NewsParseTest.mqh"
 #include "order/OrderFindTest.mqh"
 #include "order/OrderCreateTest.mqh"
 #include "order/OrderManageTest.mqh"
@@ -67,6 +69,13 @@ void UnitTestsRunner::runAllUnitTests() {
     marketTimeTest.timeAtMidnightTest();
     marketTimeTest.timeShiftInHoursTest();
 
+    NewsDrawTest newsDrawTest;
+    newsDrawTest.isNewsTimeWindowTest();
+
+    NewsParseTest newsParseTest;
+    newsParseTest.readNewsFromCalendarTest();
+    newsParseTest.parseDateTest();
+
     OrderCreateTest orderCreateTest;
     orderCreateTest.areThereRecentOrdersTest();
     orderCreateTest.areThereBetterOrdersTest();
@@ -116,5 +125,5 @@ void UnitTestsRunner::runAllUnitTests() {
     trendLineTest.trendLineSetupsTest();
 
     UNIT_TESTS_COMPLETED = true;
-    Print("All unit tests run in ", TimeLocal() - startTime, " seconds");
+    Print("All unit tests run in ", (int) (TimeLocal() - startTime), " seconds");
 }

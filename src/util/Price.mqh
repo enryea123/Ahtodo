@@ -88,7 +88,7 @@ bool DownloadHistory(string symbol = NULL) {
         symbol = Symbol();
     }
 
-    static const int maxAttempts = 20;
+    const int maxAttempts = 20;
 
     for (int attempt = 0; attempt < maxAttempts; attempt++) {
         int totalError = 0;
@@ -109,7 +109,7 @@ bool DownloadHistory(string symbol = NULL) {
         if (totalError == 0) {
             return true;
         } else if (attempt != maxAttempts - 1) {
-            Print("Downloading missing history data, attempt: ", attempt);
+            Print("Downloading missing history data, attempt: ", attempt + 1);
             Sleep(500);
         }
     }

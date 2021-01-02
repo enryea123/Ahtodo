@@ -3,11 +3,12 @@
 #property strict
 
 #include "../../Constants.mqh"
+#include "../market/MarketTime.mqh"
 #include "../util/Exception.mqh"
 #include "../util/Util.mqh"
 #include "../util/Price.mqh"
 #include "News.mqh"
-#include "NewsFormat.mqh"
+#include "NewsParse.mqh"
 
 
 /**
@@ -16,23 +17,13 @@
 class NewsDraw {
     public:
         void drawNewsLines();
-        bool isNewsTimeWindow();
+        void drawSingleNewsLine(News &);
+        bool isNewsTimeWindow(datetime);
 
     private:
-        static const int newsLabelFontSize_;
-        static const int newsLabelPipsShift_;
-        static const string newsLineNamePrefix_;
-        static const string newsLabelNamePrefix_;
-
-        void drawSingleNewsLine(News &);
         color getNewsColorFromImpact(string);
         int getNewsLineWidthFromImpact(string);
 };
-
-const int NewsDraw::newsLabelFontSize_ = 10;
-const int NewsDraw::newsLabelPipsShift_ = 20;
-const string NewsDraw::newsLineNamePrefix_ = "NewsLine";
-const string NewsDraw::newsLabelNamePrefix_ = "NewsLabel";
 
 /**
  * Draws all the news lines.
@@ -40,8 +31,8 @@ const string NewsDraw::newsLabelNamePrefix_ = "NewsLabel";
 void NewsDraw::drawNewsLines() {
     News news[];
 
-    NewsFormat newsFormat;
-    newsFormat.readNewsFromCalendar(news);
+    NewsParse newsParse;
+    newsParse.readNewsFromCalendar(news);
 
     for (int i = 0; i < ArraySize(news); i++) {
         drawSingleNewsLine(news[i]);
@@ -60,8 +51,11 @@ void NewsDraw::drawSingleNewsLine(News & news) {
     }
 
     const string newsNameIdentified = StringConcatenate(news.title, " ", news.country);
-    const string lineName = StringConcatenate(newsLineNamePrefix_, " ", newsNameIdentified);
-    const string labelName = StringConcatenate(newsLabelNamePrefix_, " ", newsNameIdentified);
+    const string lineName = StringConcatenate(NEWS_LINE_NAME_PREFIX, " ", newsNameIdentified);
+    const string labelName = StringConcatenate(NEWS_LABEL_NAME_PREFIX, " ", newsNameIdentified);
+
+    MarketTime marketTime;
+    news.date += 3600 * marketTime.timeShiftInHours(marketTime.timeBroker(), marketTime.timeItaly());
 
     ObjectCreate(0, lineName, OBJ_VLINE, 0, news.date, 0);
 
@@ -71,23 +65,24 @@ void NewsDraw::drawSingleNewsLine(News & news) {
     ObjectSet(lineName, OBJPROP_WIDTH, getNewsLineWidthFromImpact(news.impact));
 
     ObjectCreate(labelName, OBJ_TEXT, 0, news.date,
-        iCandle(I_low, symbol, PERIOD_D1, 1) - newsLabelPipsShift_ * Pip(symbol));
+        iCandle(I_low, symbol, PERIOD_D1, 1) - NEWS_LABEL_PIPS_SHIFT * Pip(symbol));
 
     ObjectSetString(0, labelName, OBJPROP_TEXT, newsNameIdentified);
     ObjectSet(labelName, OBJPROP_COLOR, getNewsColorFromImpact(news.impact));
-    ObjectSet(labelName, OBJPROP_FONTSIZE, newsLabelFontSize_);
+    ObjectSet(labelName, OBJPROP_FONTSIZE, NEWS_LABEL_FONT_SIZE);
     ObjectSet(labelName, OBJPROP_ANGLE, 90);
 }
 
 /**
  * Returns true if there is a high impact news for the current symbol within the current time window.
  */
-bool NewsDraw::isNewsTimeWindow() {
-    for (int i = ObjectsTotal() - 1; i >= 0; i--) {
-        const int timeDistanceFromBrokerTime = (int) MathAbs(TimeCurrent() - ObjectGet(ObjectName(i), OBJPROP_TIME1));
+bool NewsDraw::isNewsTimeWindow(datetime date) {
+    MarketTime marketTime;
+    date += 3600 * marketTime.timeShiftInHours(marketTime.timeBroker(), marketTime.timeItaly());
 
-        if (StringContains(ObjectName(i), newsLineNamePrefix_) &&
-            timeDistanceFromBrokerTime < 60 * NEWS_TIME_WINDOW_MINUTES &&
+    for (int i = ObjectsTotal() - 1; i >= 0; i--) {
+        if (StringContains(ObjectName(i), NEWS_LINE_NAME_PREFIX) &&
+            MathAbs(date - ObjectGet(ObjectName(i), OBJPROP_TIME1)) < 60 * NEWS_TIME_WINDOW_MINUTES &&
             ObjectGet(ObjectName(i), OBJPROP_COLOR) == getNewsColorFromImpact("High")) {
             return true;
         }

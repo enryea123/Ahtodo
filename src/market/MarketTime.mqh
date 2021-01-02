@@ -46,13 +46,9 @@ class MarketTime {
         int getDaylightSavingCorrectionUSA(datetime);
 
     private:
-        static const int findDayMaxYearsRange_;
-
         int getDaysInMonth(int, int);
         bool isLeapYear(int);
 };
-
-const int MarketTime::findDayMaxYearsRange_ = 5;
 
 /**
  * Returns the market open hour after checking the period.
@@ -187,7 +183,7 @@ int MarketTime::getDaylightSavingCorrectionUSA(datetime date = NULL) {
 datetime MarketTime::findDayOfWeekOccurrenceInMonth(int year, int month, int dayOfWeek, int occurrence) {
     const int daysInMonth = getDaysInMonth(year, month);
 
-    if (daysInMonth < 0 || occurrence == 0 || MathAbs(TimeYear(TimeGMT()) - year) > findDayMaxYearsRange_) {
+    if (daysInMonth < 0 || occurrence == 0 || MathAbs(TimeYear(TimeGMT()) - year) > FIND_DAY_MAX_YEARS_RANGE) {
         return ThrowException(-1, __FUNCTION__, StringConcatenate("Could not get days in month: ",
             month, " with occurrence: ", occurrence));
     }
