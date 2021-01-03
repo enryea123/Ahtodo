@@ -20,7 +20,7 @@ void HolidayTest::isMajorBankHolidayTest() {
     }
 
     unitTest.assertTrue(
-        isMajorBankHoliday((datetime) "2020-01-03")
+        isMajorBankHoliday((datetime) "2020-01-01")
     );
 
     unitTest.assertFalse(
@@ -73,7 +73,7 @@ void HolidayTest::isMajorBankHolidayTest() {
     );
 
     unitTest.assertTrue(
-        isMajorBankHoliday((datetime) "2022-12-23 18:00")
+        isMajorBankHoliday((datetime) "2022-12-25 18:00")
     );
 
     unitTest.assertFalse(

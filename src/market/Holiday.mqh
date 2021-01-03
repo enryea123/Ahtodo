@@ -41,7 +41,17 @@ bool Holiday::isMajorBankHoliday(datetime date = NULL) {
 
     if (month == JANUARY) {
         // Christmas Holidays Season
-        if (day < 7) {
+        // if (day < 7) {
+        //     return true;
+        // }
+
+        // Capodanno
+        if (day == 1) {
+            return true;
+        }
+
+        // Epifania
+        if (day == 6) {
             return true;
         }
 
@@ -80,9 +90,9 @@ bool Holiday::isMajorBankHoliday(datetime date = NULL) {
 
     if (month == AUGUST) {
         // Summer Holidays
-        if (day > 7 && day < 24) {
-            return true;
-        }
+        // if (day > 7 && day < 24) {
+        //     return true;
+        // }
 
         // IT: Ferragosto
         if (day == 15) {
@@ -118,7 +128,12 @@ bool Holiday::isMajorBankHoliday(datetime date = NULL) {
 
     if (month == DECEMBER) {
         // Christmas Holidays Season
-        if (day > 20) {
+        // if (day > 20) {
+        //     return true;
+        // }
+
+        // Christmas
+        if (day == 25) {
             return true;
         }
     }
@@ -229,6 +244,11 @@ bool Holiday::isMinorBankHoliday(datetime date = NULL) {
     if (month == DECEMBER) {
         // IT: Immacolata
         if (day == 8) {
+            return true;
+        }
+
+        // Santo Stefano
+        if (day == 26) {
             return true;
         }
     }

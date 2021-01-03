@@ -27,8 +27,6 @@
 // Chiudere la sofferenza e se un trade è in negativo o senza breakeven dopo 30 min
 // Dopo che la pending hour è passata, metti il grafico grigio se non ci sono ordini aperti
 // Unire bots di diversi timeframe in uno solo, così non si toglierebbe da D1
-// Sostituisci tutti gli int period con ENUM_TIMEFRAMES. Farlo anche con Symbol? https://www.mql5.com/en/forum/216344
-// DownloadHistory, serve variable array se lo scarico per tutti?
 
 
 void OnInit() {

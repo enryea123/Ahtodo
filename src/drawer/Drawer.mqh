@@ -24,6 +24,7 @@ class Drawer {
     private:
         bool areDrawingsUpdated();
         string getLastDrawingTimeSignalName();
+        int getLastDrawingTimeSignalObject();
         color getLastDrawingTimeSignalColor();
         void drawLastDrawingTimeSignal();
         void drawOpenMarketLines();
@@ -113,7 +114,7 @@ void Drawer::drawLastDrawingTimeSignal() {
     );
 
     ObjectSet(lastDrawingTimeSignal, OBJPROP_COLOR, getLastDrawingTimeSignalColor());
-    ObjectSet(lastDrawingTimeSignal, OBJPROP_ARROWCODE, 233);
+    ObjectSet(lastDrawingTimeSignal, OBJPROP_ARROWCODE, getLastDrawingTimeSignalObject());
     ObjectSet(lastDrawingTimeSignal, OBJPROP_WIDTH, 4);
 }
 
@@ -122,6 +123,16 @@ void Drawer::drawLastDrawingTimeSignal() {
  */
 string Drawer::getLastDrawingTimeSignalName() {
     return StringConcatenate(LAST_DRAWING_TIME_PREFIX, NAME_SEPARATOR, Time[1]);
+}
+
+/**
+ * The drawings update arrow object type.
+ */
+int Drawer::getLastDrawingTimeSignalObject() {
+    if (FileIsExist(CALENDAR_FILE)) {
+        return 233;
+    }
+    return 225;
 }
 
 /**

@@ -74,7 +74,7 @@ void MarketTest::isMarketOpenedTest() {
     );
 
     unitTest.assertFalse(
-        isMarketOpened((datetime) "2020-12-24 12:00") // Vacation
+        isMarketOpened((datetime) "2020-12-25 12:00") // Vacation
     );
 
     News news;
