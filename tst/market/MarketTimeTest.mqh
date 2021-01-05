@@ -38,10 +38,6 @@ void MarketTimeTest::hasDateChangedTest() {
 void MarketTimeTest::findDayOfWeekOccurrenceInMonthTest() {
     UnitTest unitTest("findDayOfWeekOccurrenceInMonthTest");
 
-    if (unitTest.hasDateDependentTestExpired()) {
-        return;
-    }
-
     unitTest.assertEquals(
         (datetime) "2020-04-05",
         findDayOfWeekOccurrenceInMonth(2020, APRIL, SUNDAY, 1)
@@ -111,10 +107,6 @@ void MarketTimeTest::findDayOfWeekOccurrenceInMonthTest() {
 void MarketTimeTest::getDaylightSavingCorrectionsTest() {
     UnitTest unitTest("getDaylightSavingCorrectionsTest");
 
-    if (unitTest.hasDateDependentTestExpired()) {
-        return;
-    }
-
     unitTest.assertEquals(
         0,
         getDaylightSavingCorrectionCET((datetime) "2020-03-28")
@@ -169,10 +161,6 @@ void MarketTimeTest::getDaylightSavingCorrectionsTest() {
 void MarketTimeTest::timeAtMidnightTest() {
     UnitTest unitTest("timeAtMidnightTest");
 
-    if (unitTest.hasDateDependentTestExpired()) {
-        return;
-    }
-
     unitTest.assertEquals(
         (datetime) "2021-06-30",
         timeAtMidnight((datetime) "2021-06-30 18:45:01")
@@ -180,10 +168,6 @@ void MarketTimeTest::timeAtMidnightTest() {
 }
 void MarketTimeTest::timeShiftInHoursTest() {
     UnitTest unitTest("timeShiftInHoursTest");
-
-    if (unitTest.hasDateDependentTestExpired()) {
-        return;
-    }
 
     unitTest.assertEquals(
         0,

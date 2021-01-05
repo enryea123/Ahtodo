@@ -83,14 +83,13 @@ void OrderTrail::updateOrder(Order & order, double newStopLoss, double newTakePr
             NormalizeDouble(order.openPrice, Digits),
             NormalizeDouble(newStopLoss, Digits),
             NormalizeDouble(newTakeProfit, Digits),
-            0,
-            Blue
+            0
         );
 
         const int lastError = GetLastError();
         if (lastError != 0 || !orderModified) {
             ThrowException(__FUNCTION__, StringConcatenate(
-                "OrderModify error: ", lastError, " for orderTicket: ", order.ticket));
+                "Error ", lastError, " when modifying order: ", order.ticket));
         }
     }
 }

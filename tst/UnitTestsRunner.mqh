@@ -125,5 +125,5 @@ void UnitTestsRunner::runAllUnitTests() {
     trendLineTest.trendLineSetupsTest();
 
     UNIT_TESTS_COMPLETED = true;
-    Print("All unit tests run in ", (int) (TimeLocal() - startTime), " seconds");
+    Print("All UnitTests run in ", (int) (TimeLocal() - startTime), " seconds");
 }

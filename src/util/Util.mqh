@@ -21,7 +21,7 @@ double Pip(string symbol = NULL) {
         symbol = Symbol();
     }
     if (!SymbolExists(symbol)) {
-        return ThrowException(0, __FUNCTION__, "Unexistent symbol for Pip");
+        return ThrowException(-1, __FUNCTION__, "Unexistent symbol for Pip");
     }
 
     return 10 * MarketInfo(symbol, MODE_TICKSIZE);
@@ -74,7 +74,7 @@ bool SymbolExists(string symbol) {
     ResetLastError();
     MarketInfo(symbol, MODE_TICKSIZE);
 
-    if (GetLastError() != 4106) { // Unknown symbol error
+    if (GetLastError() != ERR_UNKNOWN_SYMBOL) {
         return true;
     }
 
@@ -90,16 +90,20 @@ string SymbolFamily(string symbol = NULL) {
         symbol = Symbol();
     }
 
+    if (!SymbolExists(symbol)) {
+        return ThrowException(symbol, __FUNCTION__, "Unexistent symbol for SymbolFamily");;
+    }
+
     if (StringContains(symbol, "EUR")) {
         return "EUR";
     } else if (StringContains(symbol, "GBP")) {
         return "GBP";
-    } else if (StringContains(symbol, "USD")) {
-        return "USD";
     } else if (StringContains(symbol, "AUD")) {
         return "AUD";
     } else if (StringContains(symbol, "NZD")) {
         return "NZD";
+    } else if (StringContains(symbol, "USD")) {
+        return "USD";
     } else {
         return StringSubstr(symbol, 0, 3);
     }

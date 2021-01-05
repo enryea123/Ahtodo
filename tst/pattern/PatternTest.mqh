@@ -75,7 +75,7 @@ void PatternTest::isPatternTest() {
         }
     }
 
-    if (checkedAssertions < totalAssertions) {
+    if (checkedAssertions < totalAssertions && IS_DEBUG) {
         Print(checkedAssertions, "/", totalAssertions, " checks run, some skipped..");
     }
 }

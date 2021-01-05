@@ -238,9 +238,14 @@ void OrderManage::deleteSingleOrder(Order & order) {
         deletedOrder = OrderDelete(ticket);
     }
 
+    const int lastError = GetLastError();
+    const string errorMessage = StringConcatenate("Error ", lastError, " when trying to delete order: ", ticket);
+
     if (deletedOrder) {
         Print(__FUNCTION__, MESSAGE_SEPARATOR, "Deleted order: ", ticket);
+    } else if (lastError == ERR_INVALID_TICKET) {
+        Print(errorMessage);
     } else {
-        ThrowException(__FUNCTION__, StringConcatenate("Failed to delete order: ", ticket));
+        ThrowException(__FUNCTION__, errorMessage);
     }
 }

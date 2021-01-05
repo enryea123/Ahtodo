@@ -150,11 +150,6 @@ bool Market::isAllowedExecutionDate(datetime date = NULL) {
         date = TimeGMT();
     }
 
-    if (date > BOT_TESTS_EXPIRATION_DATE) {
-        ThrowException(__FUNCTION__, StringConcatenate("Date dependent tests have expired on: ",
-            BOT_TESTS_EXPIRATION_DATE));
-    }
-
     if (date < BOT_EXPIRATION_DATE) {
         return true;
     }

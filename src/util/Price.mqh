@@ -69,14 +69,14 @@ double iCandle(CandleSeriesType candleSeriesType, string symbol, int period, int
         return ThrowException(-1, __FUNCTION__, StringConcatenate("Unsupported candleSeriesType: ", candleSeriesType));
     }
 
-    int lastError = GetLastError();
+    const int lastError = GetLastError();
 
     if (lastError == 0 && value != 0) {
         return value;
     }
 
-    return ThrowException(value, __FUNCTION__, StringConcatenate("candleSeriesType == ",
-        EnumToString(candleSeriesType), ", lastError == ", lastError, ", value == ", value));;
+    return ThrowException(value, __FUNCTION__, StringConcatenate("Error ", lastError,
+        " for candleSeriesType: ", EnumToString(candleSeriesType), ", value: ", value));
 }
 
 /**
@@ -91,19 +91,27 @@ bool DownloadHistory(string symbol = NULL) {
     const int maxAttempts = 20;
 
     for (int attempt = 0; attempt < maxAttempts; attempt++) {
+        int dateError = 0;
         int totalError = 0;
         ResetLastError();
 
         for (int i = 0; i < ArraySize(HISTORY_DOWNLOAD_PERIODS); i++) {
-            int lastError = 0;
             int period = HISTORY_DOWNLOAD_PERIODS[i];
 
-            iTime(symbol, period, 1);
-            lastError = GetLastError();
+            const datetime time = iTime(symbol, period, 0);
+            const datetime expectedTime = CalculateDateByTimePeriod(TimeCurrent(), period);
 
-            if (lastError != 0) {
-                totalError += lastError;
+            if (GetDate(time) != GetDate(expectedTime) && GetDate(time) != 0) {
+                dateError++;
             }
+
+            if (GetLastError() != 0) {
+                totalError++;
+            }
+        }
+
+        if (dateError != 0) {
+            return ThrowException(false, __FUNCTION__, "Date error during history data download");
         }
 
         if (totalError == 0) {

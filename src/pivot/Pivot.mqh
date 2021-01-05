@@ -45,7 +45,7 @@ double Pivot::getPivot(string symbol, PivotPeriod pivotPeriod, int timeIndex) {
        + iCandle(I_close, symbol, pivotPeriod, timeIndex + 1)) / 3;
 
     if (pivot == 0) {
-        return ThrowException(0, __FUNCTION__, "getPivot == 0");
+        return ThrowException(0, __FUNCTION__, "pivot is 0");
     }
 
     return pivot;

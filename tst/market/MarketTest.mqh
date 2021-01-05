@@ -23,12 +23,10 @@ class MarketTest: public Market {
 void MarketTest::isMarketOpenedTest() {
     UnitTest unitTest("isMarketOpenedTest");
 
-    if (unitTest.hasDateDependentTestExpired()) {
-        return;
-    }
-
     if (GetSpread() > SPREAD_PIPS_CLOSE_MARKET - 1) {
-        Print("isMarketOpenedTest skipped for high spread..");
+        if (IS_DEBUG) {
+            Print("isMarketOpenedTest: skipped for high spread..");
+        }
         return;
     }
 
@@ -123,10 +121,6 @@ void MarketTest::isAllowedAccountNumberTest() {
 
 void MarketTest::isAllowedExecutionDateTest() {
     UnitTest unitTest("isAllowedExecutionDateTest");
-
-    if (unitTest.hasDateDependentTestExpired()) {
-        return;
-    }
 
     unitTest.assertTrue(
         isAllowedExecutionDate((datetime) "2020-03-12")

@@ -23,10 +23,10 @@
 // Livelli orizzontali per takeProfit
 // StopLoss trailing sotto al minimo precedente
 // Log quando ordine già a breakeven va sotto 0 (filtra commenti con "#from 123891")
-// Salvare dettagli ordine su un log separato, sia per dropbox che per dimezzare
-// Chiudere la sofferenza e se un trade è in negativo o senza breakeven dopo 30 min
-// Dopo che la pending hour è passata, metti il grafico grigio se non ci sono ordini aperti
-// Unire bots di diversi timeframe in uno solo, così non si toglierebbe da D1
+// Salvare dettagli ordine su un log separato, sia per dropbox che per dimezzare (forse classe FileHandle, con nome nel constructor e close nel destructor)
+// Chiudere la sofferenza e se un trade è senza breakeven dopo 15-30 min
+// Forse devo creare OrderTest per testare getStopLossPips e isBuy ecc
+// Check performance di sera cambiando orari di attivazione e commentando parti di codice
 
 
 void OnInit() {
@@ -38,7 +38,7 @@ void OnInit() {
     }
 
     if (!DownloadHistory()) {
-        ThrowFatalException(__FUNCTION__, "Could not download history data, retry or download it manually");
+        ThrowFatalException(__FUNCTION__, "History data is outdated, restart the bot to download it");
         return;
     }
 
@@ -47,10 +47,11 @@ void OnInit() {
 
     Drawer drawer;
     Market market;
+    OrderManage orderManage;
 
     drawer.setChartDefaultColors();
 
-    if (!market.isMarketOpened()) {
+    if (!market.isMarketOpened() || (!orderManage.areThereOpenOrders() && market.isMarketCloseNoPendingTimeWindow())) {
         drawer.setChartMarketClosedColors();
     }
 
@@ -78,6 +79,10 @@ void OnTick() {
         if (!orderManage.areThereOpenOrders()) {
             OrderCreate orderCreate;
             orderCreate.newOrder();
+
+            if (market.isMarketCloseNoPendingTimeWindow()) {
+                drawer.setChartMarketClosedColors();
+            }
         } else {
             OrderTrail orderTrail;
             orderTrail.manageOpenOrders();

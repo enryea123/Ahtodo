@@ -25,7 +25,7 @@ void UtilTest::utilTest() {
     );
 
     unitTest.assertEquals(
-        0.0,
+        -1.0,
         Pip("CIAO")
     );
 
@@ -77,12 +77,17 @@ void UtilTest::utilTest() {
     );
 
     unitTest.assertEquals(
+        "NZD",
+        SymbolFamily("NZDUSD")
+    );
+
+    unitTest.assertEquals(
         "USD",
         SymbolFamily("USDCHF")
     );
 
     unitTest.assertEquals(
-        "CIA",
+        "CIAO",
         SymbolFamily("CIAO")
     );
 

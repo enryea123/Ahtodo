@@ -26,7 +26,7 @@ void OrderCreateTest::areThereRecentOrdersTest() {
 
     Order order;
     order.magicNumber = BASE_MAGIC_NUMBER + PERIOD_H1;
-    order.symbolFamily = SymbolFamily();
+    order.symbol = Symbol();
     order.type = OP_SELL;
     order.closeTime = (datetime) "2020-08-20";
 
@@ -51,7 +51,7 @@ void OrderCreateTest::areThereRecentOrdersTest() {
     );
 
     order.type = OP_BUY;
-    order.symbolFamily = "CIAO";
+    order.symbol = "CIAO";
     orderFind_.setMockedOrders(order);
 
     unitTest.assertFalse(
@@ -69,7 +69,6 @@ void OrderCreateTest::areThereBetterOrdersTest() {
     Order order;
     order.magicNumber = BASE_MAGIC_NUMBER + PERIOD_H1;
     order.symbol = Symbol();
-    order.symbolFamily = SymbolFamily();
     order.type = OP_SELLSTOP;
     order.ticket = 1234;
     order.openPrice = GetAsk(order.symbol);
@@ -126,14 +125,14 @@ void OrderCreateTest::areThereBetterOrdersTest() {
     );
 
     order.type = OP_SELLSTOP;
-    order.symbolFamily = "CIAO";
+    order.symbol = "CIAO";
     orderFind_.setMockedOrders(order);
 
-    unitTest.assertFalse(
+    unitTest.assertTrue(
         areThereBetterOrders(order.symbol, OP_SELLSTOP, stopLossSize, 0)
     );
 
-    order.symbolFamily = SymbolFamily();
+    order.symbol = Symbol();
     order.magicNumber = 999999;
     orderFind_.setMockedOrders(order);
 
@@ -284,7 +283,7 @@ void OrderCreateTest::calculateOrderTypeFromSetupsTest() {
         }
     }
 
-    if (checkedAssertions < totalAssertions) {
+    if (checkedAssertions < totalAssertions && IS_DEBUG) {
         Print(checkedAssertions, "/", totalAssertions, " checks run, some skipped..");
     }
 
@@ -335,32 +334,33 @@ void OrderCreateTest::calculateOrderLotsTest() {
     UnitTest unitTest("calculateOrderLotsTest");
 
     const int stopLossPips = 10;
+    const string symbol = Symbol();
 
     unitTest.assertEquals(
         0.0,
-        calculateOrderLots(stopLossPips, 0)
+        calculateOrderLots(stopLossPips, 0, symbol)
     );
 
     unitTest.assertEquals(
-        NormalizeDouble(calculateOrderLots(stopLossPips, 1) / 2, 2),
-        calculateOrderLots(stopLossPips, 1) / 2
+        NormalizeDouble(calculateOrderLots(stopLossPips, 1, symbol) / 2, 2),
+        calculateOrderLots(stopLossPips, 1, symbol) / 2
     );
 
     unitTest.assertEquals(
         0.02,
-        calculateOrderLots(stopLossPips, 0.0001)
+        calculateOrderLots(stopLossPips, 0.0001, symbol)
     );
 
     unitTest.assertTrue(
-        calculateOrderLots(stopLossPips, 1.5) > calculateOrderLots(stopLossPips, 1)
+        calculateOrderLots(stopLossPips, 1.5, symbol) > calculateOrderLots(stopLossPips, 1, symbol)
     );
 
     unitTest.assertTrue(
-        calculateOrderLots(stopLossPips, 1) > 0
+        calculateOrderLots(stopLossPips, 1, symbol) > 0
     );
 
     unitTest.assertTrue(
-        calculateOrderLots(stopLossPips, 1) < 30 // max lots allowed per operation
+        calculateOrderLots(stopLossPips, 1, symbol) < 30 // max lots allowed per operation
     );
 }
 

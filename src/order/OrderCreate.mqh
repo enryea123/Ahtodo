@@ -23,10 +23,10 @@ class OrderCreate {
 
         int calculateOrderTypeFromSetups(int);
         double calculateSizeFactor(int, double, string);
-        double calculateOrderLots(int, double);
+        double calculateOrderLots(double, double, string);
         double getPercentRisk();
 
-        string buildOrderComment(int, double, double, int);
+        string buildOrderComment(int, double, double, double);
         double getSizeFactorFromComment(string);
 
     protected:
@@ -68,16 +68,16 @@ void OrderCreate::newOrder() {
 /**
  * Creates a new pending order.
  */
-void OrderCreate::createNewOrder(int startIndexForOrder) {
-    if (startIndexForOrder < 1) {
-        ThrowException(__FUNCTION__, StringConcatenate("Unprocessable startIndexForOrder: ", startIndexForOrder));
+void OrderCreate::createNewOrder(int index) {
+    if (index < 1) {
+        ThrowException(__FUNCTION__, StringConcatenate("Unprocessable index: ", index));
         return;
     }
 
     Order order;
     order.symbol = Symbol();
     order.magicNumber = MagicNumber();
-    order.type = calculateOrderTypeFromSetups(startIndexForOrder);
+    order.type = calculateOrderTypeFromSetups(index);
 
     if (order.type != OP_BUYSTOP && order.type != OP_SELLSTOP) {
         return;
@@ -92,15 +92,15 @@ void OrderCreate::createNewOrder(int startIndexForOrder) {
     const double spreadAsk = isBuy ? spread : 0;
     const double spreadBid = !isBuy ? spread : 0;
 
-    order.openPrice = iExtreme(discriminator, startIndexForOrder) + discriminator * (1 + spreadAsk) * Pip();
-    order.stopLoss = iExtreme(antiDiscriminator, startIndexForOrder) - discriminator * (1 + spreadBid) * Pip();
+    order.openPrice = iExtreme(discriminator, index) + discriminator * (1 + spreadAsk) * Pip(order.symbol);
+    order.stopLoss = iExtreme(antiDiscriminator, index) - discriminator * (1 + spreadBid) * Pip(order.symbol);
 
     const double takeProfitFactor = BASE_TAKE_PROFIT_FACTOR;
 
-    order.takeProfit = order.openPrice + discriminator * takeProfitFactor * order.getStopLossPips() / Pip();
+    order.takeProfit = order.openPrice + discriminator * takeProfitFactor * order.getStopLossPips() * Pip(order.symbol);
 
     const double sizeFactor = calculateSizeFactor(order.type, order.openPrice, order.symbol);
-    order.lots = calculateOrderLots(order.getStopLossPips(), sizeFactor);
+    order.lots = calculateOrderLots(order.getStopLossPips(), sizeFactor, order.symbol);
 
     if (sizeFactor == 0) {
         return;
@@ -109,7 +109,7 @@ void OrderCreate::createNewOrder(int startIndexForOrder) {
         return;
     }
 
-    order.expiration = Time[0] + (ORDER_CANDLES_DURATION + 1 - startIndexForOrder) * order.getPeriod() * 60;
+    order.expiration = Time[0] + (ORDER_CANDLES_DURATION + 1 - index) * order.getPeriod() * 60;
     order.comment = buildOrderComment(order.getPeriod(), sizeFactor, takeProfitFactor, order.getStopLossPips());
 
     sendOrder(order);
@@ -135,14 +135,13 @@ void OrderCreate::sendOrder(Order & order) {
         NormalizeDouble(order.takeProfit, Digits),
         order.comment,
         order.magicNumber,
-        order.expiration,
-        Blue
+        order.expiration
     );
 
     const int lastError = GetLastError();
     if (lastError != 0) {
         ThrowException(__FUNCTION__, StringConcatenate(
-            "OrderSend error: ", lastError, " for order ticket: ", order.ticket));
+            "Error ", lastError, " when creating order: ", order.ticket));
     }
 
     if (order.ticket > 0) {
@@ -167,53 +166,57 @@ void OrderCreate::sendOrder(Order & order) {
 }
 
 /**
- * Checks if there are any valid setups, and in that case returns the orderType.
+ * Checks if there are any valid setups, and in that case returns the order type.
  */
-int OrderCreate::calculateOrderTypeFromSetups(int timeIndex) {
-    if (timeIndex < 1) {
-        return ThrowException(-1, __FUNCTION__, StringConcatenate("Unprocessable timeIndex: ", timeIndex));
+int OrderCreate::calculateOrderTypeFromSetups(int index) {
+    const string symbol = Symbol();
+
+    if (index < 1) {
+        return ThrowException(-1, __FUNCTION__, StringConcatenate("Unprocessable index: ", index));
     }
 
     Pattern pattern;
 
-    if (pattern.isAntiPattern(timeIndex)) {
+    if (pattern.isAntiPattern(index)) {
         ANTIPATTERN_TIMESTAMP = PrintTimer(ANTIPATTERN_TIMESTAMP, StringConcatenate(
-            "AntiPattern found at time: ", TimeToStr(Time[timeIndex])));
+            "AntiPattern found at time: ", TimeToStr(Time[index])));
         return -1;
     }
 
-    if (!pattern.isSellPattern(timeIndex) && !pattern.isBuyPattern(timeIndex)) {
+    if (!pattern.isSellPattern(index) && !pattern.isBuyPattern(index)) {
         FOUND_PATTERN_TIMESTAMP = PrintTimer(FOUND_PATTERN_TIMESTAMP, StringConcatenate(
-            "No patterns found at time: ", TimeToStr(Time[timeIndex])));
+            "No patterns found at time: ", TimeToStr(Time[index])));
         return -1;
     }
 
     TrendLine trendLine;
 
     for (int i = ObjectsTotal() - 1; i >= 0; i--) {
-        if (!trendLine.isGoodTrendLineFromName(ObjectName(i), timeIndex)) {
+        if (!trendLine.isGoodTrendLineFromName(ObjectName(i), index)) {
             continue;
         }
 
-        const double trendLineSetupValue = ObjectGetValueByShift(ObjectName(i), timeIndex);
-        const double trendLineDistanceFromMin = MathAbs(iExtreme(Min, timeIndex) - trendLineSetupValue);
-        const double trendLineDistanceFromMax = MathAbs(iExtreme(Max, timeIndex) - trendLineSetupValue);
+        const double trendLineSetupValue = ObjectGetValueByShift(ObjectName(i), index);
+        const double trendLineDistanceFromMin = MathAbs(iExtreme(Min, index) - trendLineSetupValue);
+        const double trendLineDistanceFromMax = MathAbs(iExtreme(Max, index) - trendLineSetupValue);
 
-        if (pattern.isSellPattern(timeIndex) && trendLineDistanceFromMin < TRENDLINE_SETUP_MAX_PIPS_DISTANCE * Pip()) {
+        if (pattern.isSellPattern(index) &&
+            trendLineDistanceFromMin < TRENDLINE_SETUP_MAX_PIPS_DISTANCE * Pip(symbol)) {
             SELL_SETUP_TIMESTAMP = PrintTimer(SELL_SETUP_TIMESTAMP, StringConcatenate(
-                "Found OP_SELLSTOP setup at Time: ", TimeToStr(Time[timeIndex]), " for TrendLine: ", ObjectName(i)));
+                "Found OP_SELLSTOP setup at Time: ", TimeToStr(Time[index]), " for TrendLine: ", ObjectName(i)));
             return OP_SELLSTOP;
         }
 
-        if (pattern.isBuyPattern(timeIndex) && trendLineDistanceFromMax < TRENDLINE_SETUP_MAX_PIPS_DISTANCE * Pip()) {
+        if (pattern.isBuyPattern(index) &&
+            trendLineDistanceFromMax < TRENDLINE_SETUP_MAX_PIPS_DISTANCE * Pip(symbol)) {
             BUY_SETUP_TIMESTAMP = PrintTimer(BUY_SETUP_TIMESTAMP, StringConcatenate(
-                "Found OP_BUYSTOP setup at Time: ", TimeToStr(Time[timeIndex]), " for TrendLine: ", ObjectName(i)));
+                "Found OP_BUYSTOP setup at Time: ", TimeToStr(Time[index]), " for TrendLine: ", ObjectName(i)));
             return OP_BUYSTOP;
         }
     }
 
     NO_SETUP_TIMESTAMP = PrintTimer(NO_SETUP_TIMESTAMP, StringConcatenate(
-        "No setups found at Time: ", TimeToStr(Time[timeIndex])));
+        "No setups found at Time: ", TimeToStr(Time[index])));
     return -1;
 }
 
@@ -221,13 +224,16 @@ int OrderCreate::calculateOrderTypeFromSetups(int timeIndex) {
  * Checks if there have been any recent correlated open orders, so that it can be waited before placing new ones.
  */
 bool OrderCreate::areThereRecentOrders(datetime date = NULL) {
+    const int period = Period();
+    const string symbol = Symbol();
+
     if (date == NULL) {
-        date = (datetime) (TimeCurrent() - 60 * Period() * MathRound(ORDER_CANDLES_DURATION / PeriodFactor()));
+        date = (datetime) (TimeCurrent() - 60 * period * MathRound(ORDER_CANDLES_DURATION / PeriodFactor(period)));
     }
 
     OrderFilter orderFilter;
     orderFilter.magicNumber.add(ALLOWED_MAGIC_NUMBERS);
-    orderFilter.symbolFamily.add(SymbolFamily());
+    orderFilter.symbolFamily.add(SymbolFamily(symbol));
     orderFilter.type.add(OP_BUY, OP_SELL);
 
     orderFilter.closeTime.setFilterType(Greater);
@@ -249,7 +255,7 @@ bool OrderCreate::areThereRecentOrders(datetime date = NULL) {
 bool OrderCreate::areThereBetterOrders(string symbol, int type, double openPrice, double stopLoss) {
     OrderFilter orderFilter;
     orderFilter.magicNumber.add(ALLOWED_MAGIC_NUMBERS);
-    orderFilter.symbolFamily.add(SymbolFamily());
+    orderFilter.symbolFamily.add(SymbolFamily(symbol));
     orderFilter.type.add(type, OP_BUY, OP_SELL);
 
     Order orders[];
@@ -275,14 +281,14 @@ bool OrderCreate::areThereBetterOrders(string symbol, int type, double openPrice
 /**
  * Calculates the size modulation factor from pivot and holiday setups.
  */
-double OrderCreate::calculateSizeFactor(int orderType, double openPrice, string orderSymbol) {
-    if (orderType != OP_BUYSTOP && orderType != OP_SELLSTOP) {
-        return ThrowException(0, __FUNCTION__, StringConcatenate("Unsupported orderType:", orderType));
+double OrderCreate::calculateSizeFactor(int type, double openPrice, string symbol) {
+    if (type != OP_BUYSTOP && type != OP_SELLSTOP) {
+        return ThrowException(0, __FUNCTION__, StringConcatenate("Unsupported order type:", type));
     }
     if (openPrice <= 0) {
         return ThrowException(0, __FUNCTION__, StringConcatenate("Wrong openPrice:", openPrice));
     }
-    if (!SymbolExists(orderSymbol)) {
+    if (!SymbolExists(symbol)) {
         return ThrowException(0, __FUNCTION__, "Unknown symbol");
     }
 
@@ -297,33 +303,33 @@ double OrderCreate::calculateSizeFactor(int orderType, double openPrice, string 
 
     if (Period() != PERIOD_H4) {
         // Intraday Pivot for M30 and H1
-        if (openPrice > pivot.getPivotRS(orderSymbol, D1, R2) ||
-            openPrice < pivot.getPivotRS(orderSymbol, D1, S2)) {
+        if (openPrice > pivot.getPivotRS(symbol, D1, R2) ||
+            openPrice < pivot.getPivotRS(symbol, D1, S2)) {
             sizeFactor *= 0.0; // red configuration
         }
-        if ((openPrice > pivot.getPivotRS(orderSymbol, D1, R1) &&
-            openPrice < pivot.getPivotRS(orderSymbol, D1, R2)) ||
-            (openPrice < pivot.getPivotRS(orderSymbol, D1, S1) &&
-            openPrice > pivot.getPivotRS(orderSymbol, D1, S2))) {
+        if ((openPrice > pivot.getPivotRS(symbol, D1, R1) &&
+            openPrice < pivot.getPivotRS(symbol, D1, R2)) ||
+            (openPrice < pivot.getPivotRS(symbol, D1, S1) &&
+            openPrice > pivot.getPivotRS(symbol, D1, S2))) {
             sizeFactor *= 0.8; // yellow configuration
         }
 
         // Daily Pivot for M30 and H1
-        if (iCandle(I_high, orderSymbol, D1, 0) < pivot.getPivot(orderSymbol, D1, 0) ||
-            iCandle(I_low, orderSymbol, D1, 0) > pivot.getPivot(orderSymbol, D1, 0)) {
+        if (iCandle(I_high, symbol, D1, 0) < pivot.getPivot(symbol, D1, 0) ||
+            iCandle(I_low, symbol, D1, 0) > pivot.getPivot(symbol, D1, 0)) {
 
-            if (GetAsk(orderSymbol) < pivot.getPivot(orderSymbol, D1, 0)) {
-                if (orderType == OP_BUYSTOP) {
+            if (GetAsk(symbol) < pivot.getPivot(symbol, D1, 0)) {
+                if (type == OP_BUYSTOP) {
                     sizeFactor *= 1.1;
                 }
-                if (orderType == OP_SELLSTOP) {
+                if (type == OP_SELLSTOP) {
                     sizeFactor *= 0.9;
                 }
             } else {
-                if (orderType == OP_BUYSTOP) {
+                if (type == OP_BUYSTOP) {
                     sizeFactor *= 0.9;
                 }
-                if (orderType == OP_SELLSTOP) {
+                if (type == OP_SELLSTOP) {
                     sizeFactor *= 1.1;
                 }
             }
@@ -331,21 +337,21 @@ double OrderCreate::calculateSizeFactor(int orderType, double openPrice, string 
     }
 
     // Pivots configurations
-    if (pivot.getPivot(orderSymbol, D1, 0) > pivot.getPivot(orderSymbol, W1, 0) &&
-        pivot.getPivot(orderSymbol, W1, 0) > pivot.getPivot(orderSymbol, MN1, 0)) {
-        if (orderType == OP_BUYSTOP) {
+    if (pivot.getPivot(symbol, D1, 0) > pivot.getPivot(symbol, W1, 0) &&
+        pivot.getPivot(symbol, W1, 0) > pivot.getPivot(symbol, MN1, 0)) {
+        if (type == OP_BUYSTOP) {
             sizeFactor *= 1.1;
         }
-        if (orderType == OP_SELLSTOP) {
+        if (type == OP_SELLSTOP) {
             sizeFactor *= 0.9;
         }
     }
-    if (pivot.getPivot(orderSymbol, D1, 0) < pivot.getPivot(orderSymbol, W1, 0) &&
-        pivot.getPivot(orderSymbol, W1, 0) < pivot.getPivot(orderSymbol, MN1, 0)) {
-        if (orderType == OP_BUYSTOP) {
+    if (pivot.getPivot(symbol, D1, 0) < pivot.getPivot(symbol, W1, 0) &&
+        pivot.getPivot(symbol, W1, 0) < pivot.getPivot(symbol, MN1, 0)) {
+        if (type == OP_BUYSTOP) {
             sizeFactor *= 0.9;
         }
-        if (orderType == OP_SELLSTOP) {
+        if (type == OP_SELLSTOP) {
             sizeFactor *= 1.1;
         }
     }
@@ -357,22 +363,19 @@ double OrderCreate::calculateSizeFactor(int orderType, double openPrice, string 
  * Calculates the size for a new order, and makes sure that it's divisible by 2,
  * so that the position can be later split.
  */
-double OrderCreate::calculateOrderLots(int stopLossPips, double sizeFactor) {
+double OrderCreate::calculateOrderLots(double stopLossPips, double sizeFactor, string symbol) {
     if (sizeFactor == 0) {
         return 0;
     }
 
-    const string symbol = Symbol();
-
     const double absoluteRisk = getPercentRisk() * AccountEquity() / MarketInfo(symbol, MODE_TICKVALUE);
-    const int stopLossTicks = stopLossPips * 10;
+    const double stopLossTicks = stopLossPips * 10;
     const double rawOrderLots = absoluteRisk / stopLossTicks;
 
-    double orderLots = 2 * NormalizeDouble(rawOrderLots * sizeFactor / 2, 2);
+    double lots = 2 * NormalizeDouble(rawOrderLots * sizeFactor / 2, 2);
+    lots = MathMax(lots, 0.02);
 
-    orderLots = MathMax(orderLots, 0.02);
-
-    return NormalizeDouble(orderLots, 2);
+    return NormalizeDouble(lots, 2);
 }
 
 /**
@@ -388,7 +391,7 @@ double OrderCreate::getPercentRisk() {
 /**
  * Creates the comment for a new pending order, and makes sure it doesn't exceed the maximum length.
  */
-string OrderCreate::buildOrderComment(int period, double sizeFactor, double takeProfitFactor, int stopLossPips) {
+string OrderCreate::buildOrderComment(int period, double sizeFactor, double takeProfitFactor, double stopLossPips) {
     const string strategyPrefix = "A";
 
     const string comment = StringConcatenate(
@@ -396,7 +399,7 @@ string OrderCreate::buildOrderComment(int period, double sizeFactor, double take
         " ", PERIOD_COMMENT_IDENTIFIER, period,
         " ", SIZE_FACTOR_COMMENT_IDENTIFIER, NormalizeDouble(sizeFactor, 1),
         " R", NormalizeDouble(takeProfitFactor, 1),
-        " S", stopLossPips
+        " S", (int) MathRound(stopLossPips)
     );
 
     if (StringLen(comment) > MAX_ORDER_COMMENT_CHARACTERS) {

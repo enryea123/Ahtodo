@@ -23,7 +23,7 @@ void OrderManageTest::areThereOpenOrdersTest() {
 
     Order order;
     order.magicNumber = BASE_MAGIC_NUMBER + PERIOD_H1;
-    order.symbolFamily = SymbolFamily();
+    order.symbol = Symbol();
     order.type = OP_SELLSTOP;
 
     orderFind_.setMockedOrders(order);
@@ -38,14 +38,14 @@ void OrderManageTest::areThereOpenOrdersTest() {
         areThereOpenOrders()
     );
 
-    order.symbolFamily = "CIAO";
+    order.symbol = "CIAO";
     orderFind_.setMockedOrders(order);
 
     unitTest.assertFalse(
         areThereOpenOrders()
     );
 
-    order.symbolFamily = SymbolFamily();
+    order.symbol = Symbol();
     order.magicNumber = 999999;
     orderFind_.setMockedOrders(order);
 
@@ -93,7 +93,6 @@ void OrderManageTest::deduplicateOrdersTest() {
     ArrayResize(orders, 1);
     orders[0].magicNumber = BASE_MAGIC_NUMBER + PERIOD_H1;
     orders[0].symbol = Symbol();
-    orders[0].symbolFamily = SymbolFamily();
     orders[0].type = OP_SELLSTOP;
     orders[0].openPrice = GetAsk(orders[0].symbol);
     orders[0].stopLoss = orders[0].openPrice + 20 * Pip();
@@ -127,7 +126,7 @@ void OrderManageTest::deduplicateOrdersTest() {
         mockedOrders[0]
     );
 
-    orders[0].symbolFamily = "CIAO";
+    orders[0].symbol = "CIAO";
     ArrayFree(mockedOrders);
 
     orderFind_.setMockedOrders(orders);
@@ -139,7 +138,7 @@ void OrderManageTest::deduplicateOrdersTest() {
         mockedOrders
     );
 
-    orders[0].symbolFamily = SymbolFamily();
+    orders[0].symbol = Symbol();
 
     orders[1].type = OP_BUYSTOP;
     ArrayFree(mockedOrders);

@@ -25,7 +25,6 @@ const bool IS_DEBUG = false;
 const bool SPLIT_POSITION = true;
 
 const datetime BOT_EXPIRATION_DATE = (datetime) "2021-06-30";
-const datetime BOT_TESTS_EXPIRATION_DATE = (datetime) "2025-01-01";
 
 // TimeZone Milano
 const int MARKET_OPEN_HOUR = 8;

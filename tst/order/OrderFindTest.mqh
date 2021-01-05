@@ -86,8 +86,8 @@ void OrderFindTest::getOrdersListTest() {
             OrderComment(),
             orders[OrdersHistoryTotal() - randomOrderPos - 1].comment
         );
-    } else {
-        Print("getOrdersListTest(): skipping some assertions for short history..");
+    } else if (IS_DEBUG) {
+        Print("getOrdersListTest: some assertions skipped for short history..");
     }
 }
 
@@ -202,43 +202,36 @@ void OrderFindTest::buildOrderMocks(Order & orders[]) {
     orders[0].magicNumber = BASE_MAGIC_NUMBER + PERIOD_M30;
     orders[0].type = OP_BUYSTOP;
     orders[0].symbol = "EURJPY";
-    orders[0].symbolFamily = SymbolFamily(orders[0].symbol);
     orders[0].profit = 0;
 
     orders[1].magicNumber = BASE_MAGIC_NUMBER + PERIOD_H1;
     orders[1].type = OP_SELLSTOP;
     orders[1].symbol = "EURUSD";
-    orders[1].symbolFamily = SymbolFamily(orders[1].symbol);
     orders[1].profit = 25.5;
     orders[1].closeTime = (datetime) "2020-06-30 19:40";
 
     orders[2].magicNumber = BASE_MAGIC_NUMBER + PERIOD_H4;
     orders[2].type = OP_BUY;
     orders[2].symbol = "EURUSD";
-    orders[2].symbolFamily = SymbolFamily(orders[2].symbol);
     orders[2].profit = -12.6;
     orders[2].closeTime = (datetime) "2020-10-30 11:30";
 
     orders[3].magicNumber = BASE_MAGIC_NUMBER + PERIOD_M30;
     orders[3].type = OP_BUY;
     orders[3].symbol = "GBPUSD";
-    orders[3].symbolFamily = SymbolFamily(orders[3].symbol);
 
     orders[4].magicNumber = 999999999;
     orders[4].type = OP_SELL;
     orders[4].symbol = "EURUSD";
-    orders[4].symbolFamily = SymbolFamily(orders[4].symbol);
 
     orders[5].magicNumber = BASE_MAGIC_NUMBER + PERIOD_H4;
     orders[5].type = OP_BUYSTOP;
     orders[5].symbol = "EURUSD";
-    orders[5].symbolFamily = SymbolFamily(orders[5].symbol);
     orders[5].profit = 47.23;
     orders[5].closeTime = (datetime) "2020-08-12";
 
     orders[6].magicNumber = BASE_MAGIC_NUMBER + PERIOD_H1;
     orders[6].type = OP_SELLSTOP;
     orders[6].symbol = "EURJPY";
-    orders[6].symbolFamily = SymbolFamily(orders[6].symbol);
     orders[6].profit = -20.45;
 }

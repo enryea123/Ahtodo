@@ -42,7 +42,9 @@ void ThrowFatalException(string function, string message) {
  */
 datetime PrintTimer(datetime timeStamp, string message) {
     if (timeStamp != Time[0]) {
-        Print(message);
+        if (UNIT_TESTS_COMPLETED || IS_DEBUG) {
+            Print(message);
+        }
         timeStamp = Time[0];
     }
 
@@ -67,7 +69,7 @@ datetime AlertTimer(datetime timeStamp, string message) {
 void OptionalAlert(string message) {
     if (UNIT_TESTS_COMPLETED) {
         Alert(buildAlertMessage(message));
-    } else {
+    } else if (IS_DEBUG) {
         Print(message);
     }
 }

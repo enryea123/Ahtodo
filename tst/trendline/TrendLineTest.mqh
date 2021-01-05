@@ -144,8 +144,8 @@ void TrendLineTest::trendLineSetupsTest() {
             areTrendLineSetupsGood(50, 20, Max),
             "Incorrect slope test - Max"
         );
-    } else {
-        Print("trendLineSetupsTest(): incorrect slope test skipped..");
+    } else if (IS_DEBUG) {
+        Print("trendLineSetupsTest: incorrect slope test skipped..");
     }
 
     const double slopeMin = (iExtreme(Min, 20) - iExtreme(Min, 50)) / (50 - 20);
@@ -163,7 +163,7 @@ void TrendLineTest::trendLineSetupsTest() {
             areTrendLineSetupsGood(50, 20, Max),
             "TrendLine negative slope volatility"
         );
-    } else {
-        Print("trendLineSetupsTest(): excessive slope test skipped..");
+    } else if (IS_DEBUG) {
+        Print("trendLineSetupsTest: excessive slope test skipped..");
     }
 }

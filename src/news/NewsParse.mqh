@@ -44,13 +44,35 @@ void NewsParse::readNewsFromCalendar(News & news[]) {
         return;
     }
 
-    const int fileHandle = FileOpen(calendarFile, FILE_READ|FILE_TXT);
+    const int maxAttempts = 10;
+    int fileHandle = INVALID_HANDLE;
+
+    for (int attempt = 0; attempt < maxAttempts; attempt++) {
+        ResetLastError();
+
+        fileHandle = FileOpen(calendarFile, FILE_READ|FILE_TXT);
+
+        const int lastError = GetLastError();
+
+        if (fileHandle != INVALID_HANDLE && lastError == 0) {
+            break;
+        } else {
+            Print("Error ", lastError, " when opening calendar file, attempt: ", attempt + 1);
+            Sleep(100);
+        }
+    }
+
+    if (fileHandle == INVALID_HANDLE) {
+        ThrowException(__FUNCTION__, StringConcatenate("Error when opening calendar file: ", calendarFile));
+        FileClose(fileHandle);
+        return;
+    }
 
     // The first line of the file is the header
     const string fileHeader = FileReadString(fileHandle);
 
-    if (fileHandle == INVALID_HANDLE || fileHeader != CALENDAR_HEADER) {
-        ThrowException(__FUNCTION__, StringConcatenate("Error when opening calendar file: ", calendarFile));
+    if (fileHeader != CALENDAR_HEADER) {
+        ThrowException(__FUNCTION__, StringConcatenate("Badly formatted calendar file: ", calendarFile));
         FileClose(fileHandle);
         return;
     }

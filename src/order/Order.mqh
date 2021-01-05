@@ -24,7 +24,6 @@ class Order {
         double takeProfit;
         string comment;
         string symbol;
-        string symbolFamily;
         datetime closeTime;
         datetime expiration;
 
@@ -32,7 +31,7 @@ class Order {
         bool operator != (const Order &);
 
         int getPeriod();
-        int getStopLossPips();
+        double getStopLossPips();
         string toString();
 
         bool isOpen();
@@ -52,7 +51,6 @@ Order::Order():
     takeProfit(-1),
     comment(NULL),
     symbol(NULL),
-    symbolFamily(NULL),
     closeTime(NULL),
     expiration(NULL) {
 }
@@ -70,7 +68,6 @@ bool Order::operator == (const Order & v) {
         takeProfit == v.takeProfit &&
         comment == v.comment &&
         symbol == v.symbol &&
-        symbolFamily == v.symbolFamily &&
         closeTime == v.closeTime &&
         expiration == v.expiration
     );
@@ -99,14 +96,14 @@ int Order::getPeriod() {
 }
 
 /**
- * Calculates the integer value of pips of an order.
+ * Calculates the number of pips of an order stopLoss.
  */
-int Order::getStopLossPips() {
+double Order::getStopLossPips() {
     if (openPrice == -1 || stopLoss == -1 || symbol == NULL) {
         return ThrowException(-1, __FUNCTION__, "Some order quantities not initialized");
     }
 
-    return (int) MathRound(MathAbs(openPrice - stopLoss) / Pip(symbol));
+    return MathAbs(openPrice - stopLoss) / Pip(symbol);
 }
 
 /**
@@ -125,7 +122,6 @@ string Order::toString() {
         "takeProfit: ", NormalizeDouble(takeProfit, Digits), ", "
         "comment: ", comment, ", "
         "symbol: ", symbol, ", "
-        "symbolFamily: ", symbolFamily, ", "
         "closeTime: ", closeTime, ", "
         "expiration: ", expiration
     );

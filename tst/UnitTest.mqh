@@ -21,7 +21,7 @@ class UnitTest {
         bool assertTrue(bool, string);
         bool assertFalse(bool, string);
 
-        bool hasDateDependentTestExpired();
+        bool hasDateDependentTestExpired(datetime);
 
     private:
         uint passedAssertions_;
@@ -130,9 +130,9 @@ bool UnitTest::assertFalse(bool condition, string message = NULL) {
 /**
  * Checks if a unit test that depends on an hardcoded date has expired.
  */
-bool UnitTest::hasDateDependentTestExpired() {
-    if (TimeGMT() > BOT_TESTS_EXPIRATION_DATE) {
-        return ThrowException(true, __FUNCTION__, StringConcatenate("Skipping expired test: ", testName_));
+bool UnitTest::hasDateDependentTestExpired(datetime expiration) {
+    if (TimeGMT() > expiration) {
+        return ThrowException(true, __FUNCTION__, StringConcatenate("Skipped expired test: ", testName_));
     }
 
     return false;
@@ -172,12 +172,12 @@ bool UnitTest::setSuccess(string message = NULL) {
  * Wraps up the test when the destructor is invoked, and removes the bot in case of failure.
  */
 void UnitTest::getTestResult() {
-    const string baseMessage = StringConcatenate("Test ", testName_,
+    const string baseMessage = StringConcatenate("UnitTest ", testName_,
         " %s with ", passedAssertions_, "/", totalAssertions_);
 
     if (passedAssertions_ == totalAssertions_) {
         Print(StringFormat(baseMessage, "PASSED"));
     } else {
-        ThrowFatalException(__FUNCTION__, StringFormat(baseMessage, "FAILED"));
+        Alert(StringFormat(baseMessage, "FAILED"));
     }
 }

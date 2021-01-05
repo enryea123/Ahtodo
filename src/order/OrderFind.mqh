@@ -37,7 +37,7 @@ void OrderFind::getFilteredOrdersList(Order & orders[], OrderFilter & orderFilte
             orderFilter.magicNumber.get(orders[i].magicNumber) ||
             orderFilter.profit.get(orders[i].profit) ||
             orderFilter.symbol.get(orders[i].symbol) ||
-            orderFilter.symbolFamily.get(SymbolFamily(orders[i].symbolFamily)) ||
+            orderFilter.symbolFamily.get(SymbolFamily(orders[i].symbol)) ||
             orderFilter.type.get(orders[i].type)) {
             ArrayRemove(orders, i);
         }
