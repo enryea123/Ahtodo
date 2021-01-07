@@ -45,9 +45,6 @@ void OrderCreate::newOrder() {
     if (market.isMarketCloseNoPendingTimeWindow()) {
         return;
     }
-    if (!IsTradeAllowed()) {
-        return;
-    }
     if (Minute() == 0 || Minute() == 59 || Minute() == 30 || Minute() == 29) {
         return;
     }
@@ -169,55 +166,73 @@ void OrderCreate::sendOrder(Order & order) {
  * Checks if there are any valid setups, and in that case returns the order type.
  */
 int OrderCreate::calculateOrderTypeFromSetups(int index) {
-    const string symbol = Symbol();
-
     if (index < 1) {
         return ThrowException(-1, __FUNCTION__, StringConcatenate("Unprocessable index: ", index));
     }
+
+    const string symbol = Symbol();
+    const datetime thisTime = (datetime) iCandle(I_time, symbol, PERIOD_M5, 0);
+
+    static int cachedIndex;
+    static datetime timeStamp;
+
+    static int orderType;
+
+    if (cachedIndex == index && timeStamp == thisTime && UNIT_TESTS_COMPLETED) {
+        return orderType;
+    }
+
+    cachedIndex = index;
+    timeStamp = thisTime;
+
+    orderType = -1;
 
     Pattern pattern;
 
     if (pattern.isAntiPattern(index)) {
         ANTIPATTERN_TIMESTAMP = PrintTimer(ANTIPATTERN_TIMESTAMP, StringConcatenate(
             "AntiPattern found at time: ", TimeToStr(Time[index])));
-        return -1;
-    }
-
-    if (!pattern.isSellPattern(index) && !pattern.isBuyPattern(index)) {
+        orderType = -1;
+    } else if (!pattern.isSellPattern(index) && !pattern.isBuyPattern(index)) {
         FOUND_PATTERN_TIMESTAMP = PrintTimer(FOUND_PATTERN_TIMESTAMP, StringConcatenate(
             "No patterns found at time: ", TimeToStr(Time[index])));
-        return -1;
+        orderType = -1;
+    } else {
+        TrendLine trendLine;
+
+        for (int i = ObjectsTotal() - 1; i >= 0; i--) {
+            if (!trendLine.isGoodTrendLineFromName(ObjectName(i), index)) {
+                continue;
+            }
+
+            const double trendLineSetupValue = ObjectGetValueByShift(ObjectName(i), index);
+            const double trendLineDistanceFromMin = MathAbs(iExtreme(Min, index) - trendLineSetupValue);
+            const double trendLineDistanceFromMax = MathAbs(iExtreme(Max, index) - trendLineSetupValue);
+
+            if (pattern.isSellPattern(index) &&
+                trendLineDistanceFromMin < TRENDLINE_SETUP_MAX_PIPS_DISTANCE * Pip(symbol)) {
+                SELL_SETUP_TIMESTAMP = PrintTimer(SELL_SETUP_TIMESTAMP, StringConcatenate(
+                    "Found OP_SELLSTOP setup at Time: ", TimeToStr(Time[index]), " for TrendLine: ", ObjectName(i)));
+                orderType = OP_SELLSTOP;
+                break;
+            }
+
+            if (pattern.isBuyPattern(index) &&
+                trendLineDistanceFromMax < TRENDLINE_SETUP_MAX_PIPS_DISTANCE * Pip(symbol)) {
+                BUY_SETUP_TIMESTAMP = PrintTimer(BUY_SETUP_TIMESTAMP, StringConcatenate(
+                    "Found OP_BUYSTOP setup at Time: ", TimeToStr(Time[index]), " for TrendLine: ", ObjectName(i)));
+                orderType = OP_BUYSTOP;
+                break;
+            }
+        }
+
+        if (orderType == -1) {
+            NO_SETUP_TIMESTAMP = PrintTimer(NO_SETUP_TIMESTAMP, StringConcatenate(
+                "No setups found at Time: ", TimeToStr(Time[index])));
+        }
     }
 
-    TrendLine trendLine;
-
-    for (int i = ObjectsTotal() - 1; i >= 0; i--) {
-        if (!trendLine.isGoodTrendLineFromName(ObjectName(i), index)) {
-            continue;
-        }
-
-        const double trendLineSetupValue = ObjectGetValueByShift(ObjectName(i), index);
-        const double trendLineDistanceFromMin = MathAbs(iExtreme(Min, index) - trendLineSetupValue);
-        const double trendLineDistanceFromMax = MathAbs(iExtreme(Max, index) - trendLineSetupValue);
-
-        if (pattern.isSellPattern(index) &&
-            trendLineDistanceFromMin < TRENDLINE_SETUP_MAX_PIPS_DISTANCE * Pip(symbol)) {
-            SELL_SETUP_TIMESTAMP = PrintTimer(SELL_SETUP_TIMESTAMP, StringConcatenate(
-                "Found OP_SELLSTOP setup at Time: ", TimeToStr(Time[index]), " for TrendLine: ", ObjectName(i)));
-            return OP_SELLSTOP;
-        }
-
-        if (pattern.isBuyPattern(index) &&
-            trendLineDistanceFromMax < TRENDLINE_SETUP_MAX_PIPS_DISTANCE * Pip(symbol)) {
-            BUY_SETUP_TIMESTAMP = PrintTimer(BUY_SETUP_TIMESTAMP, StringConcatenate(
-                "Found OP_BUYSTOP setup at Time: ", TimeToStr(Time[index]), " for TrendLine: ", ObjectName(i)));
-            return OP_BUYSTOP;
-        }
-    }
-
-    NO_SETUP_TIMESTAMP = PrintTimer(NO_SETUP_TIMESTAMP, StringConcatenate(
-        "No setups found at Time: ", TimeToStr(Time[index])));
-    return -1;
+    return orderType;
 }
 
 /**
@@ -231,6 +246,18 @@ bool OrderCreate::areThereRecentOrders(datetime date = NULL) {
         date = (datetime) (TimeCurrent() - 60 * period * MathRound(ORDER_CANDLES_DURATION / PeriodFactor(period)));
     }
 
+    static datetime cachedDate;
+    static datetime timeStamp;
+
+    static bool recentOrders;
+
+    if (cachedDate == date && timeStamp == Time[0] && UNIT_TESTS_COMPLETED) {
+        return recentOrders;
+    }
+
+    cachedDate = date;
+    timeStamp = Time[0];
+
     OrderFilter orderFilter;
     orderFilter.magicNumber.add(ALLOWED_MAGIC_NUMBERS);
     orderFilter.symbolFamily.add(SymbolFamily(symbol));
@@ -242,11 +269,12 @@ bool OrderCreate::areThereRecentOrders(datetime date = NULL) {
     Order orders[];
     orderFind_.getFilteredOrdersList(orders, orderFilter, MODE_HISTORY);
 
+    recentOrders = false;
     if (ArraySize(orders) > 0) {
-        return true;
+        recentOrders = true;
     }
 
-    return false;
+    return recentOrders;
 }
 
 /**
@@ -292,7 +320,26 @@ double OrderCreate::calculateSizeFactor(int type, double openPrice, string symbo
         return ThrowException(0, __FUNCTION__, "Unknown symbol");
     }
 
-    double sizeFactor = 1.0;
+    int period = Period();
+
+    static int cachedPeriod;
+    static int cachedType;
+    static double cachedOpenPrice;
+    static string cachedSymbol;
+
+    static double sizeFactor;
+
+    if (cachedPeriod == period && cachedType == type && cachedOpenPrice == openPrice &&
+        cachedSymbol == symbol && UNIT_TESTS_COMPLETED) {
+        return sizeFactor;
+    }
+
+    cachedPeriod = period;
+    cachedType = type;
+    cachedOpenPrice = openPrice;
+    cachedSymbol = symbol;
+
+    sizeFactor = 1.0;
 
     Holiday holiday;
     Pivot pivot;
@@ -301,11 +348,12 @@ double OrderCreate::calculateSizeFactor(int type, double openPrice, string symbo
         sizeFactor *= 0.8;
     }
 
-    if (Period() != PERIOD_H4) {
+    if (period != PERIOD_H4) {
         // Intraday Pivot for M30 and H1
         if (openPrice > pivot.getPivotRS(symbol, D1, R2) ||
             openPrice < pivot.getPivotRS(symbol, D1, S2)) {
-            sizeFactor *= 0.0; // red configuration
+            sizeFactor = 0.0;
+            return sizeFactor; // red configuration
         }
         if ((openPrice > pivot.getPivotRS(symbol, D1, R1) &&
             openPrice < pivot.getPivotRS(symbol, D1, R2)) ||
@@ -356,7 +404,8 @@ double OrderCreate::calculateSizeFactor(int type, double openPrice, string symbo
         }
     }
 
-    return NormalizeDouble(sizeFactor, 1);
+    sizeFactor = NormalizeDouble(sizeFactor, 1);
+    return sizeFactor;
 }
 
 /**

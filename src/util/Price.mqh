@@ -83,13 +83,10 @@ double iCandle(CandleSeriesType candleSeriesType, string symbol, int period, int
  * Downloads history data for all the periods enabled on the bot.
  * It retries a few times if needed, and waits between attempts.
  */
-bool DownloadHistory(string symbol = NULL) {
-    if (symbol == NULL) {
-        symbol = Symbol();
-    }
+bool DownloadHistory() {
+    const string symbol = Symbol();
 
     const int maxAttempts = 20;
-
     for (int attempt = 0; attempt < maxAttempts; attempt++) {
         int dateError = 0;
         int totalError = 0;
@@ -98,15 +95,19 @@ bool DownloadHistory(string symbol = NULL) {
         for (int i = 0; i < ArraySize(HISTORY_DOWNLOAD_PERIODS); i++) {
             int period = HISTORY_DOWNLOAD_PERIODS[i];
 
-            const datetime time = iTime(symbol, period, 0);
-            const datetime expectedTime = CalculateDateByTimePeriod(TimeCurrent(), period);
+            // This is to make sure that more than 1 candle is downloaded
+            iTime(symbol, period, 50);
 
-            if (GetDate(time) != GetDate(expectedTime) && GetDate(time) != 0) {
-                dateError++;
-            }
+            const datetime time = iTime(symbol, period, 0);
 
             if (GetLastError() != 0) {
                 totalError++;
+            }
+
+            // Give a date error only for long periods
+            const datetime expectedTime = CalculateDateByTimePeriod(TimeCurrent(), period);
+            if (period > PERIOD_H4 && GetDate(time) != GetDate(expectedTime) && GetDate(time) != 0) {
+                dateError++;
             }
         }
 

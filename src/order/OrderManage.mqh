@@ -3,6 +3,7 @@
 #property strict
 
 #include "../../Constants.mqh"
+#include "../util/Price.mqh"
 #include "Order.mqh"
 #include "OrderFilter.mqh"
 #include "OrderFind.mqh"
@@ -36,7 +37,7 @@ class OrderManage {
 
 /**
  * Checks if there are any already opened orders,
- * across all timeframes and correlated symbols.
+ * across all periods and correlated symbols.
  */
 bool OrderManage::areThereOpenOrders() {
     OrderFilter orderFilter;
@@ -78,19 +79,18 @@ void OrderManage::deduplicateDiscriminatedOrders(Discriminator discriminator) {
     Order orders[];
     orderFind_.getFilteredOrdersList(orders, orderFilter);
 
-    int bestOrderIndex = 0;
+    if (ArraySize(orders) > 0) {
+        int bestOrderIndex = 0;
 
-    for (int i = 0; i < ArraySize(orders); i++) {
-        for (int j = 0; j < ArraySize(orders); j++) {
-            if (i != j) {
-                bestOrderIndex = findBestOrder(orders[i], orders[j]) ? i : j;
+        for (int i = 0; i < ArraySize(orders); i++) {
+            for (int j = 0; j < ArraySize(orders); j++) {
+                if (i != j) {
+                    bestOrderIndex = findBestOrder(orders[i], orders[j]) ? i : j;
+                }
             }
         }
-    }
 
-    ArrayRemove(orders, bestOrderIndex);
-
-    if (ArraySize(orders) > 0) {
+        ArrayRemove(orders, bestOrderIndex);
         deleteOrdersFromList(orders);
     }
 }
@@ -124,8 +124,17 @@ void OrderManage::emergencySwitchOff() {
 /**
  * Checks if the recent losses of the bot have been too high,
  * and in that case deletes all the orders and removes the bot.
+ * It runs once every 5 minutes to improve performance.
  */
 void OrderManage::lossLimiter() {
+    static datetime timeStamp;
+    const datetime thisTime = (datetime) iCandle(I_time, Symbol(), PERIOD_M5, 0);
+
+    if (timeStamp == thisTime && UNIT_TESTS_COMPLETED) {
+        return;
+    }
+    timeStamp = thisTime;
+
     OrderFilter orderFilter;
     orderFilter.magicNumber.add(ALLOWED_MAGIC_NUMBERS);
 
@@ -243,7 +252,7 @@ void OrderManage::deleteSingleOrder(Order & order) {
 
     if (deletedOrder) {
         Print(__FUNCTION__, MESSAGE_SEPARATOR, "Deleted order: ", ticket);
-    } else if (lastError == ERR_INVALID_TICKET) {
+    } else if (lastError == ERR_INVALID_TRADE_PARAMETERS) {
         Print(errorMessage);
     } else {
         ThrowException(__FUNCTION__, errorMessage);

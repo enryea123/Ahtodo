@@ -26,11 +26,10 @@
 // Salvare dettagli ordine su un log separato, sia per dropbox che per dimezzare (forse classe FileHandle, con nome nel constructor e close nel destructor)
 // Chiudere la sofferenza e se un trade è senza breakeven dopo 15-30 min
 // Forse devo creare OrderTest per testare getStopLossPips e isBuy ecc
-// Check performance di sera cambiando orari di attivazione e commentando parti di codice
 
 
 void OnInit() {
-    const datetime startTime = TimeLocal();
+    const ulong startTime = GetTickCount();
     InitializeMaps();
 
     while (!IsConnected() || AccountNumber() == 0) {
@@ -58,20 +57,26 @@ void OnInit() {
     market.marketConditionsValidation();
     drawer.drawEverything();
 
-    Print("Initialization completed in ", (int) (TimeLocal() - startTime), " seconds");
+    Print("Initialization completed in ", GetTickCount() - startTime, " ms");
 }
 
 void OnTick() {
     DownloadHistory();
-    Sleep(200);
+    Sleep(500);
 
     Drawer drawer;
     Market market;
     OrderManage orderManage;
 
-    orderManage.emergencySwitchOff();
     market.marketConditionsValidation();
     drawer.drawEverything();
+
+    if (!IsTradeAllowed()) {
+        drawer.setChartMarketClosedColors();
+        return;
+    }
+
+    orderManage.emergencySwitchOff();
 
     if (market.isMarketOpened()) {
         drawer.setChartMarketOpenedColors();

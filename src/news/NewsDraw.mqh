@@ -70,6 +70,7 @@ void NewsDraw::drawSingleNewsLine(News & news) {
     ObjectSetString(0, labelName, OBJPROP_TEXT, newsNameIdentified);
     ObjectSet(labelName, OBJPROP_COLOR, getNewsColorFromImpact(news.impact));
     ObjectSet(labelName, OBJPROP_FONTSIZE, NEWS_LABEL_FONT_SIZE);
+    ObjectSet(labelName, OBJPROP_BACK, true);
     ObjectSet(labelName, OBJPROP_ANGLE, 90);
 }
 

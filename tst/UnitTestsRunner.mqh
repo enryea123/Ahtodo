@@ -34,7 +34,7 @@ class UnitTestsRunner {
  * Runs all the unit tests and prints the execution time.
  */
 void UnitTestsRunner::runAllUnitTests() {
-    const datetime startTime = TimeLocal();
+    const ulong startTime = GetTickCount();
 
     ArrayTest arrayTest;
     arrayTest.arrayTest();
@@ -125,5 +125,5 @@ void UnitTestsRunner::runAllUnitTests() {
     trendLineTest.trendLineSetupsTest();
 
     UNIT_TESTS_COMPLETED = true;
-    Print("All UnitTests run in ", (int) (TimeLocal() - startTime), " seconds");
+    Print("All UnitTests run in ", GetTickCount() - startTime, " ms");
 }

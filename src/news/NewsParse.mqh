@@ -44,9 +44,9 @@ void NewsParse::readNewsFromCalendar(News & news[]) {
         return;
     }
 
-    const int maxAttempts = 10;
     int fileHandle = INVALID_HANDLE;
 
+    const int maxAttempts = 10;
     for (int attempt = 0; attempt < maxAttempts; attempt++) {
         ResetLastError();
 
