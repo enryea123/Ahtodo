@@ -151,13 +151,13 @@ void OrderCreate::sendOrder(Order & order) {
         if (order.type != OrderType() || order.lots != OrderLots() || order.comment != OrderComment() ||
             order.magicNumber != OrderMagicNumber() || order.expiration != OrderExpiration()) {
             Print(order.toString());
-            ThrowException(__FUNCTION__, StringConcatenate(
-                "Mismatching information in newly created order with ticket: ", order.ticket));
+            ThrowException(__FUNCTION__, StringConcatenate("Mismatching information ",
+                "in newly created order with ticket: ", order.ticket, ", error: ", GetLastError()));
         }
 
         if (previouslySelectedOrder != 0 && !OrderSelect(previouslySelectedOrder, SELECT_BY_TICKET)) {
             ThrowException(__FUNCTION__, StringConcatenate(
-                "Could not select back previous order: ", previouslySelectedOrder));
+                "Could not select back previous order: ", previouslySelectedOrder, ", error: ", GetLastError()));
         }
     }
 }
@@ -228,7 +228,7 @@ int OrderCreate::calculateOrderTypeFromSetups(int index) {
 
         if (orderType == -1) {
             NO_SETUP_TIMESTAMP = PrintTimer(NO_SETUP_TIMESTAMP, StringConcatenate(
-                "No setups found at Time: ", TimeToStr(Time[index])));
+                "No setups found at time: ", TimeToStr(Time[index])));
         }
     }
 

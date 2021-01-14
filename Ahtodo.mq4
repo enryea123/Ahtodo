@@ -3,7 +3,7 @@
 #property strict
 
 #property description "Enrico Albano's automated bot for Ahtodo"
-#property version "2.0"
+#property version "2.1.20210114"
 
 #include "src/drawer/Drawer.mqh"
 #include "src/market/Market.mqh"
@@ -26,6 +26,7 @@
 // Salvare dettagli ordine su un log separato, sia per dropbox che per dimezzare (forse classe FileHandle, con nome nel constructor e close nel destructor)
 // Chiudere la sofferenza e se un trade è senza breakeven dopo 15-30 min
 // Forse devo creare OrderTest per testare getStopLossPips e isBuy ecc
+// Fare ulteriore test performance togliendo sleep ad ahtodo_old
 
 
 void OnInit() {

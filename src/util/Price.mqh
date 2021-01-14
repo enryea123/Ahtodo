@@ -112,7 +112,8 @@ bool DownloadHistory() {
         }
 
         if (dateError != 0) {
-            return ThrowException(false, __FUNCTION__, "Date error during history data download");
+            Print("Date error during history data download");
+            return false;
         }
 
         if (totalError == 0) {
@@ -123,5 +124,6 @@ bool DownloadHistory() {
         }
     }
 
-    return ThrowException(false, __FUNCTION__, "Could not download history data");
+    return ThrowException(false, __FUNCTION__, StringConcatenate(
+        "Could not download history data, error:", GetLastError()));
 }

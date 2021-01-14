@@ -93,7 +93,7 @@ void OrderFind::getOrdersList(Order & orders[], int pool = MODE_TRADES) {
 
     if (previouslySelectedOrder != 0 && !OrderSelect(previouslySelectedOrder, SELECT_BY_TICKET)) {
         ThrowException(__FUNCTION__, StringConcatenate(
-            "Could not select back previous order: ", previouslySelectedOrder));
+            "Could not select back previous order: ", previouslySelectedOrder, ", error: ", GetLastError()));
     }
 }
 
