@@ -4,92 +4,47 @@
 
 #include "../../Constants.mqh"
 #include "ArrowStyle.mqh"
+#include "Extreme.mqh"
 
 
 /**
- * This class calculates all the extremes and draws the arrows representing them.
+ * This class handles the drawings of the extremes on the chart.
  */
 class ExtremesDraw {
     public:
-        void drawExtremes(int & [], Discriminator);
+        void drawExtremes(int & [], int & []);
 
     private:
-        ArrowStyle arrowStyle_;
-
-        void calculateAllExtremes(int & [], Discriminator);
-        void calculateValidExtremes(int & [], Discriminator);
+        void drawDiscriminatedExtremes(int & [], Discriminator);
 };
 
 /**
  * Draws the extremes on the graph.
  */
-void ExtremesDraw::drawExtremes(int & extremes[], Discriminator discriminator) {
-    calculateValidExtremes(extremes, discriminator);
+void ExtremesDraw::drawExtremes(int & maximums[], int & minimums[]) {
+    drawDiscriminatedExtremes(maximums, Max);
+    drawDiscriminatedExtremes(minimums, Min);
 }
 
 /**
- * Calculates all the extremes on the graph.
+ * Draws the discriminated extremes on the graph.
  */
-void ExtremesDraw::calculateAllExtremes(int & allExtremes[], Discriminator discriminator) {
-    int numberOfExtremes = 0;
-    ArrayResize(allExtremes, CANDLES_VISIBLE_IN_GRAPH_2X);
+void ExtremesDraw::drawDiscriminatedExtremes(int & validExtremes[], Discriminator discriminator) {
+    ArrowStyle arrowStyle;
+    Extreme extreme;
 
-    for (int i = SMALLEST_ALLOWED_EXTREME_INDEX; i < CANDLES_VISIBLE_IN_GRAPH_2X; i++) {
-        bool isBeatingNeighbours = true;
+    extreme.calculateValidExtremes(validExtremes, discriminator, EXTREMES_MIN_DISTANCE);
 
-        for (int j = -MINIMUM_CANDLES_BETWEEN_EXTREMES; j < MINIMUM_CANDLES_BETWEEN_EXTREMES + 1; j++) {
-            if ((iExtreme(discriminator, i) > iExtreme(discriminator, i + j) + Pip() && discriminator == Min) ||
-                (iExtreme(discriminator, i) < iExtreme(discriminator, i + j) - Pip() && discriminator == Max)) {
-                isBeatingNeighbours = false;
-                break;
-            }
-        }
-
-        if (isBeatingNeighbours) {
-            if (IS_DEBUG) {
-                arrowStyle_.drawExtremeArrow(i, discriminator, false);
-            }
-
-            allExtremes[numberOfExtremes] = i;
-            numberOfExtremes++;
-            i += MINIMUM_CANDLES_BETWEEN_EXTREMES;
-        }
+    for (int i = 0; i < ArraySize(validExtremes); i++) {
+        arrowStyle.drawExtremeArrow(validExtremes[i], discriminator, true);
     }
 
-    ArrayResize(allExtremes, numberOfExtremes);
-}
+    if (IS_DEBUG) {
+        int allExtremes[];
+        extreme.calculateAllExtremes(allExtremes, discriminator, EXTREMES_MIN_DISTANCE);
 
-/**
- * Filters out all the valid extremes out of all the extremes found on the graph.
- */
-void ExtremesDraw::calculateValidExtremes(int & validExtremes[], Discriminator discriminator) {
-    int allExtremes[];
-    calculateAllExtremes(allExtremes, discriminator);
-
-    int numberOfValidExtremes = 0;
-    ArrayResize(validExtremes, (int) MathRound(CANDLES_VISIBLE_IN_GRAPH_2X / (MINIMUM_CANDLES_BETWEEN_EXTREMES + 1)));
-
-    for (int i = ArraySize(allExtremes) - 1; i >= 0; i--) {
-        bool isValidExtreme = true;
-        const int indexI = allExtremes[i];
-
-        for (int j = i - 1; j >= 0; j--) {
-            const int indexJ = allExtremes[j];
-
-            if ((iExtreme(discriminator, indexI) > iExtreme(discriminator, indexJ) && discriminator == Min) ||
-                (iExtreme(discriminator, indexI) < iExtreme(discriminator, indexJ) && discriminator == Max)) {
-                isValidExtreme = false;
-                break;
-            }
-        }
-
-        if (isValidExtreme) {
-            arrowStyle_.drawExtremeArrow(indexI, discriminator, isValidExtreme);
-
-            validExtremes[numberOfValidExtremes] = indexI;
-            numberOfValidExtremes++;
+        for (int i = 0; i < ArraySize(allExtremes); i++) {
+            arrowStyle.drawExtremeArrow(allExtremes[i], discriminator, false);
         }
     }
-
-    ArrayResize(validExtremes, numberOfValidExtremes);
 }

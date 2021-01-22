@@ -2,6 +2,8 @@
 #property link "https://www.linkedin.com/in/enryea123"
 #property strict
 
+#include "../extreme/ExtremesDraw.mqh"
+#include "../extreme/LevelsDraw.mqh"
 #include "../market/Holiday.mqh"
 #include "../market/MarketTime.mqh"
 #include "../news/NewsDraw.mqh"
@@ -40,8 +42,16 @@ void Drawer::drawEverything() {
 
     ObjectsDeleteAll();
 
+    int maximums[], minimums[];
+
+    ExtremesDraw extremesDraw;
+    extremesDraw.drawExtremes(maximums, minimums);
+
     TrendLinesDraw trendLinesDraw;
-    trendLinesDraw.drawTrendLines();
+    trendLinesDraw.drawTrendLines(maximums, minimums);
+
+    LevelsDraw levelsDraw;
+    levelsDraw.drawValidLevels();
 
     PatternsDraw patternsDraw;
     patternsDraw.drawAllPatterns();

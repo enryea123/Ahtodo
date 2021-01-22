@@ -68,7 +68,7 @@ bool Market::isMarketOpened(datetime date = NULL) {
 
     const double spread = GetSpread();
     if (spread > SPREAD_PIPS_CLOSE_MARKET) {
-        SPREAD_TIMESTAMP = AlertTimer(SPREAD_TIMESTAMP, StringConcatenate("Market closed for spread: ", spread));
+        SPREAD_TIMESTAMP = PrintTimer(SPREAD_TIMESTAMP, StringConcatenate("Market closed for spread: ", spread));
         return false;
     }
 

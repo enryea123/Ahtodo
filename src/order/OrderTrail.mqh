@@ -179,7 +179,8 @@ double OrderTrail::trailer(double openPrice, double stopLoss, double takeProfit)
 
     const double trailer = trailerBaseDistance - trailerPercent * currentExtremeToOpenDistance / profitToOpenDistance;
 
-    double initialStopLossDistance = profitToOpenDistance / BASE_TAKE_PROFIT_FACTOR;
+    // This trailing assumes a constant takeProfit factor
+    double initialStopLossDistance = profitToOpenDistance / MAX_TAKE_PROFIT_FACTOR;
     double trailerStopLoss = currentExtreme - initialStopLossDistance * trailer;
 
     // Trailing StopLoss
@@ -190,6 +191,8 @@ double OrderTrail::trailer(double openPrice, double stopLoss, double takeProfit)
     }
 
     return stopLoss;
+
+    // In the future, implement a stopLoss trailing below the previous minimum
 
     /*
     // Trailing TakeProfit

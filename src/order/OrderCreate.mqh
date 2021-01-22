@@ -22,6 +22,7 @@ class OrderCreate {
         bool areThereBetterOrders(string, int, double, double);
 
         int calculateOrderTypeFromSetups(int);
+        double calculateTakeProfitFactor(double, double, Discriminator);
         double calculateSizeFactor(int, double, string);
         double calculateOrderLots(double, double, string);
         double getPercentRisk();
@@ -92,7 +93,7 @@ void OrderCreate::createNewOrder(int index) {
     order.openPrice = iExtreme(discriminator, index) + discriminator * (1 + spreadAsk) * Pip(order.symbol);
     order.stopLoss = iExtreme(antiDiscriminator, index) - discriminator * (1 + spreadBid) * Pip(order.symbol);
 
-    const double takeProfitFactor = BASE_TAKE_PROFIT_FACTOR;
+    const double takeProfitFactor = calculateTakeProfitFactor(order.openPrice, order.getStopLossPips(), discriminator);
 
     order.takeProfit = order.openPrice + discriminator * takeProfitFactor * order.getStopLossPips() * Pip(order.symbol);
 
@@ -135,7 +136,8 @@ void OrderCreate::sendOrder(Order & order) {
         order.expiration
     );
 
-    const int lastError = GetLastError();
+    int lastError = GetLastError();
+
     if (lastError != 0) {
         ThrowException(__FUNCTION__, StringConcatenate(
             "Error ", lastError, " when creating order: ", order.ticket));
@@ -155,9 +157,12 @@ void OrderCreate::sendOrder(Order & order) {
                 "in newly created order with ticket: ", order.ticket, ", error: ", GetLastError()));
         }
 
-        if (previouslySelectedOrder != 0 && !OrderSelect(previouslySelectedOrder, SELECT_BY_TICKET)) {
+        const bool selectSucceeded = OrderSelect(previouslySelectedOrder, SELECT_BY_TICKET);
+        lastError = GetLastError();
+
+        if (previouslySelectedOrder != 0 && !selectSucceeded && lastError != 4051) {
             ThrowException(__FUNCTION__, StringConcatenate(
-                "Could not select back previous order: ", previouslySelectedOrder, ", error: ", GetLastError()));
+                "Could not select back previous order: ", previouslySelectedOrder, ", error: ", lastError));
         }
     }
 }
@@ -246,17 +251,19 @@ bool OrderCreate::areThereRecentOrders(datetime date = NULL) {
         date = (datetime) (TimeCurrent() - 60 * period * MathRound(ORDER_CANDLES_DURATION / PeriodFactor(period)));
     }
 
+    const datetime thisTime = Time[0];
+
     static datetime cachedDate;
     static datetime timeStamp;
 
     static bool recentOrders;
 
-    if (cachedDate == date && timeStamp == Time[0] && UNIT_TESTS_COMPLETED) {
+    if (cachedDate == date && timeStamp == thisTime && UNIT_TESTS_COMPLETED) {
         return recentOrders;
     }
 
     cachedDate = date;
-    timeStamp = Time[0];
+    timeStamp = thisTime;
 
     OrderFilter orderFilter;
     orderFilter.magicNumber.add(ALLOWED_MAGIC_NUMBERS);
@@ -307,6 +314,54 @@ bool OrderCreate::areThereBetterOrders(string symbol, int type, double openPrice
 }
 
 /**
+ * Calculates the takeProfit of the order from the graph horizontal levels.
+ */
+double OrderCreate::calculateTakeProfitFactor(double openPrice, double stopLossPips, Discriminator discriminator) {
+    const string symbol = Symbol();
+    const datetime thisTime = Time[0];
+
+    static double cachedOpenPrice;
+    static double cachedStopLossPips;
+    static Discriminator cachedDiscriminator;
+    static datetime timeStamp;
+
+    static double takeProfitFactor;
+
+    if (cachedOpenPrice == openPrice && cachedStopLossPips == stopLossPips &&
+        cachedDiscriminator == discriminator && timeStamp == thisTime && UNIT_TESTS_COMPLETED) {
+        return takeProfitFactor;
+    }
+
+    cachedOpenPrice = openPrice;
+    cachedStopLossPips = stopLossPips;
+    cachedDiscriminator = discriminator;
+    timeStamp = thisTime;
+
+    takeProfitFactor = MAX_TAKE_PROFIT_FACTOR;
+
+    const double minTakeProfitFactor = MIN_TAKE_PROFIT_FACTOR * (SPLIT_POSITION ? 2 : 1);
+
+    for (int i = ObjectsTotal() - 1; i >= 0; i--) {
+        const string objectName = ObjectName(i);
+
+        if (!StringContains(objectName, LEVEL_NAME_PREFIX) ||
+            !StringContains(objectName, EnumToString(discriminator))) {
+            continue;
+        }
+
+        const double levelFromOpenPricePips = MathAbs(ObjectGet(objectName, OBJPROP_PRICE1) - openPrice) / Pip(symbol);
+        const double levelTakeProfitFactor = (levelFromOpenPricePips - TAKE_PROFIT_OBSTACLE_BUFFER_PIPS) / stopLossPips;
+
+        if (levelTakeProfitFactor > minTakeProfitFactor) {
+            takeProfitFactor = MathMin(takeProfitFactor, levelTakeProfitFactor);
+        }
+    }
+
+    takeProfitFactor = NormalizeDouble(takeProfitFactor, 1);
+    return takeProfitFactor;
+}
+
+/**
  * Calculates the size modulation factor from pivot and holiday setups.
  */
 double OrderCreate::calculateSizeFactor(int type, double openPrice, string symbol) {
@@ -320,17 +375,19 @@ double OrderCreate::calculateSizeFactor(int type, double openPrice, string symbo
         return ThrowException(0, __FUNCTION__, "Unknown symbol");
     }
 
-    int period = Period();
+    const int period = Period();
+    const datetime thisTime = Time[0];
 
     static int cachedPeriod;
     static int cachedType;
     static double cachedOpenPrice;
     static string cachedSymbol;
+    static datetime timeStamp;
 
     static double sizeFactor;
 
     if (cachedPeriod == period && cachedType == type && cachedOpenPrice == openPrice &&
-        cachedSymbol == symbol && UNIT_TESTS_COMPLETED) {
+        cachedSymbol == symbol && timeStamp == thisTime && UNIT_TESTS_COMPLETED) {
         return sizeFactor;
     }
 
@@ -338,6 +395,7 @@ double OrderCreate::calculateSizeFactor(int type, double openPrice, string symbo
     cachedType = type;
     cachedOpenPrice = openPrice;
     cachedSymbol = symbol;
+    timeStamp = thisTime;
 
     sizeFactor = 1.0;
 

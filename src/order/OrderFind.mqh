@@ -91,9 +91,11 @@ void OrderFind::getOrdersList(Order & orders[], int pool = MODE_TRADES) {
 
     ArrayResize(orders, index);
 
-    if (previouslySelectedOrder != 0 && !OrderSelect(previouslySelectedOrder, SELECT_BY_TICKET)) {
+    const bool selectSucceeded = OrderSelect(previouslySelectedOrder, SELECT_BY_TICKET);
+    const int lastError = GetLastError();
+    if (previouslySelectedOrder != 0 && !selectSucceeded && lastError != 4051) {
         ThrowException(__FUNCTION__, StringConcatenate(
-            "Could not select back previous order: ", previouslySelectedOrder, ", error: ", GetLastError()));
+            "Could not select back previous order: ", previouslySelectedOrder, ", error: ", lastError));
     }
 }
 

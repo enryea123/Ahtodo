@@ -12,6 +12,7 @@ class OrderCreateTest: public OrderCreate {
         void areThereRecentOrdersTest();
         void areThereBetterOrdersTest();
         void calculateOrderTypeFromSetupsTest();
+        void calculateTakeProfitFactorTest();
         void calculateSizeFactorTest();
         void calculateOrderLotsTest();
         void getPercentRiskTest();
@@ -286,6 +287,102 @@ void OrderCreateTest::calculateOrderTypeFromSetupsTest() {
     if (checkedAssertions < totalAssertions && IS_DEBUG) {
         Print(checkedAssertions, "/", totalAssertions, " checks run, some skipped..");
     }
+
+    ObjectsDeleteAll();
+}
+
+void OrderCreateTest::calculateTakeProfitFactorTest() {
+    UnitTest unitTest("calculateTakeProfitFactorTest");
+
+    const double openPrice = 1.1;
+    const double stopLossPips = 15;
+
+    double level;
+
+    unitTest.assertEquals(
+        MAX_TAKE_PROFIT_FACTOR,
+        calculateTakeProfitFactor(openPrice, stopLossPips, Max)
+    );
+
+    level = openPrice + 300 * Pip();
+    ObjectCreate("Level_1_Max", OBJ_TREND, 0, Time[1], level, Time[0], level);
+    level = openPrice + 1 * Pip();
+    ObjectCreate("Level_11_Max", OBJ_TREND, 0, Time[1], level, Time[0], level);
+    level = openPrice - 300 * Pip();
+    ObjectCreate("Level_12_Max", OBJ_TREND, 0, Time[1], level, Time[0], level);
+    level = openPrice + 35 * Pip();
+    ObjectCreate("LEVELLL_1_Max", OBJ_TREND, 0, Time[1], level, Time[0], level);
+    ObjectCreate("Level_1_Min", OBJ_TREND, 0, Time[1], level, Time[0], level);
+
+    unitTest.assertEquals(
+        MAX_TAKE_PROFIT_FACTOR,
+        calculateTakeProfitFactor(openPrice, stopLossPips, Max)
+    );
+
+    level = openPrice + 35 * Pip();
+    ObjectCreate("Level_2_Max", OBJ_TREND, 0, Time[1], level, Time[0], level);
+
+    unitTest.assertEquals(
+        2.1,
+        calculateTakeProfitFactor(openPrice, stopLossPips, Max)
+    );
+
+    level = openPrice + 40 * Pip();
+    ObjectCreate("Level_3_Max", OBJ_TREND, 0, Time[1], level, Time[0], level);
+
+    unitTest.assertEquals(
+        2.1,
+        calculateTakeProfitFactor(openPrice, stopLossPips, Max)
+    );
+
+    level = openPrice + 30 * Pip();
+    ObjectCreate("Level_4_Max", OBJ_TREND, 0, Time[1], level, Time[0], level);
+
+    unitTest.assertEquals(
+        1.8,
+        calculateTakeProfitFactor(openPrice, stopLossPips, Max)
+    );
+
+    level = openPrice + 20 * Pip();
+    ObjectCreate("Level_5_Max", OBJ_TREND, 0, Time[1], level, Time[0], level);
+
+    if (SPLIT_POSITION) {
+        unitTest.assertEquals(
+            1.8,
+            calculateTakeProfitFactor(openPrice, stopLossPips, Max)
+        );
+    } else {
+        unitTest.assertEquals(
+            1.1,
+            calculateTakeProfitFactor(openPrice, stopLossPips, Max)
+        );
+    }
+
+    ObjectsDeleteAll();
+
+    level = openPrice - 1 * Pip();
+    ObjectCreate("Level_1_Min", OBJ_TREND, 0, Time[1], level, Time[0], level);
+
+    unitTest.assertEquals(
+        MAX_TAKE_PROFIT_FACTOR,
+        calculateTakeProfitFactor(openPrice, stopLossPips, Min)
+    );
+
+    level = openPrice - 35 * Pip();
+    ObjectCreate("Level_2_Min", OBJ_TREND, 0, Time[1], level, Time[0], level);
+
+    unitTest.assertEquals(
+        2.1,
+        calculateTakeProfitFactor(openPrice, stopLossPips, Min)
+    );
+
+    level = openPrice - 30 * Pip();
+    ObjectCreate("Level_3_Min", OBJ_TREND, 0, Time[1], level, Time[0], level);
+
+    unitTest.assertEquals(
+        1.8,
+        calculateTakeProfitFactor(openPrice, stopLossPips, Min)
+    );
 
     ObjectsDeleteAll();
 }

@@ -103,7 +103,7 @@ double Order::getStopLossPips() {
         return ThrowException(-1, __FUNCTION__, "Some order quantities not initialized");
     }
 
-    return MathAbs(openPrice - stopLoss) / Pip(symbol);
+    return NormalizeDouble(MathAbs(openPrice - stopLoss) / Pip(symbol), 1);
 }
 
 /**

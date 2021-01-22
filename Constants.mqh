@@ -91,7 +91,9 @@ const string NAME_SEPARATOR = "_";
 const string FILTER_SEPARATOR = "|";
 const string MESSAGE_SEPARATOR = " | ";
 
-const double BASE_TAKE_PROFIT_FACTOR = 3;
+const double MAX_TAKE_PROFIT_FACTOR = 3;
+const double MIN_TAKE_PROFIT_FACTOR = 0.8;
+const int TAKE_PROFIT_OBSTACLE_BUFFER_PIPS = 3;
 
 const int CANDLES_VISIBLE_IN_GRAPH_3X = 465;
 const int CANDLES_VISIBLE_IN_GRAPH_2X = 940;
@@ -106,19 +108,20 @@ const string PATTERN_NAME_PREFIX = "Pattern";
 
 const string ARROW_NAME_PREFIX = "Arrow";
 const string VALID_ARROW_NAME_SUFFIX = "Valid";
+const string LEVEL_NAME_PREFIX = "Level";
 
 const int LOSS_LIMITER_HOURS = 8;
 const int LOSS_LIMITER_MAX_ALLOWED_LOSSES_PERCENT = 10;
 
 const int FIND_DAY_MAX_YEARS_RANGE = 5;
 
-const int MINIMUM_CANDLES_BETWEEN_EXTREMES = 1;
-const int SMALLEST_ALLOWED_EXTREME_INDEX = 4;
+const int EXTREMES_MIN_DISTANCE = 1;
+const int LEVELS_MIN_DISTANCE = 4;
 
 const int INCORRECT_CLOCK_ERROR_SECONDS = 60;
 
 const int OPEN_MARKET_LOOKBACK_MINUTES = 15;
-const int SPREAD_PIPS_CLOSE_MARKET = 5;
+const int SPREAD_PIPS_CLOSE_MARKET = 6;
 
 const int MAX_ORDER_COMMENT_CHARACTERS = 20;
 const int ORDER_CANDLES_DURATION = 6;

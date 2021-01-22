@@ -3,7 +3,6 @@
 #property strict
 
 #include "../../Constants.mqh"
-#include "../extreme/ExtremesDraw.mqh"
 #include "TrendLine.mqh"
 
 
@@ -12,7 +11,7 @@
  */
 class TrendLinesDraw {
     public:
-        void drawTrendLines();
+        void drawTrendLines(int & [], int & []);
 
     private:
         TrendLine trendLine_;
@@ -24,13 +23,7 @@ class TrendLinesDraw {
 /**
  * Draws all the trendLines and extremes creating them.
  */
-void TrendLinesDraw::drawTrendLines() {
-    int maximums[], minimums[];
-
-    ExtremesDraw extremesDraw;
-    extremesDraw.drawExtremes(maximums, Max);
-    extremesDraw.drawExtremes(minimums, Min);
-
+void TrendLinesDraw::drawTrendLines(int & maximums[], int & minimums[]) {
     drawDiscriminatedTrendLines(maximums, Max);
     drawDiscriminatedTrendLines(minimums, Min);
 }
@@ -43,18 +36,22 @@ void TrendLinesDraw::drawDiscriminatedTrendLines(int & indexes[], Discriminator 
         for (int j = i + 1; j < ArraySize(indexes); j++) {
             for (int beam = -TRENDLINE_BEAMS; beam <= TRENDLINE_BEAMS; beam++) {
 
-                if (trendLine_.areTrendLineSetupsGood(indexes[i], indexes[j], discriminator)) {
-                    const string trendLineName = trendLine_.buildTrendLineName(
-                        indexes[i], indexes[j], beam, discriminator);
+                // The indexes are passed in reverse order, so they are switched here
+                const int indexI = indexes[j];
+                const int indexJ = indexes[i];
 
-                    drawSingleTrendLine(trendLineName, indexes[i], indexes[j], beam, discriminator);
+                if (trendLine_.areTrendLineSetupsGood(indexI, indexJ, discriminator)) {
+                    const string trendLineName = trendLine_.buildTrendLineName(
+                        indexI, indexJ, beam, discriminator);
+
+                    drawSingleTrendLine(trendLineName, indexI, indexJ, beam, discriminator);
                 }
 
-                if (IS_DEBUG && !trendLine_.areTrendLineSetupsGood(indexes[i], indexes[j], discriminator)) {
+                if (IS_DEBUG && !trendLine_.areTrendLineSetupsGood(indexI, indexJ, discriminator)) {
                     const string badTrendLineName = trendLine_.buildBadTrendLineName(
-                        indexes[i], indexes[j], beam, discriminator);
+                        indexI, indexJ, beam, discriminator);
 
-                    drawSingleTrendLine(badTrendLineName, indexes[i], indexes[j], beam, discriminator);
+                    drawSingleTrendLine(badTrendLineName, indexI, indexJ, beam, discriminator);
                 }
             }
         }

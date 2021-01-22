@@ -3,7 +3,7 @@
 #property strict
 
 #property description "Enrico Albano's automated bot for Ahtodo"
-#property version "210.114"
+#property version "210.122"
 
 #include "src/drawer/Drawer.mqh"
 #include "src/market/Market.mqh"
@@ -19,14 +19,13 @@
  * OnDeInit is executed at the end of the program, and cleans up some variables.
  */
 
-
-// Livelli orizzontali per takeProfit
-// StopLoss trailing sotto al minimo precedente
-// Log quando ordine già a breakeven va sotto 0 (filtra commenti con "#from 123891")
-// Salvare dettagli ordine su un log separato, sia per dropbox che per dimezzare (forse classe FileHandle, con nome nel constructor e close nel destructor)
-// Chiudere la sofferenza e se un trade è senza breakeven dopo 15-30 min
-// Forse devo creare OrderTest per testare getStopLossPips e isBuy ecc
-// Fare ulteriore test performance togliendo sleep ad ahtodo_old
+/*
+ * TODO:
+ *  - Salvare dettagli ordine su log esterno, per dropbox e per dimezzare
+ *      (classe FileHandle, con nome nel constructor e close nel destructor?)
+ *  - Ridurre la sofferenza e se un trade è senza breakeven:
+ *      30min -> SL/2, 45min -> SL/4 (o SL/2 again), 6omin -> SL 0. Se il prezzo è più in basso chiudi.
+ */
 
 
 void OnInit() {

@@ -9,6 +9,7 @@
 #include "market/MarketTimeTest.mqh"
 #include "news/NewsDrawTest.mqh"
 #include "news/NewsParseTest.mqh"
+#include "order/OrderTest.mqh"
 #include "order/OrderFindTest.mqh"
 #include "order/OrderCreateTest.mqh"
 #include "order/OrderManageTest.mqh"
@@ -80,11 +81,19 @@ void UnitTestsRunner::runAllUnitTests() {
     orderCreateTest.areThereRecentOrdersTest();
     orderCreateTest.areThereBetterOrdersTest();
     orderCreateTest.calculateOrderTypeFromSetupsTest();
+    orderCreateTest.calculateTakeProfitFactorTest();
     orderCreateTest.calculateSizeFactorTest();
     orderCreateTest.calculateOrderLotsTest();
     orderCreateTest.getPercentRiskTest();
     orderCreateTest.buildOrderCommentTest();
     orderCreateTest.getSizeFactorFromCommentTest();
+
+    OrderTest orderTest;
+    orderTest.getPeriodTest();
+    orderTest.getStopLossPipsTest();
+    orderTest.isOpenTest();
+    orderTest.isBuyTest();
+    orderTest.getDiscriminatorTest();
 
     OrderFindTest orderFindTest;
     orderFindTest.getOrdersListTest();
