@@ -25,14 +25,14 @@ class OrderManage {
 
         void deleteAllOrders();
         void deletePendingOrders();
+        void deleteOrdersFromList(Order & []);
+        void deleteSingleOrder(Order &);
 
     protected:
         OrderFind orderFind_;
 
     private:
         void deduplicateDiscriminatedOrders(Discriminator);
-        void deleteOrdersFromList(Order & []);
-        void deleteSingleOrder(Order &);
 };
 
 /**

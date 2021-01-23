@@ -7,6 +7,7 @@
 #include "../order/Order.mqh"
 #include "../order/OrderFilter.mqh"
 #include "../order/OrderFind.mqh"
+#include "../order/OrderManage.mqh"
 #include "../pivot/Pivot.mqh"
 
 
@@ -24,6 +25,8 @@ class OrderTrail {
         void updateOrder(Order &, double, double);
 
         bool splitPosition(Order &, double);
+        bool closeSufferingOrder(Order &, double);
+        double calculateSufferingFactor(Order &, double);
         double breakEvenStopLoss(Order &);
         double trailer(double, double, double);
 };
@@ -51,6 +54,12 @@ void OrderTrail::manageOpenOrders() {
  */
 void OrderTrail::manageOpenOrder(Order & order) {
     double newStopLoss = breakEvenStopLoss(order);
+
+    newStopLoss *= calculateSufferingFactor(order, newStopLoss);
+
+    if (closeSufferingOrder(order, newStopLoss)) {
+        return;
+    }
 
     updateOrder(order, newStopLoss);
     splitPosition(order, newStopLoss);
@@ -118,9 +127,7 @@ bool OrderTrail::splitPosition(Order & order, double newStopLoss) {
         return false;
     }
 
-    if (StringContains(order.comment, StringConcatenate("A P", period)) &&
-        newStopLossPips == PeriodFactor(period) * BREAKEVEN_STEPS.getValues(0)) {
-
+    if (!order.isBreakEven() && newStopLossPips == PeriodFactor(period) * BREAKEVEN_STEPS.getValues(0)) {
         if (UNIT_TESTS_COMPLETED) {
             const bool splitOrder = OrderClose(order.ticket, order.lots / 2, order.closePrice, 3);
 
@@ -133,6 +140,56 @@ bool OrderTrail::splitPosition(Order & order, double newStopLoss) {
     }
 
     return false;
+}
+
+/*
+ * Closes orders that haven't reached the breakEven yet, in case
+ * the new stopLoss is too close or below (above) the market value.
+ */
+bool OrderTrail::closeSufferingOrder(Order & order, double newStopLoss) {
+    if (order.isBreakEven()) {
+        return false;
+    }
+
+    if ((GetPrice() < newStopLoss + Pip(order.symbol) && order.type == OP_BUY) ||
+        (GetPrice() > newStopLoss - Pip(order.symbol) && order.type == OP_SELL)) {
+
+        if (UNIT_TESTS_COMPLETED) {
+            Print("Closing order: ", order.ticket, " for new stopLoss too close or below (above) the market value");
+            OrderManage orderManage;
+            orderManage.deleteSingleOrder(order);
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * Reduces the suffering for orders that delay to reach the breakEven point.
+ * The suffering factor can be different from 1 only if:
+ *  1. The order is not already at breakEven
+ *  2. The newStopLoss is not going to update the order
+ */
+double OrderTrail::calculateSufferingFactor(Order & order, double newStopLoss) {
+    if (order.isBreakEven()) {
+        return 1;
+    }
+
+    if (MathRound(MathAbs(newStopLoss - order.stopLoss) / Pip(order.symbol)) == 0) {
+        // Going in reverse order to make sure to not return
+        // too early, as the conditions slowly become all true.
+        for (int i = BREAKEVEN_SUFFERING_INTERVALS.size() - 1; i >= 0; i--) {
+           const int orderAgeSeconds = (int) MathAbs(TimeCurrent() - order.openTime);
+
+            if (orderAgeSeconds > 60 * BREAKEVEN_SUFFERING_INTERVALS.getKeys(i)) {
+                return BREAKEVEN_SUFFERING_INTERVALS.getValues(i);
+            }
+        }
+    }
+
+    return 1;
 }
 
 /**
@@ -180,7 +237,7 @@ double OrderTrail::trailer(double openPrice, double stopLoss, double takeProfit)
     const double trailer = trailerBaseDistance - trailerPercent * currentExtremeToOpenDistance / profitToOpenDistance;
 
     // This trailing assumes a constant takeProfit factor
-    double initialStopLossDistance = profitToOpenDistance / MAX_TAKE_PROFIT_FACTOR;
+    double initialStopLossDistance = profitToOpenDistance / MAX_TAKEPROFIT_FACTOR;
     double trailerStopLoss = currentExtreme - initialStopLossDistance * trailer;
 
     // Trailing StopLoss

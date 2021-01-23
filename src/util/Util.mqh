@@ -43,17 +43,17 @@ int PeriodFactor(int period = NULL) {
 }
 
 /**
+ * Returns the market value for the specified symbol, by averaging ask and bid.
+ */
+double GetPrice(string symbol = NULL) {
+    return (MarketInfo(symbol, MODE_ASK) + MarketInfo(symbol, MODE_BID)) / 2;
+}
+
+/**
  * Returns the market spread for the specified symbol.
  */
 double GetSpread(string symbol = NULL) {
     return MarketInfo(symbol, MODE_SPREAD) / 10;
-}
-
-/**
- * Returns the market ask for the specified symbol.
- */
-double GetAsk(string symbol = NULL) {
-    return MarketInfo(symbol, MODE_ASK);
 }
 
 /**

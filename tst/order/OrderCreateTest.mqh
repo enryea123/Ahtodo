@@ -16,8 +16,6 @@ class OrderCreateTest: public OrderCreate {
         void calculateSizeFactorTest();
         void calculateOrderLotsTest();
         void getPercentRiskTest();
-        void buildOrderCommentTest();
-        void getSizeFactorFromCommentTest();
 };
 
 void OrderCreateTest::areThereRecentOrdersTest() {
@@ -72,7 +70,7 @@ void OrderCreateTest::areThereBetterOrdersTest() {
     order.symbol = Symbol();
     order.type = OP_SELLSTOP;
     order.ticket = 1234;
-    order.openPrice = GetAsk(order.symbol);
+    order.openPrice = GetPrice(order.symbol);
     order.stopLoss = order.openPrice + stopLossSize;
 
     orderFind_.setMockedOrders(order);
@@ -300,7 +298,7 @@ void OrderCreateTest::calculateTakeProfitFactorTest() {
     double level;
 
     unitTest.assertEquals(
-        MAX_TAKE_PROFIT_FACTOR,
+        MAX_TAKEPROFIT_FACTOR,
         calculateTakeProfitFactor(openPrice, stopLossPips, Max)
     );
 
@@ -315,7 +313,7 @@ void OrderCreateTest::calculateTakeProfitFactorTest() {
     ObjectCreate("Level_1_Min", OBJ_TREND, 0, Time[1], level, Time[0], level);
 
     unitTest.assertEquals(
-        MAX_TAKE_PROFIT_FACTOR,
+        MAX_TAKEPROFIT_FACTOR,
         calculateTakeProfitFactor(openPrice, stopLossPips, Max)
     );
 
@@ -364,7 +362,7 @@ void OrderCreateTest::calculateTakeProfitFactorTest() {
     ObjectCreate("Level_1_Min", OBJ_TREND, 0, Time[1], level, Time[0], level);
 
     unitTest.assertEquals(
-        MAX_TAKE_PROFIT_FACTOR,
+        MAX_TAKEPROFIT_FACTOR,
         calculateTakeProfitFactor(openPrice, stopLossPips, Min)
     );
 
@@ -390,7 +388,7 @@ void OrderCreateTest::calculateTakeProfitFactorTest() {
 void OrderCreateTest::calculateSizeFactorTest() {
     UnitTest unitTest("calculateSizeFactorTest");
 
-    const double price = GetAsk();
+    const double price = GetPrice();
     const string symbol = Symbol();
 
     unitTest.assertEquals(
@@ -475,72 +473,4 @@ void OrderCreateTest::getPercentRiskTest() {
             getPercentRisk()
         );
     }
-}
-
-void OrderCreateTest::buildOrderCommentTest() {
-    UnitTest unitTest("buildOrderCommentTest");
-
-    // OrderTrail relies on this comment structure for splitPosition
-
-    unitTest.assertEquals(
-        "A P60 M1 R3 S10",
-        buildOrderComment(PERIOD_H1, 1, 3, 10)
-    );
-
-    unitTest.assertEquals(
-        "A P240 M1.2 R2.8 S12",
-        buildOrderComment(PERIOD_H4, 1.2, 2.8, 12)
-    );
-
-    // It truncates a long comment
-    unitTest.assertEquals(
-        "A P30 M1.3 R2.5 S123",
-        buildOrderComment(PERIOD_M30, 1.3, 2.5, 123456789)
-    );
-}
-
-void OrderCreateTest::getSizeFactorFromCommentTest() {
-    UnitTest unitTest("getSizeFactorFromCommentTest");
-
-    string comment = "A P30 M1.3 R3 S10";
-
-    unitTest.assertEquals(
-        1.3,
-        getSizeFactorFromComment(comment)
-    );
-
-    comment = "A P30 M1 R3 S10";
-
-    unitTest.assertEquals(
-        1.0,
-        getSizeFactorFromComment(comment)
-    );
-
-    comment = "M0.8";
-
-    unitTest.assertEquals(
-        0.8,
-        getSizeFactorFromComment(comment)
-    );
-
-    comment = "A P30 W1 R3 S10";
-
-    unitTest.assertEquals(
-        -1.0,
-        getSizeFactorFromComment(comment)
-    );
-
-    comment = "W1";
-
-    unitTest.assertEquals(
-        -1.0,
-        getSizeFactorFromComment(comment)
-    );
-
-    comment = "asdasdM123asdasd";
-
-    unitTest.assertEquals(
-        123.0,
-        getSizeFactorFromComment(comment)
-    );
 }

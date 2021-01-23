@@ -27,9 +27,6 @@ class OrderCreate {
         double calculateOrderLots(double, double, string);
         double getPercentRisk();
 
-        string buildOrderComment(int, double, double, double);
-        double getSizeFactorFromComment(string);
-
     protected:
         OrderFind orderFind_;
 
@@ -108,7 +105,7 @@ void OrderCreate::createNewOrder(int index) {
     }
 
     order.expiration = Time[0] + (ORDER_CANDLES_DURATION + 1 - index) * order.getPeriod() * 60;
-    order.comment = buildOrderComment(order.getPeriod(), sizeFactor, takeProfitFactor, order.getStopLossPips());
+    order.buildComment(sizeFactor, takeProfitFactor);
 
     sendOrder(order);
 }
@@ -337,9 +334,9 @@ double OrderCreate::calculateTakeProfitFactor(double openPrice, double stopLossP
     cachedDiscriminator = discriminator;
     timeStamp = thisTime;
 
-    takeProfitFactor = MAX_TAKE_PROFIT_FACTOR;
+    takeProfitFactor = MAX_TAKEPROFIT_FACTOR;
 
-    const double minTakeProfitFactor = MIN_TAKE_PROFIT_FACTOR * (SPLIT_POSITION ? 2 : 1);
+    const double minTakeProfitFactor = MIN_TAKEPROFIT_FACTOR * (SPLIT_POSITION ? 2 : 1);
 
     for (int i = ObjectsTotal() - 1; i >= 0; i--) {
         const string objectName = ObjectName(i);
@@ -350,7 +347,7 @@ double OrderCreate::calculateTakeProfitFactor(double openPrice, double stopLossP
         }
 
         const double levelFromOpenPricePips = MathAbs(ObjectGet(objectName, OBJPROP_PRICE1) - openPrice) / Pip(symbol);
-        const double levelTakeProfitFactor = (levelFromOpenPricePips - TAKE_PROFIT_OBSTACLE_BUFFER_PIPS) / stopLossPips;
+        const double levelTakeProfitFactor = (levelFromOpenPricePips - TAKEPROFIT_OBSTACLE_BUFFER_PIPS) / stopLossPips;
 
         if (levelTakeProfitFactor > minTakeProfitFactor) {
             takeProfitFactor = MathMin(takeProfitFactor, levelTakeProfitFactor);
@@ -424,7 +421,7 @@ double OrderCreate::calculateSizeFactor(int type, double openPrice, string symbo
         if (iCandle(I_high, symbol, D1, 0) < pivot.getPivot(symbol, D1, 0) ||
             iCandle(I_low, symbol, D1, 0) > pivot.getPivot(symbol, D1, 0)) {
 
-            if (GetAsk(symbol) < pivot.getPivot(symbol, D1, 0)) {
+            if (GetPrice(symbol) < pivot.getPivot(symbol, D1, 0)) {
                 if (type == OP_BUYSTOP) {
                     sizeFactor *= 1.1;
                 }
@@ -493,47 +490,4 @@ double OrderCreate::getPercentRisk() {
     const double percentRisk = (exceptionPercentRisk != NULL) ? exceptionPercentRisk : PERCENT_RISK;
 
     return percentRisk / 100;
-}
-
-/**
- * Creates the comment for a new pending order, and makes sure it doesn't exceed the maximum length.
- */
-string OrderCreate::buildOrderComment(int period, double sizeFactor, double takeProfitFactor, double stopLossPips) {
-    const string strategyPrefix = "A";
-
-    const string comment = StringConcatenate(
-        strategyPrefix,
-        " ", PERIOD_COMMENT_IDENTIFIER, period,
-        " ", SIZE_FACTOR_COMMENT_IDENTIFIER, NormalizeDouble(sizeFactor, 1),
-        " R", NormalizeDouble(takeProfitFactor, 1),
-        " S", (int) MathRound(stopLossPips)
-    );
-
-    if (StringLen(comment) > MAX_ORDER_COMMENT_CHARACTERS) {
-        const string truncatedComment = StringSubstr(comment, 0, MAX_ORDER_COMMENT_CHARACTERS);
-        return ThrowException(truncatedComment, __FUNCTION__, "Order comment too long");
-    }
-
-    return comment;
-}
-
-/**
- * Estrapolates the sizeFactor of a pending order from a well formatted order comment.
- */
-double OrderCreate::getSizeFactorFromComment(string comment) {
-    string splittedComment[];
-    StringSplit(comment, StringGetCharacter(" ", 0), splittedComment);
-
-    for (int i = 0; i < ArraySize(splittedComment); i++) {
-        if (StringContains(splittedComment[i], SIZE_FACTOR_COMMENT_IDENTIFIER)) {
-            StringSplit(splittedComment[i], StringGetCharacter(SIZE_FACTOR_COMMENT_IDENTIFIER, 0), splittedComment);
-            break;
-        }
-    }
-
-    if (ArraySize(splittedComment) == 2) {
-        return (double) splittedComment[1];
-    }
-
-    return ThrowException(-1, __FUNCTION__, "Could not get sizeFactor from comment");
 }

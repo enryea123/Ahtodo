@@ -3,7 +3,7 @@
 #property strict
 
 #property description "Enrico Albano's automated bot for Ahtodo"
-#property version "210.122"
+#property version "210.123"
 
 #include "src/drawer/Drawer.mqh"
 #include "src/market/Market.mqh"
@@ -17,14 +17,6 @@
  * This is the main file of the program. OnInit is executed only once at the program start.
  * OnTick is executed every time there is a new price update (tick) in the market.
  * OnDeInit is executed at the end of the program, and cleans up some variables.
- */
-
-/*
- * TODO:
- *  - Salvare dettagli ordine su log esterno, per dropbox e per dimezzare
- *      (classe FileHandle, con nome nel constructor e close nel destructor?)
- *  - Ridurre la sofferenza e se un trade è senza breakeven:
- *      30min -> SL/2, 45min -> SL/4 (o SL/2 again), 6omin -> SL 0. Se il prezzo è più in basso chiudi.
  */
 
 
@@ -41,12 +33,13 @@ void OnInit() {
         return;
     }
 
-    UnitTestsRunner unitTestsRunner;
-    unitTestsRunner.runAllUnitTests();
-
     Drawer drawer;
     Market market;
     OrderManage orderManage;
+
+    if (!market.marketConditionsValidation()) {
+        return;
+    }
 
     drawer.setChartDefaultColors();
 
@@ -54,7 +47,9 @@ void OnInit() {
         drawer.setChartMarketClosedColors();
     }
 
-    market.marketConditionsValidation();
+    UnitTestsRunner unitTestsRunner;
+    unitTestsRunner.runAllUnitTests();
+
     drawer.drawEverything();
 
     Print("Initialization completed in ", GetTickCount() - startTime, " ms");
@@ -68,7 +63,10 @@ void OnTick() {
     Market market;
     OrderManage orderManage;
 
-    market.marketConditionsValidation();
+    if (!market.marketConditionsValidation()) {
+        return;
+    }
+
     drawer.drawEverything();
 
     if (!IsTradeAllowed()) {

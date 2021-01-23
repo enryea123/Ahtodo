@@ -24,18 +24,24 @@ class Order {
         double takeProfit;
         string comment;
         string symbol;
+        datetime openTime;
         datetime closeTime;
         datetime expiration;
 
         bool operator == (const Order &);
         bool operator != (const Order &);
 
+        bool isBreakEven();
         int getPeriod();
         double getStopLossPips();
         string toString();
 
+        void buildComment(double, double);
+        double getSizeFactorFromComment();
+
         bool isOpen();
         bool isBuy();
+        bool isSell();
         Discriminator getDiscriminator();
 };
 
@@ -68,6 +74,7 @@ bool Order::operator == (const Order & v) {
         takeProfit == v.takeProfit &&
         comment == v.comment &&
         symbol == v.symbol &&
+        openTime == v.openTime &&
         closeTime == v.closeTime &&
         expiration == v.expiration
     );
@@ -75,6 +82,23 @@ bool Order::operator == (const Order & v) {
 
 bool Order::operator != (const Order & v) {
     return !(this == v);
+}
+
+/**
+ * Returns true if the order has reached the breakEven point, based on the comment.
+ */
+bool Order::isBreakEven() {
+    if (StringContains(comment, StringConcatenate(STRATEGY_PREFIX, COMMENT_SEPARATOR, PERIOD_COMMENT_IDENTIFIER))) {
+        return false;
+    }
+
+    for (int i = 0; i < ArraySize(BROKER_BREAKEVEN_COMMENT_PREFIX); i++) {
+        if (StringContains(comment, BROKER_BREAKEVEN_COMMENT_PREFIX[i])) {
+            return true;
+        }
+    }
+
+    return ThrowException(true, __FUNCTION__, "Unknown comment format for breakEven");
 }
 
 /**
@@ -122,9 +146,56 @@ string Order::toString() {
         "takeProfit: ", NormalizeDouble(takeProfit, Digits), ", "
         "comment: ", comment, ", "
         "symbol: ", symbol, ", "
+        "openTime: ", openTime, ", "
         "closeTime: ", closeTime, ", "
         "expiration: ", expiration
     );
+}
+
+/**
+ * Creates the comment for a new pending order, and makes sure it doesn't exceed the maximum length.
+ */
+void Order::buildComment(double sizeFactor, double takeProfitFactor) {
+    comment = StringConcatenate(
+        STRATEGY_PREFIX,
+        COMMENT_SEPARATOR, PERIOD_COMMENT_IDENTIFIER, getPeriod(),
+        COMMENT_SEPARATOR, SIZE_FACTOR_COMMENT_IDENTIFIER, NormalizeDouble(sizeFactor, 1),
+        COMMENT_SEPARATOR, TAKEPROFIT_FACTOR_COMMENT_IDENTIFIER, NormalizeDouble(takeProfitFactor, 1),
+        COMMENT_SEPARATOR, STOPLOSS_PIPS_COMMENT_IDENTIFIER, (int) MathRound(getStopLossPips())
+    );
+
+    if (StringLen(comment) > MAX_ORDER_COMMENT_CHARACTERS) {
+        comment = StringSubstr(comment, 0, MAX_ORDER_COMMENT_CHARACTERS);
+        ThrowException(__FUNCTION__, "Order comment too long");
+    }
+}
+
+/**
+ * Estrapolates the sizeFactor from a well formatted order comment.
+ */
+double Order::getSizeFactorFromComment() {
+    if (comment == NULL) {
+        return ThrowException(-1, __FUNCTION__, "Order comment not initialized");
+    }
+    if (!StringContains(comment, StringConcatenate(SIZE_FACTOR_COMMENT_IDENTIFIER))) {
+        return ThrowException(-1, __FUNCTION__, "The order comment does not contain the sizeFactor");
+    }
+
+    string splittedComment[];
+    StringSplit(comment, StringGetCharacter(COMMENT_SEPARATOR, 0), splittedComment);
+
+    for (int i = 0; i < ArraySize(splittedComment); i++) {
+        if (StringContains(splittedComment[i], SIZE_FACTOR_COMMENT_IDENTIFIER)) {
+            StringSplit(splittedComment[i], StringGetCharacter(SIZE_FACTOR_COMMENT_IDENTIFIER, 0), splittedComment);
+            break;
+        }
+    }
+
+    if (ArraySize(splittedComment) == 2) {
+        return (double) splittedComment[1];
+    }
+
+    return ThrowException(-1, __FUNCTION__, "Could not get the sizeFactor from comment");
 }
 
 /**
@@ -147,6 +218,13 @@ bool Order::isBuy() {
     }
 
     return (getDiscriminator() == Max) ? true : false;
+}
+
+/**
+ * Checks the order type to determine whether it's of sell type.
+ */
+bool Order::isSell() {
+    return !isBuy();
 }
 
 /**

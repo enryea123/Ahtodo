@@ -21,7 +21,7 @@ class Market {
         bool isMarketOpened(datetime);
         bool isMarketOpenLookBackTimeWindow();
         bool isMarketCloseNoPendingTimeWindow();
-        void marketConditionsValidation();
+        bool marketConditionsValidation();
 
     protected:
         bool isAllowedAccountNumber(int);
@@ -101,7 +101,7 @@ bool Market::isMarketCloseNoPendingTimeWindow() {
  * Checks all the market conditions such as AccountNumber, Date, Period,
  * and if there is internet connection it removes the bot.
  */
-void Market::marketConditionsValidation() {
+bool Market::marketConditionsValidation() {
     if (isAllowedAccountNumber() && isAllowedExecutionDate() && isAllowedPeriod() &&
         isAllowedBroker() && isAllowedSymbol() && isAllowedSymbolPeriodCombo()) {
 
@@ -111,12 +111,14 @@ void Market::marketConditionsValidation() {
                 "The computer clock is not on the CET timezone, untested scenario");
         }
 
-        return;
+        return true;
     }
 
-    if (IsConnected()) {
-        ThrowFatalException(__FUNCTION__, "Market conditions validation failed");
+    if (IsConnected() || !UNIT_TESTS_COMPLETED) {
+        ThrowFatalException(false, __FUNCTION__, "Market conditions validation failed");
     }
+
+    return false;
 }
 
 /**

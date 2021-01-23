@@ -63,7 +63,7 @@ void OrderManageTest::findBestOrderTest() {
     ArrayResize(orders, 2);
     orders[0].symbol = Symbol();
     orders[0].type = OP_SELLSTOP;
-    orders[0].openPrice = GetAsk(orders[0].symbol);
+    orders[0].openPrice = GetPrice(orders[0].symbol);
     orders[0].stopLoss = orders[0].openPrice + 20 * Pip();
 
     orders[1] = orders[0];
@@ -94,7 +94,7 @@ void OrderManageTest::deduplicateOrdersTest() {
     orders[0].magicNumber = BASE_MAGIC_NUMBER + PERIOD_H1;
     orders[0].symbol = Symbol();
     orders[0].type = OP_SELLSTOP;
-    orders[0].openPrice = GetAsk(orders[0].symbol);
+    orders[0].openPrice = GetPrice(orders[0].symbol);
     orders[0].stopLoss = orders[0].openPrice + 20 * Pip();
 
     Order mockedOrders[];
