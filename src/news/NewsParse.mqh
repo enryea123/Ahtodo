@@ -56,10 +56,12 @@ void NewsParse::readNewsFromCalendar(News & news[]) {
 
         if (fileHandle != INVALID_HANDLE && lastError == 0) {
             break;
-        } else {
+        } else if (lastError != ERR_FILE_CANNOT_OPEN) {
+            // ERR_FILE_CANNOT_OPEN can happen once or twice while the file is opened by another bot
             Print("Error ", lastError, " when opening calendar file, attempt: ", attempt + 1);
-            Sleep(100);
         }
+
+        Sleep(100);
     }
 
     if (fileHandle == INVALID_HANDLE) {

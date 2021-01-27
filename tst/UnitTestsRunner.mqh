@@ -111,9 +111,9 @@ void UnitTestsRunner::runAllUnitTests() {
 
     OrderTrailTest orderTrailTest;
     orderTrailTest.splitPositionTest();
-    orderTrailTest.breakEvenStopLossTest();
-    orderTrailTest.closeSufferingOrderTest();
-    orderTrailTest.calculateSufferingFactorTest();
+    orderTrailTest.closeDrawningOrderTest();
+    orderTrailTest.calculateBreakEvenStopLossTest();
+    orderTrailTest.calculateSufferingStopLossTest();
 
     PatternTest patternTest;
     patternTest.isPatternTest();

@@ -83,31 +83,31 @@ void OrderTest::getStopLossPipsTest() {
     Order order;
 
     unitTest.assertEquals(
-        -1.0,
+        -1,
         order.getStopLossPips()
     );
 
     order.openPrice = 1.1;
-    order.stopLoss = 1.101;
+    order.stopLoss = 1.10102;
 
     unitTest.assertEquals(
-        -1.0,
+        -1,
         order.getStopLossPips()
     );
 
     order.symbol = "EURUSD";
 
     unitTest.assertEquals(
-        10.0,
+        10,
         order.getStopLossPips()
     );
 
-    order.openPrice = 1.101;
+    order.openPrice = 1.11;
     order.stopLoss = 1.1;
     order.symbol = "EURJPY";
 
     unitTest.assertEquals(
-        0.1,
+        1,
         order.getStopLossPips()
     );
 }

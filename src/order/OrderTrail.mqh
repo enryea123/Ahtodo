@@ -25,9 +25,9 @@ class OrderTrail {
         void updateOrder(Order &, double, double);
 
         bool splitPosition(Order &, double);
-        bool closeSufferingOrder(Order &, double);
-        double calculateSufferingFactor(Order &, double);
-        double breakEvenStopLoss(Order &);
+        bool closeDrawningOrder(Order &, double);
+        double calculateBreakEvenStopLoss(Order &);
+        double calculateSufferingStopLoss(Order &);
         double trailer(double, double, double);
 };
 
@@ -53,11 +53,18 @@ void OrderTrail::manageOpenOrders() {
  * Manages a single opened order, calculates its new stoploss, and updates it.
  */
 void OrderTrail::manageOpenOrder(Order & order) {
-    double newStopLoss = breakEvenStopLoss(order);
+    const double breakEvenStopLoss = calculateBreakEvenStopLoss(order);
+    const double sufferingStopLoss = calculateSufferingStopLoss(order);
 
-    newStopLoss *= calculateSufferingFactor(order, newStopLoss);
+    double newStopLoss;
 
-    if (closeSufferingOrder(order, newStopLoss)) {
+    if (order.getDiscriminator() == Max) {
+        newStopLoss = MathMax(breakEvenStopLoss, sufferingStopLoss);
+    } else {
+        newStopLoss = MathMin(breakEvenStopLoss, sufferingStopLoss);
+    }
+
+    if (closeDrawningOrder(order, newStopLoss)) {
         return;
     }
 
@@ -69,7 +76,7 @@ void OrderTrail::manageOpenOrder(Order & order) {
  * Send the update request for an already existing order, if its stopLoss or takeProfit have changed.
  */
 void OrderTrail::updateOrder(Order & order, double newStopLoss, double newTakeProfit = NULL) {
-    if (!UNIT_TESTS_COMPLETED) {
+    if (!UNIT_TESTS_COMPLETED || !order.isOpen()) {
         return;
     }
 
@@ -146,8 +153,8 @@ bool OrderTrail::splitPosition(Order & order, double newStopLoss) {
  * Closes orders that haven't reached the breakEven yet, in case
  * the new stopLoss is too close or below (above) the market value.
  */
-bool OrderTrail::closeSufferingOrder(Order & order, double newStopLoss) {
-    if (order.isBreakEven()) {
+bool OrderTrail::closeDrawningOrder(Order & order, double newStopLoss) {
+    if (order.isBreakEven() || !order.isOpen()) {
         return false;
     }
 
@@ -167,35 +174,9 @@ bool OrderTrail::closeSufferingOrder(Order & order, double newStopLoss) {
 }
 
 /**
- * Reduces the suffering for orders that delay to reach the breakEven point.
- * The suffering factor can be different from 1 only if:
- *  1. The order is not already at breakEven
- *  2. The newStopLoss is not going to update the order
- */
-double OrderTrail::calculateSufferingFactor(Order & order, double newStopLoss) {
-    if (order.isBreakEven()) {
-        return 1;
-    }
-
-    if (MathRound(MathAbs(newStopLoss - order.stopLoss) / Pip(order.symbol)) == 0) {
-        // Going in reverse order to make sure to not return
-        // too early, as the conditions slowly become all true.
-        for (int i = BREAKEVEN_SUFFERING_INTERVALS.size() - 1; i >= 0; i--) {
-           const int orderAgeSeconds = (int) MathAbs(TimeCurrent() - order.openTime);
-
-            if (orderAgeSeconds > 60 * BREAKEVEN_SUFFERING_INTERVALS.getKeys(i)) {
-                return BREAKEVEN_SUFFERING_INTERVALS.getValues(i);
-            }
-        }
-    }
-
-    return 1;
-}
-
-/**
  * Calculates the new stopLoss for an already existing order that might need to be updated.
  */
-double OrderTrail::breakEvenStopLoss(Order & order) {
+double OrderTrail::calculateBreakEvenStopLoss(Order & order) {
     const int period = order.getPeriod();
     const double openPrice = order.openPrice;
     const string symbol = order.symbol;
@@ -216,6 +197,39 @@ double OrderTrail::breakEvenStopLoss(Order & order) {
         }
         if (discriminator == Min && currentExtreme < breakEvenPoint) {
             stopLoss = MathMin(stopLoss, breakEvenStopLoss);
+        }
+    }
+
+    return stopLoss;
+}
+
+/**
+ * Reduces the suffering for orders that delay to reach the breakEven point, by slowly decreasing the stopLoss.
+ */
+double OrderTrail::calculateSufferingStopLoss(Order & order) {
+    if (order.isBreakEven() || !order.isOpen()) {
+        return order.stopLoss;
+    }
+
+    const int period = order.getPeriod();
+    const double openPrice = order.openPrice;
+    const string symbol = order.symbol;
+    const Discriminator discriminator = order.getDiscriminator();
+
+    double stopLoss = order.stopLoss;
+
+    for (int i = 0; i < SUFFERING_STEPS.size(); i++) {
+       const int orderAgeSeconds = (int) MathAbs(TimeCurrent() - order.openTime);
+
+        if (orderAgeSeconds > 60 * SUFFERING_STEPS.getKeys(i)) {
+            double sufferingStopLoss = openPrice - discriminator *
+                PeriodFactor(period) * Pip(symbol) * SUFFERING_STEPS.getValues(i);
+
+            if (discriminator == Max) {
+                stopLoss = MathMax(stopLoss, sufferingStopLoss);
+            } else {
+                stopLoss = MathMin(stopLoss, sufferingStopLoss);
+            }
         }
     }
 

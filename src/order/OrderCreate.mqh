@@ -22,9 +22,9 @@ class OrderCreate {
         bool areThereBetterOrders(string, int, double, double);
 
         int calculateOrderTypeFromSetups(int);
-        double calculateTakeProfitFactor(double, double, Discriminator);
+        double calculateTakeProfitFactor(int, double, Discriminator);
         double calculateSizeFactor(int, double, string);
-        double calculateOrderLots(double, double, string);
+        double calculateOrderLots(int, double, string);
         double getPercentRisk();
 
     protected:
@@ -90,7 +90,7 @@ void OrderCreate::createNewOrder(int index) {
     order.openPrice = iExtreme(discriminator, index) + discriminator * (1 + spreadAsk) * Pip(order.symbol);
     order.stopLoss = iExtreme(antiDiscriminator, index) - discriminator * (1 + spreadBid) * Pip(order.symbol);
 
-    const double takeProfitFactor = calculateTakeProfitFactor(order.openPrice, order.getStopLossPips(), discriminator);
+    const double takeProfitFactor = calculateTakeProfitFactor(order.getStopLossPips(), order.openPrice, discriminator);
 
     order.takeProfit = order.openPrice + discriminator * takeProfitFactor * order.getStopLossPips() * Pip(order.symbol);
 
@@ -175,30 +175,16 @@ int OrderCreate::calculateOrderTypeFromSetups(int index) {
     const string symbol = Symbol();
     const datetime thisTime = (datetime) iCandle(I_time, symbol, PERIOD_M5, 0);
 
-    static int cachedIndex;
-    static datetime timeStamp;
-
-    static int orderType;
-
-    if (cachedIndex == index && timeStamp == thisTime && UNIT_TESTS_COMPLETED) {
-        return orderType;
-    }
-
-    cachedIndex = index;
-    timeStamp = thisTime;
-
-    orderType = -1;
-
     Pattern pattern;
 
     if (pattern.isAntiPattern(index)) {
         ANTIPATTERN_TIMESTAMP = PrintTimer(ANTIPATTERN_TIMESTAMP, StringConcatenate(
             "AntiPattern found at time: ", TimeToStr(Time[index])));
-        orderType = -1;
+        return -1;
     } else if (!pattern.isSellPattern(index) && !pattern.isBuyPattern(index)) {
         FOUND_PATTERN_TIMESTAMP = PrintTimer(FOUND_PATTERN_TIMESTAMP, StringConcatenate(
             "No patterns found at time: ", TimeToStr(Time[index])));
-        orderType = -1;
+        return -1;
     } else {
         TrendLine trendLine;
 
@@ -215,26 +201,21 @@ int OrderCreate::calculateOrderTypeFromSetups(int index) {
                 trendLineDistanceFromMin < TRENDLINE_SETUP_MAX_PIPS_DISTANCE * Pip(symbol)) {
                 SELL_SETUP_TIMESTAMP = PrintTimer(SELL_SETUP_TIMESTAMP, StringConcatenate(
                     "Found OP_SELLSTOP setup at Time: ", TimeToStr(Time[index]), " for TrendLine: ", ObjectName(i)));
-                orderType = OP_SELLSTOP;
-                break;
+                return OP_SELLSTOP;
             }
 
             if (pattern.isBuyPattern(index) &&
                 trendLineDistanceFromMax < TRENDLINE_SETUP_MAX_PIPS_DISTANCE * Pip(symbol)) {
                 BUY_SETUP_TIMESTAMP = PrintTimer(BUY_SETUP_TIMESTAMP, StringConcatenate(
                     "Found OP_BUYSTOP setup at Time: ", TimeToStr(Time[index]), " for TrendLine: ", ObjectName(i)));
-                orderType = OP_BUYSTOP;
-                break;
+                return OP_BUYSTOP;
             }
-        }
-
-        if (orderType == -1) {
-            NO_SETUP_TIMESTAMP = PrintTimer(NO_SETUP_TIMESTAMP, StringConcatenate(
-                "No setups found at time: ", TimeToStr(Time[index])));
         }
     }
 
-    return orderType;
+    NO_SETUP_TIMESTAMP = PrintTimer(NO_SETUP_TIMESTAMP, StringConcatenate(
+        "No setups found at time: ", TimeToStr(Time[index])));
+    return -1;
 }
 
 /**
@@ -246,6 +227,8 @@ bool OrderCreate::areThereRecentOrders(datetime date = NULL) {
 
     if (date == NULL) {
         date = (datetime) (TimeCurrent() - 60 * period * MathRound(ORDER_CANDLES_DURATION / PeriodFactor(period)));
+        // Rounding up to the beginning of the last half hour
+        date -= date % (PERIOD_M30 * 60);
     }
 
     const datetime thisTime = Time[0];
@@ -313,36 +296,19 @@ bool OrderCreate::areThereBetterOrders(string symbol, int type, double openPrice
 /**
  * Calculates the takeProfit of the order from the graph horizontal levels.
  */
-double OrderCreate::calculateTakeProfitFactor(double openPrice, double stopLossPips, Discriminator discriminator) {
+double OrderCreate::calculateTakeProfitFactor(int stopLossPips, double openPrice, Discriminator discriminator) {
     const string symbol = Symbol();
     const datetime thisTime = Time[0];
 
-    static double cachedOpenPrice;
-    static double cachedStopLossPips;
-    static Discriminator cachedDiscriminator;
-    static datetime timeStamp;
-
-    static double takeProfitFactor;
-
-    if (cachedOpenPrice == openPrice && cachedStopLossPips == stopLossPips &&
-        cachedDiscriminator == discriminator && timeStamp == thisTime && UNIT_TESTS_COMPLETED) {
-        return takeProfitFactor;
-    }
-
-    cachedOpenPrice = openPrice;
-    cachedStopLossPips = stopLossPips;
-    cachedDiscriminator = discriminator;
-    timeStamp = thisTime;
-
-    takeProfitFactor = MAX_TAKEPROFIT_FACTOR;
-
     const double minTakeProfitFactor = MIN_TAKEPROFIT_FACTOR * (SPLIT_POSITION ? 2 : 1);
+
+    double takeProfitFactor = MAX_TAKEPROFIT_FACTOR;
 
     for (int i = ObjectsTotal() - 1; i >= 0; i--) {
         const string objectName = ObjectName(i);
 
-        if (!StringContains(objectName, LEVEL_NAME_PREFIX) ||
-            !StringContains(objectName, EnumToString(discriminator))) {
+        if (!StringContains(objectName, StringConcatenate(LEVEL_NAME_PREFIX, NAME_SEPARATOR)) ||
+            !StringContains(objectName, StringConcatenate(NAME_SEPARATOR, EnumToString(discriminator)))) {
             continue;
         }
 
@@ -354,8 +320,7 @@ double OrderCreate::calculateTakeProfitFactor(double openPrice, double stopLossP
         }
     }
 
-    takeProfitFactor = NormalizeDouble(takeProfitFactor, 1);
-    return takeProfitFactor;
+    return NormalizeDouble(takeProfitFactor, 1);
 }
 
 /**
@@ -373,31 +338,11 @@ double OrderCreate::calculateSizeFactor(int type, double openPrice, string symbo
     }
 
     const int period = Period();
-    const datetime thisTime = Time[0];
-
-    static int cachedPeriod;
-    static int cachedType;
-    static double cachedOpenPrice;
-    static string cachedSymbol;
-    static datetime timeStamp;
-
-    static double sizeFactor;
-
-    if (cachedPeriod == period && cachedType == type && cachedOpenPrice == openPrice &&
-        cachedSymbol == symbol && timeStamp == thisTime && UNIT_TESTS_COMPLETED) {
-        return sizeFactor;
-    }
-
-    cachedPeriod = period;
-    cachedType = type;
-    cachedOpenPrice = openPrice;
-    cachedSymbol = symbol;
-    timeStamp = thisTime;
-
-    sizeFactor = 1.0;
 
     Holiday holiday;
     Pivot pivot;
+
+    double sizeFactor = 1.0;
 
     if (holiday.isMinorBankHoliday()) {
         sizeFactor *= 0.8;
@@ -459,21 +404,21 @@ double OrderCreate::calculateSizeFactor(int type, double openPrice, string symbo
         }
     }
 
-    sizeFactor = NormalizeDouble(sizeFactor, 1);
-    return sizeFactor;
+    return NormalizeDouble(sizeFactor, 1);
 }
 
 /**
  * Calculates the size for a new order, and makes sure that it's divisible by 2,
  * so that the position can be later split.
  */
-double OrderCreate::calculateOrderLots(double stopLossPips, double sizeFactor, string symbol) {
+double OrderCreate::calculateOrderLots(int stopLossPips, double sizeFactor, string symbol) {
     if (sizeFactor == 0) {
         return 0;
     }
 
     const double absoluteRisk = getPercentRisk() * AccountEquity() / MarketInfo(symbol, MODE_TICKVALUE);
-    const double stopLossTicks = stopLossPips * 10;
+    const int stopLossTicks = stopLossPips * 10;
+
     const double rawOrderLots = absoluteRisk / stopLossTicks;
 
     double lots = 2 * NormalizeDouble(rawOrderLots * sizeFactor / 2, 2);

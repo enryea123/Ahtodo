@@ -10,9 +10,9 @@
 class OrderTrailTest: public OrderTrail {
     public:
         void splitPositionTest();
-        void breakEvenStopLossTest();
-        void closeSufferingOrderTest();
-        void calculateSufferingFactorTest();
+        void calculateBreakEvenStopLossTest();
+        void closeDrawningOrderTest();
+        void calculateSufferingStopLossTest();
 };
 
 void OrderTrailTest::splitPositionTest() {
@@ -71,8 +71,8 @@ void OrderTrailTest::splitPositionTest() {
     );
 }
 
-void OrderTrailTest::breakEvenStopLossTest() {
-    UnitTest unitTest("breakEvenStopLossTest");
+void OrderTrailTest::calculateBreakEvenStopLossTest() {
+    UnitTest unitTest("calculateBreakEvenStopLossTest");
 
     Order order;
     order.magicNumber = BASE_MAGIC_NUMBER + PERIOD_H1;
@@ -83,7 +83,7 @@ void OrderTrailTest::breakEvenStopLossTest() {
 
     unitTest.assertEquals(
         order.stopLoss,
-        breakEvenStopLoss(order)
+        calculateBreakEvenStopLoss(order)
     );
 
     order.openPrice = iExtreme(Max, 0) - 7 * Pip(order.symbol);
@@ -91,7 +91,7 @@ void OrderTrailTest::breakEvenStopLossTest() {
 
     unitTest.assertEquals(
         order.openPrice - 4 * Pip(order.symbol),
-        breakEvenStopLoss(order)
+        calculateBreakEvenStopLoss(order)
     );
 
     order.magicNumber = BASE_MAGIC_NUMBER + PERIOD_H4;
@@ -100,7 +100,7 @@ void OrderTrailTest::breakEvenStopLossTest() {
 
     unitTest.assertEquals(
         order.stopLoss,
-        breakEvenStopLoss(order)
+        calculateBreakEvenStopLoss(order)
     );
 
     order.openPrice = iExtreme(Max, 0) - 14 * Pip(order.symbol);
@@ -108,7 +108,7 @@ void OrderTrailTest::breakEvenStopLossTest() {
 
     unitTest.assertEquals(
         order.openPrice - 8 * Pip(order.symbol),
-        breakEvenStopLoss(order)
+        calculateBreakEvenStopLoss(order)
     );
 
     order.magicNumber = BASE_MAGIC_NUMBER + PERIOD_H1;
@@ -118,7 +118,7 @@ void OrderTrailTest::breakEvenStopLossTest() {
 
     unitTest.assertEquals(
         order.openPrice + 4 * Pip(order.symbol),
-        breakEvenStopLoss(order)
+        calculateBreakEvenStopLoss(order)
     );
 
     order.openPrice = iExtreme(Min, 0) + 27 * Pip(order.symbol);
@@ -126,12 +126,12 @@ void OrderTrailTest::breakEvenStopLossTest() {
 
     unitTest.assertEquals(
         order.openPrice,
-        breakEvenStopLoss(order)
+        calculateBreakEvenStopLoss(order)
     );
 }
 
-void OrderTrailTest::closeSufferingOrderTest() {
-    UnitTest unitTest("closeSufferingOrderTest");
+void OrderTrailTest::closeDrawningOrderTest() {
+    UnitTest unitTest("closeDrawningOrderTest");
 
     Order order;
     order.type = OP_BUY;
@@ -140,84 +140,105 @@ void OrderTrailTest::closeSufferingOrderTest() {
     double newStopLoss = GetPrice() + 5 * Pip();
 
     unitTest.assertFalse(
-        closeSufferingOrder(order, newStopLoss)
+        closeDrawningOrder(order, newStopLoss)
     );
 
     order.comment = "A P";
 
     unitTest.assertTrue(
-        closeSufferingOrder(order, newStopLoss)
+        closeDrawningOrder(order, newStopLoss)
     );
 
     order.type = OP_SELL;
 
     unitTest.assertFalse(
-        closeSufferingOrder(order, newStopLoss)
+        closeDrawningOrder(order, newStopLoss)
     );
 
     newStopLoss = GetPrice() - 5 * Pip();
 
     unitTest.assertTrue(
-        closeSufferingOrder(order, newStopLoss)
+        closeDrawningOrder(order, newStopLoss)
     );
 }
 
-void OrderTrailTest::calculateSufferingFactorTest() {
-    UnitTest unitTest("calculateSufferingFactorTest");
+void OrderTrailTest::calculateSufferingStopLossTest() {
+    UnitTest unitTest("calculateSufferingStopLossTest");
 
     Order order;
+    order.magicNumber = MagicNumber();
+    order.type = OP_BUY;
     order.symbol = Symbol();
     order.comment = "A P";
-    order.stopLoss = 1.1;
+    order.openPrice = 1;
+    order.stopLoss = order.openPrice - 20 * PeriodFactor() * Pip();
     order.openTime = TimeCurrent();
 
     double newStopLoss = order.stopLoss;
 
     unitTest.assertEquals(
-        1.0,
-        calculateSufferingFactor(order, newStopLoss)
+        newStopLoss,
+        calculateSufferingStopLoss(order)
     );
 
     order.openTime = TimeCurrent() - 10 - 60 * 15;
+    newStopLoss = order.openPrice - 15 * PeriodFactor() * Pip();
 
     unitTest.assertEquals(
-        0.75,
-        calculateSufferingFactor(order, newStopLoss)
+        newStopLoss,
+        calculateSufferingStopLoss(order)
+    );
+
+    // Checking that it returns the same value after multiple calls
+    unitTest.assertEquals(
+        newStopLoss,
+        calculateSufferingStopLoss(order)
+    );
+    unitTest.assertEquals(
+        newStopLoss,
+        calculateSufferingStopLoss(order)
     );
 
     order.openTime = TimeCurrent() - 10 - 60 * 30;
+    newStopLoss = order.openPrice - 10 * PeriodFactor() * Pip();
 
     unitTest.assertEquals(
-        0.5,
-        calculateSufferingFactor(order, newStopLoss)
+        newStopLoss,
+        calculateSufferingStopLoss(order)
     );
 
     order.openTime = TimeCurrent() - 10 - 60 * 45;
+    newStopLoss = order.openPrice - 5 * PeriodFactor() * Pip();
 
     unitTest.assertEquals(
-        0.25,
-        calculateSufferingFactor(order, newStopLoss)
+        newStopLoss,
+        calculateSufferingStopLoss(order)
     );
 
     order.openTime = TimeCurrent() - 10 - 60 * 60;
+    newStopLoss = order.openPrice;
 
     unitTest.assertEquals(
-        0.0,
-        calculateSufferingFactor(order, newStopLoss)
+        newStopLoss,
+        calculateSufferingStopLoss(order)
     );
 
-    newStopLoss = order.stopLoss + 5 * Pip();
+    order.type = OP_SELL;
+    order.openTime = TimeCurrent() - 10 - 60 * 45;
+    order.stopLoss = order.openPrice + 20 * PeriodFactor() * Pip();
+    newStopLoss = order.openPrice + 5 * PeriodFactor() * Pip();
 
     unitTest.assertEquals(
-        1.0,
-        calculateSufferingFactor(order, newStopLoss)
+        newStopLoss,
+        calculateSufferingStopLoss(order)
     );
 
-    order.comment = "asdf";
+    order.comment = "A P";
+    order.type = OP_SELLSTOP;
     newStopLoss = order.stopLoss;
 
     unitTest.assertEquals(
-        1.0,
-        calculateSufferingFactor(order, newStopLoss)
+        newStopLoss,
+        calculateSufferingStopLoss(order)
     );
 }

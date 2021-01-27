@@ -33,7 +33,7 @@ class Order {
 
         bool isBreakEven();
         int getPeriod();
-        double getStopLossPips();
+        int getStopLossPips();
         string toString();
 
         void buildComment(double, double);
@@ -122,12 +122,12 @@ int Order::getPeriod() {
 /**
  * Calculates the number of pips of an order stopLoss.
  */
-double Order::getStopLossPips() {
+int Order::getStopLossPips() {
     if (openPrice == -1 || stopLoss == -1 || symbol == NULL) {
         return ThrowException(-1, __FUNCTION__, "Some order quantities not initialized");
     }
 
-    return NormalizeDouble(MathAbs(openPrice - stopLoss) / Pip(symbol), 1);
+    return (int) MathRound(MathAbs(openPrice - stopLoss) / Pip(symbol));
 }
 
 /**

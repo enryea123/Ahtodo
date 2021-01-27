@@ -20,6 +20,7 @@ class LevelsDraw {
         void drawDiscriminatedValidLevels(Discriminator);
 
         void drawSingleLevelLine(int, Discriminator);
+        string buildLevelLineName(int, Discriminator);
 };
 
 /**
@@ -70,8 +71,7 @@ void LevelsDraw::drawDiscriminatedValidLevels(Discriminator discriminator) {
  * Draws a single horizontal level on the graph.
  */
 void LevelsDraw::drawSingleLevelLine(int index, Discriminator discriminator) {
-    const string levelLineName = StringConcatenate(
-        LEVEL_NAME_PREFIX, NAME_SEPARATOR, index, NAME_SEPARATOR, discriminator);
+    const string levelLineName = buildLevelLineName(index, discriminator);
 
     ObjectCreate(
         levelLineName,
@@ -85,4 +85,11 @@ void LevelsDraw::drawSingleLevelLine(int index, Discriminator discriminator) {
 
     ObjectSet(levelLineName, OBJPROP_COLOR, clrDimGray);
     ObjectSet(levelLineName, OBJPROP_BACK, true);
+}
+
+/**
+ * Builds the name of the Level line.
+ */
+string LevelsDraw::buildLevelLineName(int index, Discriminator discriminator) {
+    return StringConcatenate(LEVEL_NAME_PREFIX, NAME_SEPARATOR, index, NAME_SEPARATOR, EnumToString(discriminator));
 }

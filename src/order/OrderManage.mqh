@@ -252,9 +252,8 @@ void OrderManage::deleteSingleOrder(Order & order) {
 
     if (deletedOrder) {
         Print(__FUNCTION__, MESSAGE_SEPARATOR, "Deleted order: ", ticket);
-    } else if (lastError == ERR_INVALID_TRADE_PARAMETERS) {
-        Print(errorMessage);
-    } else {
+    } else if (lastError != ERR_INVALID_TRADE_PARAMETERS) {
+        // ERR_INVALID_TRADE_PARAMETERS happens when the order has already been deleted by another bot
         ThrowException(__FUNCTION__, errorMessage);
     }
 }

@@ -24,12 +24,12 @@ void Extreme::calculateAllExtremes(int & allExtremes[], Discriminator discrimina
 
     int numberOfExtremes = 0;
 
-    for (int i = extremesMinDistance; i < CANDLES_VISIBLE_IN_GRAPH_2X; i++) {
+    for (int i = extremesMinDistance + 1; i < CANDLES_VISIBLE_IN_GRAPH_2X; i++) {
         bool isBeatingNeighbours = true;
 
         for (int j = -extremesMinDistance; j < extremesMinDistance + 1; j++) {
-            if ((iExtreme(discriminator, i) > iExtreme(discriminator, i + j) + Pip() && discriminator == Min) ||
-                (iExtreme(discriminator, i) < iExtreme(discriminator, i + j) - Pip() && discriminator == Max)) {
+            if ((iExtreme(discriminator, i) > iExtreme(discriminator, i + j) && discriminator == Min) ||
+                (iExtreme(discriminator, i) < iExtreme(discriminator, i + j) && discriminator == Max)) {
                 isBeatingNeighbours = false;
                 break;
             }

@@ -35,7 +35,7 @@ void NewsParseTest::readNewsFromCalendarTest() {
 
     unitTest.assertEquals(
         0,
-        ArraySize(news),"1"
+        ArraySize(news)
     );
 
     createTestCalendarFileBadHeader();
@@ -44,7 +44,7 @@ void NewsParseTest::readNewsFromCalendarTest() {
 
     unitTest.assertEquals(
         0,
-        ArraySize(news),"2"
+        ArraySize(news)
     );
 
     News testNews;
