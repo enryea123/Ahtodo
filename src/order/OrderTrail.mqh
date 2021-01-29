@@ -24,7 +24,7 @@ class OrderTrail {
         void manageOpenOrder(Order &);
         void updateOrder(Order &, double, double);
 
-        bool splitPosition(Order &, double);
+        bool splitPosition(Order &);
         bool closeDrawningOrder(Order &, double);
         double calculateBreakEvenStopLoss(Order &);
         double calculateSufferingStopLoss(Order &);
@@ -69,7 +69,7 @@ void OrderTrail::manageOpenOrder(Order & order) {
     }
 
     updateOrder(order, newStopLoss);
-    splitPosition(order, newStopLoss);
+    splitPosition(order);
 }
 
 /**
@@ -113,7 +113,7 @@ void OrderTrail::updateOrder(Order & order, double newStopLoss, double newTakePr
 /**
  * Splits an order by closing half position, if the stopLoss lies exactly at the breakEven point.
  */
-bool OrderTrail::splitPosition(Order & order, double newStopLoss) {
+bool OrderTrail::splitPosition(Order & order) {
     if (!SPLIT_POSITION) {
         return false;
     }
@@ -122,19 +122,17 @@ bool OrderTrail::splitPosition(Order & order, double newStopLoss) {
         return ThrowException(false, __FUNCTION__, "Cannot split pending position");
     }
 
-    const int period = order.getPeriod();
-    const double newStopLossPips = MathRound(MathAbs(order.openPrice - newStopLoss) / Pip(order.symbol));
+    const Discriminator discriminator = order.getDiscriminator();
+    const double currentExtreme = iExtreme(discriminator, 0);
+    const double breakEvenPoint = order.openPrice + discriminator *
+        PeriodFactor(order.getPeriod()) * Pip(order.symbol) * BREAKEVEN_STEPS.getKeys(0);
 
-    if ((order.type == OP_BUY && newStopLoss > order.openPrice) ||
-        (order.type == OP_SELL && newStopLoss < order.openPrice)) {
-        /**
-         * Avoid splitting two times if there is a trailing,
-         * since the sign of newStopLossPips is not checked.
-         */
+    if ((discriminator == Max && currentExtreme < breakEvenPoint) ||
+        (discriminator == Min && currentExtreme > breakEvenPoint)) {
         return false;
     }
 
-    if (!order.isBreakEven() && newStopLossPips == PeriodFactor(period) * BREAKEVEN_STEPS.getValues(0)) {
+    if (!order.isBreakEven()) {
         if (UNIT_TESTS_COMPLETED) {
             const bool splitOrder = OrderClose(order.ticket, order.lots / 2, order.closePrice, 3);
 
@@ -151,18 +149,18 @@ bool OrderTrail::splitPosition(Order & order, double newStopLoss) {
 
 /*
  * Closes orders that haven't reached the breakEven yet, in case
- * the new stopLoss is too close or below (above) the market value.
+ * the new stopLoss is below (or above) the market value.
  */
 bool OrderTrail::closeDrawningOrder(Order & order, double newStopLoss) {
     if (order.isBreakEven() || !order.isOpen()) {
         return false;
     }
 
-    if ((GetPrice() < newStopLoss + Pip(order.symbol) && order.type == OP_BUY) ||
-        (GetPrice() > newStopLoss - Pip(order.symbol) && order.type == OP_SELL)) {
+    if ((GetPrice() < newStopLoss - Pip(order.symbol) && order.type == OP_BUY) ||
+        (GetPrice() > newStopLoss + Pip(order.symbol) && order.type == OP_SELL)) {
 
         if (UNIT_TESTS_COMPLETED) {
-            Print("Closing order: ", order.ticket, " for new stopLoss too close or below (above) the market value");
+            Print("Closing order: ", order.ticket, " for new stopLoss below (or above) the market value");
             OrderManage orderManage;
             orderManage.deleteSingleOrder(order);
         }

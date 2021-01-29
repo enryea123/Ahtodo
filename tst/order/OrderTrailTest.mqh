@@ -22,52 +22,56 @@ void OrderTrailTest::splitPositionTest() {
     order.magicNumber = BASE_MAGIC_NUMBER + PERIOD_H1;
     order.symbol = Symbol();
     order.type = OP_BUY;
-    order.openPrice = GetPrice(order.symbol);
+    order.openPrice = iExtreme(order.getDiscriminator(), 0) - 8 * Pip(order.symbol);
     order.comment = "A P60";
-
-    double newStopLoss = order.openPrice - 4 * Pip(order.symbol);
 
     if (!SPLIT_POSITION) {
         unitTest.assertFalse(
-            splitPosition(order, newStopLoss)
+            splitPosition(order)
         );
         return;
     }
 
     unitTest.assertTrue(
-        splitPosition(order, newStopLoss)
+        splitPosition(order)
     );
 
     order.comment = "P60";
 
     unitTest.assertFalse(
-        splitPosition(order, newStopLoss)
+        splitPosition(order)
     );
 
     order.comment = "A P60";
     order.type = OP_BUYSTOP;
 
     unitTest.assertFalse(
-        splitPosition(order, newStopLoss)
+        splitPosition(order)
     );
 
     order.type = OP_SELL;
 
+    order.openPrice = iExtreme(order.getDiscriminator(), 0) - 3 * Pip(order.symbol);
+
     unitTest.assertFalse(
-        splitPosition(order, newStopLoss)
+        splitPosition(order)
     );
 
     order.type = OP_BUY;
 
+    order.openPrice = iExtreme(order.getDiscriminator(), 0) - 2 * Pip(order.symbol);
+
     unitTest.assertFalse(
-        splitPosition(order, newStopLoss + Pip(order.symbol))
+        splitPosition(order)
     );
 
     order.magicNumber = BASE_MAGIC_NUMBER + PERIOD_H4;
     order.comment = "A P240";
 
+    order.openPrice = iExtreme(order.getDiscriminator(), 0) - 15 * Pip(order.symbol);
+
     unitTest.assertTrue(
-        splitPosition(order, order.openPrice - 8 * Pip(order.symbol))
+        splitPosition(order)
     );
 }
 
@@ -134,6 +138,7 @@ void OrderTrailTest::closeDrawningOrderTest() {
     UnitTest unitTest("closeDrawningOrderTest");
 
     Order order;
+    order.symbol = Symbol();
     order.type = OP_BUY;
     order.comment = NULL;
 
