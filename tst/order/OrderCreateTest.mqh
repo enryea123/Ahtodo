@@ -462,9 +462,11 @@ void OrderCreateTest::calculateOrderLotsTest() {
 void OrderCreateTest::getPercentRiskTest() {
     UnitTest unitTest("getPercentRiskTest");
 
-    if (AccountNumber() == 2100183900) {
+    const int accountNumber = AccountNumber();
+
+    if (PERCENT_RISK_ACCOUNT_EXCEPTIONS.containsKey(accountNumber)) {
         unitTest.assertEquals(
-            0.015,
+            PERCENT_RISK_ACCOUNT_EXCEPTIONS.get(accountNumber) / 100,
             getPercentRisk()
         );
     } else {
