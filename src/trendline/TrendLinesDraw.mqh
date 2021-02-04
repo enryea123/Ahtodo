@@ -63,14 +63,17 @@ void TrendLinesDraw::drawDiscriminatedTrendLines(int & indexes[], Discriminator 
  */
 void TrendLinesDraw::drawSingleTrendLine(string trendLineName, int indexI, int indexJ,
                                          int beam, Discriminator discriminator) {
+
+    const double beamFactor = (TRENDLINE_BEAMS != 0) ? (beam / (double) TRENDLINE_BEAMS) : 0;
+
     ObjectCreate(
         trendLineName,
         OBJ_TREND,
         0,
         Time[indexI],
-        iExtreme(discriminator, indexI) + Pip() * beam / TRENDLINE_BEAMS,
+        iExtreme(discriminator, indexI) + Pip() * beamFactor,
         Time[indexJ],
-        iExtreme(discriminator, indexJ) - Pip() * beam / TRENDLINE_BEAMS
+        iExtreme(discriminator, indexJ) - Pip() * beamFactor
     );
 
     if (trendLine_.isExistingTrendLineBad(trendLineName, discriminator)) {

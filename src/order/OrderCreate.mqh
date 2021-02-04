@@ -135,10 +135,18 @@ void OrderCreate::sendOrder(Order & order) {
 
     int lastError = GetLastError();
 
-    if (lastError != 0) {
+    const datetime thisTime = Time[0];
+
+    static int cachedLastError;
+    static datetime timeStamp;
+
+    if (lastError != 0 && (cachedLastError != lastError || timeStamp != thisTime)) {
         ThrowException(__FUNCTION__, StringConcatenate(
-            "Error ", lastError, " when creating order: ", order.ticket));
+            "Error ", lastError, " when creating order: ", order.toString()));
     }
+
+    cachedLastError = lastError;
+    timeStamp = thisTime;
 
     if (order.ticket > 0) {
         const int previouslySelectedOrder = OrderTicket();

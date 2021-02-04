@@ -189,10 +189,20 @@ void OrderTrailTest::calculateSufferingStopLossTest() {
     order.openTime = TimeCurrent() - 10 - 60 * 15;
     newStopLoss = order.openPrice - 15 * PeriodFactor() * Pip();
 
-    unitTest.assertEquals(
-        newStopLoss,
-        calculateSufferingStopLoss(order)
-    );
+    if (SUFFERING_STOPLOSS) {
+        unitTest.assertEquals(
+            newStopLoss,
+            calculateSufferingStopLoss(order)
+        );
+    } else {
+        unitTest.assertEquals(
+            order.stopLoss,
+            calculateSufferingStopLoss(order)
+        );
+
+        // If !SUFFERING_STOPLOSS one test is enough
+        return;
+    }
 
     // Checking that it returns the same value after multiple calls
     unitTest.assertEquals(

@@ -103,10 +103,18 @@ void OrderTrail::updateOrder(Order & order, double newStopLoss, double newTakePr
         );
 
         const int lastError = GetLastError();
-        if (lastError != 0 || !orderModified) {
+        const datetime thisTime = Time[0];
+
+        static int cachedLastError;
+        static datetime timeStamp;
+
+        if ((lastError != 0 || !orderModified) && (cachedLastError != lastError || timeStamp != thisTime)) {
             ThrowException(__FUNCTION__, StringConcatenate(
-                "Error ", lastError, " when modifying order: ", order.ticket));
+                "Error ", lastError, " when modifying order: ", order.toString(), ", newStopLoss: ", newStopLoss));
         }
+
+        cachedLastError = lastError;
+        timeStamp = thisTime;
     }
 }
 
@@ -205,7 +213,7 @@ double OrderTrail::calculateBreakEvenStopLoss(Order & order) {
  * Reduces the suffering for orders that delay to reach the breakEven point, by slowly decreasing the stopLoss.
  */
 double OrderTrail::calculateSufferingStopLoss(Order & order) {
-    if (order.isBreakEven() || !order.isOpen()) {
+    if (!SUFFERING_STOPLOSS || order.isBreakEven() || !order.isOpen()) {
         return order.stopLoss;
     }
 
