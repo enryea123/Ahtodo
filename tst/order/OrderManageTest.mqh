@@ -205,6 +205,32 @@ void OrderManageTest::emergencySwitchOffTest() {
     emergencySwitchOff();
     orderFind_.getMockedOrders(mockedOrders);
 
+    // An unknown magicNumber is not enough to trigger the emergency mechanism
+    unitTest.assertEquals(
+        3,
+        ArraySize(mockedOrders)
+    );
+
+    orders[1].openPrice = EMERGENCY_SWITCHOFF_OPENPRICE;
+    ArrayFree(mockedOrders);
+
+    orderFind_.setMockedOrders(orders);
+    emergencySwitchOff();
+    orderFind_.getMockedOrders(mockedOrders);
+
+    unitTest.assertEquals(
+        3,
+        ArraySize(mockedOrders)
+    );
+
+    orders[1].stopLoss = EMERGENCY_SWITCHOFF_STOPLOSS;
+    orders[1].takeProfit = EMERGENCY_SWITCHOFF_TAKEPROFIT;
+    ArrayFree(mockedOrders);
+
+    orderFind_.setMockedOrders(orders);
+    emergencySwitchOff();
+    orderFind_.getMockedOrders(mockedOrders);
+
     unitTest.assertEquals(
         2, // deleteAllOrders() only deletes orders with MagicNumber()
         ArraySize(mockedOrders)

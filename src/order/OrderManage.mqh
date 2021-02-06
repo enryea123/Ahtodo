@@ -96,8 +96,7 @@ void OrderManage::deduplicateDiscriminatedOrders(Discriminator discriminator) {
 }
 
 /**
- * Checks if an order with an unknown magicNumber exists.
- * In that case, it deletes all the orders and removes the bot.
+ * Checks if the emergency order exists. In that case, it deletes all the orders and removes the bot.
  */
 void OrderManage::emergencySwitchOff() {
     OrderFilter orderFilter;
@@ -107,16 +106,16 @@ void OrderManage::emergencySwitchOff() {
     Order orders[];
     orderFind_.getFilteredOrdersList(orders, orderFilter);
 
-    if (ArraySize(orders) > 0) {
-        deleteAllOrders();
+    for (int i = 0; i < ArraySize(orders); i++) {
+        if (orders[i].openPrice == EMERGENCY_SWITCHOFF_OPENPRICE &&
+            orders[i].stopLoss == EMERGENCY_SWITCHOFF_STOPLOSS &&
+            orders[i].takeProfit == EMERGENCY_SWITCHOFF_TAKEPROFIT) {
+            deleteAllOrders();
 
-        const string exceptionMessage = StringConcatenate(
-            "Emergency switchOff invoked for magicNumber: ", orders[0].magicNumber);
-
-        if (UNIT_TESTS_COMPLETED) {
-            ThrowFatalException(__FUNCTION__, exceptionMessage);
-        } else {
-            ThrowException(__FUNCTION__, exceptionMessage);
+            if (UNIT_TESTS_COMPLETED) {
+                ThrowFatalException(__FUNCTION__, StringConcatenate(
+                    "Emergency switchOff invoked for order: ", orders[i].toString()));
+            }
         }
     }
 }
