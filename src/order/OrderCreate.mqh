@@ -181,7 +181,6 @@ int OrderCreate::calculateOrderTypeFromSetups(int index) {
     }
 
     const string symbol = Symbol();
-    const datetime thisTime = (datetime) iCandle(I_time, symbol, PERIOD_M5, 0);
 
     Pattern pattern;
 
@@ -234,10 +233,13 @@ bool OrderCreate::areThereRecentOrders(datetime date = NULL) {
     const string symbol = Symbol();
 
     if (date == NULL) {
-        date = (datetime) (TimeCurrent() - 60 * period * MathRound(ORDER_CANDLES_DURATION / PeriodFactor(period)));
-        // Rounding up to the beginning of the last half hour
-        date -= date % (PERIOD_M30 * 60);
+        // order.closeTime is in the broker time zone
+        date = TimeCurrent();
     }
+
+    // Putting a few candles back, and then rounding up to the end of the current half hour
+    date = (datetime) (date - 60 * period * MathRound(ORDER_CANDLES_DURATION / PeriodFactor(period)));
+    date = date - date % (PERIOD_M30 * 60) + PERIOD_M30 * 60;
 
     const datetime thisTime = Time[0];
 

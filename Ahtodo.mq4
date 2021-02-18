@@ -3,7 +3,7 @@
 #property strict
 
 #property description "Enrico Albano's automated bot for Ahtodo"
-#property version "210.206"
+#property version "210.218"
 
 #include "src/drawer/Drawer.mqh"
 #include "src/market/Market.mqh"
@@ -17,6 +17,12 @@
  * This is the main file of the program. OnInit is executed only once at the program start.
  * OnTick is executed every time there is a new price update (tick) in the market.
  * OnDeInit is executed at the end of the program, and cleans up some variables.
+ */
+
+/*
+ * TODO:
+ *  - Manca areThereOrdersThisSymbolThisPeriod con unitTests.
+ *  - Entrata per trade con pattern multicandela da mettere sotto entrambe le candele, non solo la ultima.
  */
 
 

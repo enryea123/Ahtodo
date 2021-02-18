@@ -46,7 +46,9 @@ const int ALLOWED_MAGIC_NUMBERS [] = {
 
 const int ALLOWED_DEMO_ACCOUNT_NUMBERS [] = {
     2100219063, // Enrico
+    2100220671, // Enrico
     2100220672, // Enrico
+    2100222172, // Enrico
     2100225710, // Eugenio
     2100222405 // Tanya
 };
