@@ -11,6 +11,7 @@ class OrderCreateTest: public OrderCreate {
     public:
         void areThereRecentOrdersTest();
         void areThereBetterOrdersTest();
+        void calculateEntryPointTest();
         void calculateOrderTypeFromSetupsTest();
         void calculateTakeProfitFactorTest();
         void calculateSizeFactorTest();
@@ -207,6 +208,24 @@ void OrderCreateTest::areThereBetterOrdersTest() {
     );
 
     orderFind_.deleteAllMockedOrders();
+}
+
+void OrderCreateTest::calculateEntryPointTest() {
+    UnitTest unitTest("calculateEntryPointTest");
+
+    int index = 4;
+    Discriminator discriminator = Max;
+
+    double candle1 = iExtreme(discriminator, index);
+    double candle2 = iExtreme(discriminator, index + 1);
+    double candle3 = iExtreme(discriminator, index + 2);
+
+    double entryPoint = MathMax(candle1, MathMax(candle2, candle3));
+
+    unitTest.assertEquals(
+        entryPoint,
+        calculateEntryPoint(discriminator, index)
+    );
 }
 
 void OrderCreateTest::calculateOrderTypeFromSetupsTest() {

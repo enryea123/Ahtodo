@@ -80,6 +80,7 @@ void UnitTestsRunner::runAllUnitTests() {
     OrderCreateTest orderCreateTest;
     orderCreateTest.areThereRecentOrdersTest();
     orderCreateTest.areThereBetterOrdersTest();
+    orderCreateTest.calculateEntryPointTest();
     orderCreateTest.calculateOrderTypeFromSetupsTest();
     orderCreateTest.calculateTakeProfitFactorTest();
     orderCreateTest.calculateSizeFactorTest();
@@ -102,6 +103,7 @@ void UnitTestsRunner::runAllUnitTests() {
 
     OrderManageTest orderManageTest;
     orderManageTest.areThereOpenOrdersTest();
+    orderManageTest.areThereOrdersThisSymbolThisPeriodTest();
     orderManageTest.findBestOrderTest();
     orderManageTest.deduplicateOrdersTest();
     orderManageTest.emergencySwitchOffTest();

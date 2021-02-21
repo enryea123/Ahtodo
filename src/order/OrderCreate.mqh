@@ -22,6 +22,7 @@ class OrderCreate {
         bool areThereBetterOrders(string, int, double, double);
 
         int calculateOrderTypeFromSetups(int);
+        double calculateEntryPoint(Discriminator, int);
         double calculateTakeProfitFactor(int, double, Discriminator);
         double calculateSizeFactor(int, double, string);
         double calculateOrderLots(int, double, string);
@@ -87,7 +88,7 @@ void OrderCreate::createNewOrder(int index) {
     const double spreadAsk = isBuy ? spread : 0;
     const double spreadBid = !isBuy ? spread : 0;
 
-    order.openPrice = iExtreme(discriminator, index) + discriminator * (1 + spreadAsk) * Pip(order.symbol);
+    order.openPrice = calculateEntryPoint(discriminator, index) + discriminator * (1 + spreadAsk) * Pip(order.symbol);
     order.stopLoss = iExtreme(antiDiscriminator, index) - discriminator * (1 + spreadBid) * Pip(order.symbol);
 
     const double takeProfitFactor = calculateTakeProfitFactor(order.getStopLossPips(), order.openPrice, discriminator);
@@ -170,6 +171,27 @@ void OrderCreate::sendOrder(Order & order) {
                 "Could not select back previous order: ", previouslySelectedOrder, ", error: ", lastError));
         }
     }
+}
+
+/**
+ * Calculates the entry point of a trade.
+ */
+double OrderCreate::calculateEntryPoint(Discriminator discriminator, int index) {
+    if (index < 1) {
+        return ThrowException(-1, __FUNCTION__, StringConcatenate("Unprocessable index: ", index));
+    }
+
+    double entryPoint = (discriminator == Max) ? -10000 : 10000;
+
+    for (int i = 0; i < ORDER_ENTRY_POINT_CANDLES; i++) {
+        if (discriminator == Max) {
+            entryPoint = MathMax(entryPoint, iExtreme(discriminator, index + i));
+        } else {
+            entryPoint = MathMin(entryPoint, iExtreme(discriminator, index + i));
+        }
+    }
+
+    return entryPoint;
 }
 
 /**
