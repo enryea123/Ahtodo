@@ -260,7 +260,7 @@ bool OrderCreate::areThereRecentOrders(datetime date = NULL) {
     }
 
     // Putting a few candles back, and then rounding up to the end of the current half hour
-    date = (datetime) (date - 60 * period * MathRound(ORDER_CANDLES_DURATION / PeriodFactor(period)));
+    date = (datetime) (date - 60 * period * MathRound(CANDLES_BETWEEN_ORDERS / PeriodFactor(period)));
     date = date - date % (PERIOD_M30 * 60) + PERIOD_M30 * 60;
 
     const datetime thisTime = Time[0];
