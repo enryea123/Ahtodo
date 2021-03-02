@@ -114,6 +114,7 @@ const int ANTIPATTERN_MIN_SIZE_SUM_PIPS = 50;
 const int PATTERN_DRAW_MAX_CANDLES = 200;
 const int PIVOT_LINES_DRAW_MAX_CANDLES = 100;
 const string PATTERN_NAME_PREFIX = "Pattern";
+const color ANTIPATTERN_COLOR = clrDarkGray;
 
 const string ARROW_NAME_PREFIX = "Arrow";
 const string VALID_ARROW_NAME_SUFFIX = "Valid";

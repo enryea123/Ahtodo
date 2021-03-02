@@ -55,7 +55,7 @@ void PatternsDraw::drawAllPatterns() {
         }
 
         if (pattern_.antiPattern1(i)) {
-            drawPatternRectangle(i, 3, clrDarkGray);
+            drawPatternRectangle(i, 3, ANTIPATTERN_COLOR);
         }
     }
 
@@ -68,7 +68,7 @@ void PatternsDraw::drawAllPatterns() {
  * Draws a single pattern rectangle.
  */
 void PatternsDraw::drawPatternRectangle(int timeIndex, int patternLength, color patternColor) {
-    if (!pattern_.isPatternSizeGood(timeIndex)) {
+    if (!pattern_.isPatternSizeGood(timeIndex) && patternColor != ANTIPATTERN_COLOR) {
         if (IS_DEBUG) {
             patternColor = clrPink;
         } else {
