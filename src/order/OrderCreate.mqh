@@ -84,12 +84,8 @@ void OrderCreate::createNewOrder(int index) {
     const Discriminator discriminator = isBuy ? Max : Min;
     const Discriminator antiDiscriminator = !isBuy ? Max : Min;
 
-    const double spread = GetSpread();
-    const double spreadAsk = isBuy ? spread : 0;
-    const double spreadBid = !isBuy ? spread : 0;
-
-    order.openPrice = calculateEntryPoint(discriminator, index) + discriminator * (1 + spreadAsk) * Pip(order.symbol);
-    order.stopLoss = iExtreme(antiDiscriminator, index) - discriminator * (1 + spreadBid) * Pip(order.symbol);
+    order.openPrice = calculateEntryPoint(discriminator, index) + discriminator * Pip(order.symbol);
+    order.stopLoss = iExtreme(antiDiscriminator, index);
 
     const double takeProfitFactor = calculateTakeProfitFactor(order.getStopLossPips(), order.openPrice, discriminator);
 
@@ -332,8 +328,6 @@ double OrderCreate::calculateTakeProfitFactor(int stopLossPips, double openPrice
     const string symbol = Symbol();
     const datetime thisTime = Time[0];
 
-    const double minTakeProfitFactor = MIN_TAKEPROFIT_FACTOR * (SPLIT_POSITION ? 2 : 1);
-
     double takeProfitFactor = MAX_TAKEPROFIT_FACTOR;
 
     for (int i = ObjectsTotal() - 1; i >= 0; i--) {
@@ -347,7 +341,7 @@ double OrderCreate::calculateTakeProfitFactor(int stopLossPips, double openPrice
         const double levelFromOpenPricePips = MathAbs(ObjectGet(objectName, OBJPROP_PRICE1) - openPrice) / Pip(symbol);
         const double levelTakeProfitFactor = (levelFromOpenPricePips - TAKEPROFIT_OBSTACLE_BUFFER_PIPS) / stopLossPips;
 
-        if (levelTakeProfitFactor > minTakeProfitFactor) {
+        if (levelTakeProfitFactor > MIN_TAKEPROFIT_FACTOR) {
             takeProfitFactor = MathMin(takeProfitFactor, levelTakeProfitFactor);
         }
     }

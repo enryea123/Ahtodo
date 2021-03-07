@@ -90,11 +90,11 @@ void OrderTrailTest::calculateBreakEvenStopLossTest() {
         calculateBreakEvenStopLoss(order)
     );
 
-    order.openPrice = iExtreme(Max, 0) - 7 * Pip(order.symbol);
+    order.openPrice = iExtreme(Max, 0) - 8 * Pip(order.symbol);
     order.stopLoss = order.openPrice - 10 * Pip(order.symbol);
 
     unitTest.assertEquals(
-        order.openPrice - 4 * Pip(order.symbol),
+        order.openPrice,
         calculateBreakEvenStopLoss(order)
     );
 
@@ -107,25 +107,17 @@ void OrderTrailTest::calculateBreakEvenStopLossTest() {
         calculateBreakEvenStopLoss(order)
     );
 
-    order.openPrice = iExtreme(Max, 0) - 14 * Pip(order.symbol);
+    order.openPrice = iExtreme(Max, 0) - 15 * Pip(order.symbol);
     order.stopLoss = order.openPrice - 20 * Pip(order.symbol);
 
     unitTest.assertEquals(
-        order.openPrice - 8 * Pip(order.symbol),
+        order.openPrice,
         calculateBreakEvenStopLoss(order)
     );
 
     order.magicNumber = BASE_MAGIC_NUMBER + PERIOD_H1;
     order.type = OP_SELL;
     order.openPrice = iExtreme(Min, 0) + 9 * Pip(order.symbol);
-    order.stopLoss = order.openPrice + 20 * Pip(order.symbol);
-
-    unitTest.assertEquals(
-        order.openPrice + 4 * Pip(order.symbol),
-        calculateBreakEvenStopLoss(order)
-    );
-
-    order.openPrice = iExtreme(Min, 0) + 27 * Pip(order.symbol);
     order.stopLoss = order.openPrice + 20 * Pip(order.symbol);
 
     unitTest.assertEquals(

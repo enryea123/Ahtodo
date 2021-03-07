@@ -423,7 +423,7 @@ void OrderCreateTest::calculateTakeProfitFactorTest() {
         );
     } else {
         unitTest.assertEquals(
-            1.7,
+            2.4,
             calculateTakeProfitFactor(stopLossPips, openPrice, Max)
         );
     }

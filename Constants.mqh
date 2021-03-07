@@ -22,7 +22,7 @@ enum Discriminator {
 // Constants start here
 
 const bool IS_DEBUG = false;
-const bool SPLIT_POSITION = true;
+const bool SPLIT_POSITION = false;
 const bool SUFFERING_STOPLOSS = false;
 
 const datetime BOT_EXPIRATION_DATE = (datetime) "2021-06-30";
@@ -55,6 +55,7 @@ const int ALLOWED_DEMO_ACCOUNT_NUMBERS [] = {
 
 const int ALLOWED_LIVE_ACCOUNT_NUMBERS [] = {
     2100183900, // Enrico
+    2100188824, // Enrico
     2100175255, // Eugenio
     2100186686 // Tanya
 };
@@ -101,7 +102,7 @@ const string FILTER_SEPARATOR = "|";
 const string MESSAGE_SEPARATOR = " | ";
 
 const double MAX_TAKEPROFIT_FACTOR = 3;
-const double MIN_TAKEPROFIT_FACTOR = 1;
+const double MIN_TAKEPROFIT_FACTOR = 2;
 const int TAKEPROFIT_OBSTACLE_BUFFER_PIPS = 4;
 
 const int CANDLES_VISIBLE_IN_GRAPH_3X = 465;
@@ -192,8 +193,8 @@ Map<string, int> RESTRICTED_SYMBOLS;
 
 // Maps need to be initialized by OnInit
 void InitializeMaps() {
-    BREAKEVEN_STEPS.put(6, 4);
-    BREAKEVEN_STEPS.put(25, 0);
+    BREAKEVEN_STEPS.put(7, 0);
+    BREAKEVEN_STEPS.put(15, 2);
     BREAKEVEN_STEPS.lock();
 
     SUFFERING_STEPS.put(15, 15);
