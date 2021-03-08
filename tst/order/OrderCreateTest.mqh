@@ -508,15 +508,17 @@ void OrderCreateTest::calculateOrderLotsTest() {
         calculateOrderLots(stopLossPips, 0, symbol)
     );
 
-    unitTest.assertEquals(
-        NormalizeDouble(calculateOrderLots(stopLossPips, 1, symbol) / 2, 2),
-        calculateOrderLots(stopLossPips, 1, symbol) / 2
-    );
-
-    unitTest.assertEquals(
-        0.02,
-        calculateOrderLots(stopLossPips, 0.0001, symbol)
-    );
+    if (SPLIT_POSITION) {
+        unitTest.assertEquals(
+            0.02,
+            calculateOrderLots(stopLossPips, 0.0001, symbol)
+        );
+    } else {
+        unitTest.assertEquals(
+            0.01,
+            calculateOrderLots(stopLossPips, 0.0001, symbol)
+        );
+    }
 
     unitTest.assertTrue(
         calculateOrderLots(stopLossPips, 1.5, symbol) > calculateOrderLots(stopLossPips, 1, symbol)
