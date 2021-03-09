@@ -195,7 +195,7 @@ double OrderTrail::calculateBreakEvenStopLoss(Order & order) {
     for (int i = 0; i < BREAKEVEN_STEPS.size(); i++) {
         double breakEvenPoint = openPrice + discriminator *
             PeriodFactor(period) * Pip(symbol) * BREAKEVEN_STEPS.getKeys(i);
-        double breakEvenStopLoss = openPrice - discriminator *
+        double breakEvenStopLoss = openPrice + discriminator *
             PeriodFactor(period) * Pip(symbol) * BREAKEVEN_STEPS.getValues(i);
 
         if (discriminator == Max && currentExtreme > breakEvenPoint) {

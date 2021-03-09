@@ -157,6 +157,8 @@ const int OPEN_MARKET_LINES_PIPS_SHIFT = 10;
 const string LAST_DRAWING_TIME_PREFIX = "LastDrawingTime";
 const string OPEN_MARKET_LINE_PREFIX = "OpenMarketLine";
 
+const int CHART_DEFAULT_ZOOM = 4;
+
 const int TRENDLINE_BEAMS = 2;
 const int TRENDLINE_WIDTH = 5;
 const int BAD_TRENDLINE_WIDTH = 1;
@@ -194,7 +196,8 @@ Map<string, int> RESTRICTED_SYMBOLS;
 // Maps need to be initialized by OnInit
 void InitializeMaps() {
     BREAKEVEN_STEPS.put(7, 0);
-    BREAKEVEN_STEPS.put(15, 2);
+    // commission saver with positive sign
+    BREAKEVEN_STEPS.put(12, 1);
     BREAKEVEN_STEPS.lock();
 
     SUFFERING_STEPS.put(15, 15);
