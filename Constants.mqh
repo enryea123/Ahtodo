@@ -159,7 +159,7 @@ const string OPEN_MARKET_LINE_PREFIX = "OpenMarketLine";
 
 const int CHART_DEFAULT_ZOOM = 4;
 
-const int TRENDLINE_BEAMS = 2;
+const int TRENDLINE_BEAMS = 3;
 const int TRENDLINE_WIDTH = 5;
 const int BAD_TRENDLINE_WIDTH = 1;
 const color TRENDLINE_COLOR = clrYellow;
@@ -172,9 +172,9 @@ const string TRENDLINE_NAME_SECOND_INDEX_IDENTIFIER = "j";
 
 const int TRENDLINE_MIN_CANDLES_LENGTH = 12;
 const int TRENDLINE_MIN_EXTREMES_DISTANCE = 3;
-const int TRENDLINE_TOLERANCE_PIPS = 2;
-const double TRENDLINE_NEGATIVE_SLOPE_VOLATILITY = 0.0038;
-const double TRENDLINE_POSITIVE_SLOPE_VOLATILITY = 0.0024;
+const int TRENDLINE_TOLERANCE_PIPS = 3;
+const double TRENDLINE_NEGATIVE_SLOPE_VOLATILITY = 0.0050;
+const double TRENDLINE_POSITIVE_SLOPE_VOLATILITY = 0.0050;
 const double TRENDLINE_BALANCE_RATIO_THRESHOLD = 0.92;
 
 const string CALENDAR_FILE = "ff_calendar_thisweek.csv";
@@ -197,7 +197,7 @@ Map<string, int> RESTRICTED_SYMBOLS;
 void InitializeMaps() {
     BREAKEVEN_STEPS.put(7, 0);
     // commission saver with positive sign
-    BREAKEVEN_STEPS.put(12, 1);
+    BREAKEVEN_STEPS.put(15, 1);
     BREAKEVEN_STEPS.lock();
 
     SUFFERING_STEPS.put(15, 15);
@@ -232,3 +232,4 @@ datetime NO_SETUP_TIMESTAMP = -1;
 
 datetime VOLATILITY_TIMESTAMP = -1;
 datetime ORDER_MODIFIED_TIMESTAMP = -1;
+datetime ORDER_BELOW_ZERO_TIMESTAMP = -1;

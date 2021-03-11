@@ -29,6 +29,7 @@ class OrderTrail {
         double calculateBreakEvenStopLoss(Order &);
         double calculateSufferingStopLoss(Order &);
         double trailer(double, double, double);
+        void orderBelowZeroAlert(Order &);
 };
 
 /**
@@ -67,6 +68,8 @@ void OrderTrail::manageOpenOrder(Order & order) {
     if (closeDrawningOrder(order, newStopLoss)) {
         return;
     }
+
+    orderBelowZeroAlert(order);
 
     updateOrder(order, newStopLoss);
     splitPosition(order);
@@ -281,4 +284,17 @@ double OrderTrail::trailer(double openPrice, double stopLoss, double takeProfit)
     }
     return takeProfit;
     */
+}
+
+/**
+ * Produces an alert if an order already at breakeven goes below zero.
+ */
+void OrderTrail::orderBelowZeroAlert(Order & order) {
+    if (order.isBreakEven()) {
+        if ((order.getDiscriminator() == Max && GetPrice() < order.openPrice) ||
+            (order.getDiscriminator() == Min && GetPrice() > order.openPrice)) {
+            ORDER_BELOW_ZERO_TIMESTAMP = AlertTimer(ORDER_BELOW_ZERO_TIMESTAMP,
+                StringConcatenate("Order ", order.ticket, " went below zero after breakEven"));
+        }
+    }
 }
