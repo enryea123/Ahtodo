@@ -136,7 +136,7 @@ bool OrderTrail::splitPosition(Order & order) {
     const Discriminator discriminator = order.getDiscriminator();
     const double currentExtreme = iExtreme(discriminator, 0);
     const double breakEvenPoint = order.openPrice + discriminator *
-        PeriodFactor(order.getPeriod()) * Pip(order.symbol) * BREAKEVEN_STEPS.getKeys(0);
+        PeriodFactor(order.getPeriod()) * Pip(order.symbol) * BREAKEVEN_STEPS_SPLIT.getKeys(0);
 
     if ((discriminator == Max && currentExtreme < breakEvenPoint) ||
         (discriminator == Min && currentExtreme > breakEvenPoint)) {
@@ -195,11 +195,16 @@ double OrderTrail::calculateBreakEvenStopLoss(Order & order) {
 
     double stopLoss = order.stopLoss;
 
-    for (int i = 0; i < BREAKEVEN_STEPS.size(); i++) {
-        double breakEvenPoint = openPrice + discriminator *
-            PeriodFactor(period) * Pip(symbol) * BREAKEVEN_STEPS.getKeys(i);
-        double breakEvenStopLoss = openPrice + discriminator *
-            PeriodFactor(period) * Pip(symbol) * BREAKEVEN_STEPS.getValues(i);
+    const int breakEvenSteps = SPLIT_POSITION ? BREAKEVEN_STEPS_SPLIT.size() : BREAKEVEN_STEPS.size();
+
+    for (int i = 0; i < breakEvenSteps; i++) {
+        const int breakEvenStepKey = SPLIT_POSITION ? BREAKEVEN_STEPS_SPLIT.getKeys(i) : BREAKEVEN_STEPS.getKeys(i);
+        const int breakEvenStepVal = SPLIT_POSITION ? BREAKEVEN_STEPS_SPLIT.getValues(i) : BREAKEVEN_STEPS.getValues(i);
+
+        const double breakEvenPoint = openPrice + discriminator *
+            PeriodFactor(period) * Pip(symbol) * breakEvenStepKey;
+        const double breakEvenStopLoss = openPrice + discriminator *
+            PeriodFactor(period) * Pip(symbol) * breakEvenStepVal;
 
         if (discriminator == Max && currentExtreme > breakEvenPoint) {
             stopLoss = MathMax(stopLoss, breakEvenStopLoss);
@@ -293,7 +298,7 @@ void OrderTrail::orderBelowZeroAlert(Order & order) {
     if (order.isBreakEven()) {
         if ((order.getDiscriminator() == Max && GetPrice() < order.openPrice) ||
             (order.getDiscriminator() == Min && GetPrice() > order.openPrice)) {
-            ORDER_BELOW_ZERO_TIMESTAMP = AlertTimer(ORDER_BELOW_ZERO_TIMESTAMP,
+            ORDER_BELOW_ZERO_TIMESTAMP = PrintTimer(ORDER_BELOW_ZERO_TIMESTAMP,
                 StringConcatenate("Order ", order.ticket, " went below zero after breakEven"));
         }
     }

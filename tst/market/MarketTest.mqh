@@ -63,7 +63,7 @@ void MarketTest::isMarketOpenedTest() {
         );
     }
 
-    unitTest.assertFalse(
+    unitTest.assertTrue(
         isMarketOpened((datetime) "2020-04-03 12:00") // Friday
     );
 

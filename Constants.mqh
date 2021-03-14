@@ -11,6 +11,7 @@
  */
 
 input double PERCENT_RISK = 1.0;
+input bool SPLIT_POSITION = false;
 
 bool UNIT_TESTS_COMPLETED = false;
 
@@ -22,7 +23,6 @@ enum Discriminator {
 // Constants start here
 
 const bool IS_DEBUG = false;
-const bool SPLIT_POSITION = false;
 const bool SUFFERING_STOPLOSS = false;
 
 const datetime BOT_EXPIRATION_DATE = (datetime) "2021-06-30";
@@ -34,7 +34,7 @@ const int MARKET_CLOSE_HOUR = 17;
 const int MARKET_CLOSE_HOUR_H4 = 20;
 const int MARKET_CLOSE_HOUR_PENDING = 16;
 const int MARKET_OPEN_DAY = 1;
-const int MARKET_CLOSE_DAY = 5;
+const int MARKET_CLOSE_DAY = 6;
 
 const int BASE_MAGIC_NUMBER = 2044000;
 
@@ -188,6 +188,7 @@ const string NEWS_LABEL_NAME_PREFIX = "NewsLabel";
 
 // Associative Maps
 Map<int, int> BREAKEVEN_STEPS;
+Map<int, int> BREAKEVEN_STEPS_SPLIT;
 Map<int, int> SUFFERING_STEPS;
 Map<int, double> PERCENT_RISK_ACCOUNT_EXCEPTIONS;
 Map<int, int> MORNING_LOOKBACK_CANDLES;
@@ -195,10 +196,14 @@ Map<string, int> RESTRICTED_SYMBOLS;
 
 // Maps need to be initialized by OnInit
 void InitializeMaps() {
-    BREAKEVEN_STEPS.put(7, 0);
-    // commission saver with positive sign
-    BREAKEVEN_STEPS.put(15, 1);
+    BREAKEVEN_STEPS.put(6, -2);
+    BREAKEVEN_STEPS.put(15, 0);
+    BREAKEVEN_STEPS.put(20, 1);
     BREAKEVEN_STEPS.lock();
+
+    BREAKEVEN_STEPS_SPLIT.put(6, -4);
+    BREAKEVEN_STEPS_SPLIT.put(25, 1);
+    BREAKEVEN_STEPS_SPLIT.lock();
 
     SUFFERING_STEPS.put(15, 15);
     SUFFERING_STEPS.put(30, 10);

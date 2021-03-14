@@ -82,48 +82,89 @@ void OrderTrailTest::calculateBreakEvenStopLossTest() {
     order.magicNumber = BASE_MAGIC_NUMBER + PERIOD_H1;
     order.symbol = Symbol();
     order.type = OP_BUY;
-    order.openPrice = iExtreme(Max, 0) - 5 * Pip(order.symbol);
-    order.stopLoss = order.openPrice - 10 * Pip(order.symbol);
+    order.stopLoss = iExtreme(Max, 0) - 100 * Pip(order.symbol);
 
-    unitTest.assertEquals(
-        order.stopLoss,
-        calculateBreakEvenStopLoss(order)
-    );
+    if (SPLIT_POSITION) {
+        order.openPrice = iExtreme(Max, 0) - (BREAKEVEN_STEPS_SPLIT.getKeys(0) - 1) * Pip(order.symbol);
 
-    order.openPrice = iExtreme(Max, 0) - 8 * Pip(order.symbol);
-    order.stopLoss = order.openPrice - 10 * Pip(order.symbol);
+        unitTest.assertEquals(
+            order.stopLoss,
+            calculateBreakEvenStopLoss(order)
+        );
 
-    unitTest.assertEquals(
-        order.openPrice,
-        calculateBreakEvenStopLoss(order)
-    );
+        order.openPrice = iExtreme(Max, 0) - (BREAKEVEN_STEPS_SPLIT.getKeys(0) + 1) * Pip(order.symbol);
 
-    order.magicNumber = BASE_MAGIC_NUMBER + PERIOD_H4;
-    order.openPrice = iExtreme(Max, 0) - 9 * Pip(order.symbol);
-    order.stopLoss = order.openPrice - 20 * Pip(order.symbol);
+        unitTest.assertEquals(
+            order.openPrice + BREAKEVEN_STEPS_SPLIT.getValues(0) * Pip(order.symbol),
+            calculateBreakEvenStopLoss(order)
+        );
 
-    unitTest.assertEquals(
-        order.stopLoss,
-        calculateBreakEvenStopLoss(order)
-    );
+        order.magicNumber = BASE_MAGIC_NUMBER + PERIOD_H4;
+        order.openPrice = iExtreme(Max, 0) - (BREAKEVEN_STEPS_SPLIT.getKeys(0) + 1) * Pip(order.symbol);
 
-    order.openPrice = iExtreme(Max, 0) - 15 * Pip(order.symbol);
-    order.stopLoss = order.openPrice - 20 * Pip(order.symbol);
+        unitTest.assertEquals(
+            order.stopLoss,
+            calculateBreakEvenStopLoss(order)
+        );
 
-    unitTest.assertEquals(
-        order.openPrice,
-        calculateBreakEvenStopLoss(order)
-    );
+        order.openPrice = iExtreme(Max, 0) - (PeriodFactor(PERIOD_H4) *
+            BREAKEVEN_STEPS_SPLIT.getKeys(0) + 1) * Pip(order.symbol);
 
-    order.magicNumber = BASE_MAGIC_NUMBER + PERIOD_H1;
-    order.type = OP_SELL;
-    order.openPrice = iExtreme(Min, 0) + 9 * Pip(order.symbol);
-    order.stopLoss = order.openPrice + 20 * Pip(order.symbol);
+        unitTest.assertEquals(
+            order.openPrice + PeriodFactor(PERIOD_H4) * BREAKEVEN_STEPS_SPLIT.getValues(0) * Pip(order.symbol),
+            calculateBreakEvenStopLoss(order)
+        );
 
-    unitTest.assertEquals(
-        order.openPrice,
-        calculateBreakEvenStopLoss(order)
-    );
+        order.magicNumber = BASE_MAGIC_NUMBER + PERIOD_H1;
+        order.type = OP_SELL;
+        order.openPrice = iExtreme(Min, 0) + (BREAKEVEN_STEPS_SPLIT.getKeys(0) + 1) * Pip(order.symbol);
+        order.stopLoss = iExtreme(Min, 0) + 100 * Pip(order.symbol);
+
+        unitTest.assertEquals(
+            order.openPrice - BREAKEVEN_STEPS_SPLIT.getValues(0) * Pip(order.symbol),
+            calculateBreakEvenStopLoss(order)
+        );
+    } else {
+        order.openPrice = iExtreme(Max, 0) - (BREAKEVEN_STEPS.getKeys(0) - 1) * Pip(order.symbol);
+
+        unitTest.assertEquals(
+            order.stopLoss,
+            calculateBreakEvenStopLoss(order)
+        );
+
+        order.openPrice = iExtreme(Max, 0) - (BREAKEVEN_STEPS.getKeys(0) + 1) * Pip(order.symbol);
+
+        unitTest.assertEquals(
+            order.openPrice + BREAKEVEN_STEPS.getValues(0) * Pip(order.symbol),
+            calculateBreakEvenStopLoss(order)
+        );
+
+        order.magicNumber = BASE_MAGIC_NUMBER + PERIOD_H4;
+        order.openPrice = iExtreme(Max, 0) - (BREAKEVEN_STEPS.getKeys(0) + 1) * Pip(order.symbol);
+
+        unitTest.assertEquals(
+            order.stopLoss,
+            calculateBreakEvenStopLoss(order)
+        );
+
+        order.openPrice = iExtreme(Max, 0) - (PeriodFactor(PERIOD_H4) *
+            BREAKEVEN_STEPS.getKeys(0) + 1) * Pip(order.symbol);
+
+        unitTest.assertEquals(
+            order.openPrice + PeriodFactor(PERIOD_H4) * BREAKEVEN_STEPS.getValues(0) * Pip(order.symbol),
+            calculateBreakEvenStopLoss(order)
+        );
+
+        order.magicNumber = BASE_MAGIC_NUMBER + PERIOD_H1;
+        order.type = OP_SELL;
+        order.openPrice = iExtreme(Min, 0) + (BREAKEVEN_STEPS.getKeys(0) + 1) * Pip(order.symbol);
+        order.stopLoss = iExtreme(Min, 0) + 100 * Pip(order.symbol);
+
+        unitTest.assertEquals(
+            order.openPrice - BREAKEVEN_STEPS.getValues(0) * Pip(order.symbol),
+            calculateBreakEvenStopLoss(order)
+        );
+    }
 }
 
 void OrderTrailTest::closeDrawningOrderTest() {
