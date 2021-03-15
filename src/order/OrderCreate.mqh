@@ -91,7 +91,10 @@ void OrderCreate::createNewOrder(int index) {
 
     order.takeProfit = order.openPrice + discriminator * takeProfitFactor * order.getStopLossPips() * Pip(order.symbol);
 
-    const double sizeFactor = calculateSizeFactor(order.type, order.openPrice, order.symbol);
+    // const double sizeFactor = calculateSizeFactor(order.type, order.openPrice, order.symbol);
+    // Keeping a constant size
+    const double sizeFactor = 1;
+
     order.lots = calculateOrderLots(order.getStopLossPips(), sizeFactor, order.symbol);
 
     if (sizeFactor == 0) {
