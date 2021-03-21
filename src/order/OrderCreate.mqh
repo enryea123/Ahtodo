@@ -44,7 +44,7 @@ void OrderCreate::newOrder() {
     if (market.isMarketCloseNoPendingTimeWindow()) {
         return;
     }
-    if (Minute() == 0 || Minute() == 59 || Minute() == 30 || Minute() == 29) {
+    if (Minute() == 29 || Minute() == 59 || (Minute() == 0 && Seconds() < 10) || (Minute() == 30 && Seconds() < 10)) {
         return;
     }
     if (areThereRecentOrders()) {

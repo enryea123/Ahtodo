@@ -85,7 +85,6 @@ void UnitTestsRunner::runAllUnitTests() {
     orderCreateTest.calculateTakeProfitFactorTest();
     orderCreateTest.calculateSizeFactorTest();
     orderCreateTest.calculateOrderLotsTest();
-    orderCreateTest.getPercentRiskTest();
 
     OrderTest orderTest;
     orderTest.isBreakEvenTest();

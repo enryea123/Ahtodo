@@ -16,7 +16,6 @@ class OrderCreateTest: public OrderCreate {
         void calculateTakeProfitFactorTest();
         void calculateSizeFactorTest();
         void calculateOrderLotsTest();
-        void getPercentRiskTest();
 };
 
 void OrderCreateTest::areThereRecentOrdersTest() {
@@ -531,22 +530,4 @@ void OrderCreateTest::calculateOrderLotsTest() {
     unitTest.assertTrue(
         calculateOrderLots(stopLossPips, 1, symbol) < 30 // max lots allowed per operation
     );
-}
-
-void OrderCreateTest::getPercentRiskTest() {
-    UnitTest unitTest("getPercentRiskTest");
-
-    const int accountNumber = AccountNumber();
-
-    if (PERCENT_RISK_ACCOUNT_EXCEPTIONS.containsKey(accountNumber)) {
-        unitTest.assertEquals(
-            PERCENT_RISK_ACCOUNT_EXCEPTIONS.get(accountNumber) / 100,
-            getPercentRisk()
-        );
-    } else {
-        unitTest.assertEquals(
-            PERCENT_RISK / 100,
-            getPercentRisk()
-        );
-    }
 }
