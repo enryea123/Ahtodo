@@ -55,8 +55,8 @@ void OrderCreate::newOrder() {
 
     // At the opening of the market, search for patterns in the past
     if (market.isMarketOpenLookBackTimeWindow()) {
-        for(int time = 2; time < MORNING_LOOKBACK_CANDLES.get(Period()) + 2; time++){
-            createNewOrder(time);
+        for(int t = 0; t < MORNING_LOOKBACK_CANDLES.get(Period()); t++){
+            createNewOrder(2 + t);
         }
     }
 }
@@ -86,6 +86,10 @@ void OrderCreate::createNewOrder(int index) {
 
     order.openPrice = calculateEntryPoint(discriminator, index) + discriminator * Pip(order.symbol);
     order.stopLoss = iExtreme(antiDiscriminator, index);
+
+    if (order.getStopLossPips() > STOPLOSS_MAXIMUM_SIZE_PIPS) {
+        return;
+    }
 
     const double takeProfitFactor = calculateTakeProfitFactor(order.getStopLossPips(), order.openPrice, discriminator);
 
@@ -182,11 +186,11 @@ double OrderCreate::calculateEntryPoint(Discriminator discriminator, int index) 
 
     double entryPoint = (discriminator == Max) ? -10000 : 10000;
 
-    for (int i = 0; i < ORDER_ENTRY_POINT_CANDLES; i++) {
+    for (int i = 1; i < index + ORDER_ENTRY_POINT_CANDLES; i++) {
         if (discriminator == Max) {
-            entryPoint = MathMax(entryPoint, iExtreme(discriminator, index + i));
+            entryPoint = MathMax(entryPoint, iExtreme(discriminator, i));
         } else {
-            entryPoint = MathMin(entryPoint, iExtreme(discriminator, index + i));
+            entryPoint = MathMin(entryPoint, iExtreme(discriminator, i));
         }
     }
 

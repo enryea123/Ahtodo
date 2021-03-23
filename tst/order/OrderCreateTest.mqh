@@ -212,14 +212,15 @@ void OrderCreateTest::areThereBetterOrdersTest() {
 void OrderCreateTest::calculateEntryPointTest() {
     UnitTest unitTest("calculateEntryPointTest");
 
-    int index = 4;
+    int index = 2;
     Discriminator discriminator = Max;
 
-    double candle1 = iExtreme(discriminator, index);
-    double candle2 = iExtreme(discriminator, index + 1);
-    double candle3 = iExtreme(discriminator, index + 2);
+    double candle1 = iExtreme(discriminator, 1);
+    double candle2 = iExtreme(discriminator, 2);
+    double candle3 = iExtreme(discriminator, 3);
+    double candle4 = iExtreme(discriminator, 4);
 
-    double entryPoint = MathMax(candle1, MathMax(candle2, candle3));
+    double entryPoint = MathMax(MathMax(candle1, candle2), MathMax(candle3, candle4));
 
     unitTest.assertEquals(
         entryPoint,
