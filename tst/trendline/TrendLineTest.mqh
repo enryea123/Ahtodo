@@ -152,13 +152,13 @@ void TrendLineTest::trendLineSetupsTest() {
     const double slopeMax = (iExtreme(Max, 20) - iExtreme(Max, 50)) / (50 - 20);
 
     if (slopeMin > 0 && MathAbs(slopeMin) >
-        TRENDLINE_POSITIVE_SLOPE_VOLATILITY * getVolatility()) {
+        TRENDLINE_POSITIVE_SLOPE_VOLATILITY * GetMarketVolatility()) {
         unitTest.assertFalse(
             areTrendLineSetupsGood(50, 20, Min),
             "TrendLine positive slope volatility"
         );
     } else if (slopeMax < 0 && MathAbs(slopeMax) >
-        TRENDLINE_NEGATIVE_SLOPE_VOLATILITY * getVolatility()) {
+        TRENDLINE_NEGATIVE_SLOPE_VOLATILITY * GetMarketVolatility()) {
         unitTest.assertFalse(
             areTrendLineSetupsGood(50, 20, Max),
             "TrendLine negative slope volatility"

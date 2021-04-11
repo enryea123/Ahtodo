@@ -36,6 +36,9 @@ const int MARKET_CLOSE_HOUR_PENDING = 16;
 const int MARKET_OPEN_DAY = 1;
 const int MARKET_CLOSE_DAY = 6;
 
+const int MARKET_WEEK_CLOSE_HOUR = 14;
+const int MARKET_WEEK_CLOSE_DAY = 5;
+
 const int BASE_MAGIC_NUMBER = 2044000;
 
 const int ALLOWED_MAGIC_NUMBERS [] = {
@@ -146,6 +149,8 @@ const int ORDER_CANDLES_DURATION = 8;
 const int CANDLES_BETWEEN_ORDERS = 6;
 const int TRENDLINE_SETUP_MAX_PIPS_DISTANCE = 3;
 
+const int ATR_AVERAGE_CANDLES = 240;
+
 const string STRATEGY_PREFIX = "A";
 const string PERIOD_COMMENT_IDENTIFIER = "P";
 const string SIZE_FACTOR_COMMENT_IDENTIFIER = "M";
@@ -198,7 +203,7 @@ Map<string, int> RESTRICTED_SYMBOLS;
 
 // Maps need to be initialized by OnInit
 void InitializeMaps() {
-    BREAKEVEN_STEPS.put(7, -1);
+    BREAKEVEN_STEPS.put(6, -1);
     BREAKEVEN_STEPS.put(15, 0);
     BREAKEVEN_STEPS.put(20, 1);
     BREAKEVEN_STEPS.lock();
@@ -237,6 +242,7 @@ datetime SELL_SETUP_TIMESTAMP = -1;
 datetime BUY_SETUP_TIMESTAMP = -1;
 datetime NO_SETUP_TIMESTAMP = -1;
 
+datetime PRICE_GAP_TIMESTAMP = -1;
 datetime VOLATILITY_TIMESTAMP = -1;
 datetime ORDER_MODIFIED_TIMESTAMP = -1;
 datetime ORDER_BELOW_ZERO_TIMESTAMP = -1;

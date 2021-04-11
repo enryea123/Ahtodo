@@ -19,6 +19,7 @@ class Market {
         Market();
 
         bool isMarketOpened(datetime);
+        bool isEndOfWeek(datetime);
         bool isMarketOpenLookBackTimeWindow();
         bool isMarketCloseNoPendingTimeWindow();
         bool marketConditionsValidation();
@@ -53,6 +54,10 @@ bool Market::isMarketOpened(datetime date = NULL) {
         date = marketTime_.timeItaly();
     }
 
+    if (isEndOfWeek(date)) {
+        return false;
+    }
+
     const int hour = TimeHour(date);
     const int dayOfWeek = TimeDayOfWeek(date);
 
@@ -79,6 +84,24 @@ bool Market::isMarketOpened(datetime date = NULL) {
     }
 
     return true;
+}
+
+/**
+ * Checks if it is the end of the week in the default timezone.
+ */
+bool Market::isEndOfWeek(datetime date = NULL) {
+    if (date == NULL) {
+        date = marketTime_.timeItaly();
+    }
+
+    const int hour = TimeHour(date);
+    const int dayOfWeek = TimeDayOfWeek(date);
+
+    if (dayOfWeek > MARKET_WEEK_CLOSE_DAY || (dayOfWeek == MARKET_WEEK_CLOSE_DAY && hour >= MARKET_WEEK_CLOSE_HOUR)) {
+        return true;
+    }
+
+    return false;
 }
 
 /**

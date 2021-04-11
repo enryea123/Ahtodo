@@ -11,6 +11,7 @@ class OrderManageTest: public OrderManage {
     public:
         void areThereOpenOrdersTest();
         void areThereOrdersThisSymbolThisPeriodTest();
+        void areTherePendingOrdersThisSymbolThisPeriodTest();
         void findBestOrderTest();
         void deduplicateOrdersTest();
         void emergencySwitchOffTest();
@@ -93,6 +94,27 @@ void OrderManageTest::areThereOrdersThisSymbolThisPeriodTest() {
     );
 
     orderFind_.deleteAllMockedOrders();
+}
+
+void OrderManageTest::areTherePendingOrdersThisSymbolThisPeriodTest() {
+    UnitTest unitTest("areTherePendingOrdersThisSymbolThisPeriodTest");
+
+    Order order;
+    order.magicNumber = BASE_MAGIC_NUMBER + Period();
+    order.symbol = Symbol();
+    order.type = OP_BUY;
+
+    orderFind_.setMockedOrders(order);
+    unitTest.assertFalse(
+        areTherePendingOrdersThisSymbolThisPeriod()
+    );
+
+    order.type = OP_SELLSTOP;
+    orderFind_.setMockedOrders(order);
+
+    unitTest.assertTrue(
+        areTherePendingOrdersThisSymbolThisPeriod()
+    );
 }
 
 void OrderManageTest::findBestOrderTest() {

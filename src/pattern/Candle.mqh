@@ -19,7 +19,6 @@ class Candle {
         bool upPinbar(int);
         bool bigBar(int);
 
-    protected:
         bool isCandleBull(int);
         bool isSupportCandle(int);
 

@@ -103,6 +103,7 @@ void UnitTestsRunner::runAllUnitTests() {
     OrderManageTest orderManageTest;
     orderManageTest.areThereOpenOrdersTest();
     orderManageTest.areThereOrdersThisSymbolThisPeriodTest();
+    orderManageTest.areTherePendingOrdersThisSymbolThisPeriodTest();
     orderManageTest.findBestOrderTest();
     orderManageTest.deduplicateOrdersTest();
     orderManageTest.emergencySwitchOffTest();

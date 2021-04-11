@@ -17,9 +17,9 @@ class TrendLine {
         bool isExistingTrendLineBad(string, Discriminator);
         bool isBadTrendLineFromName(string);
         bool isGoodTrendLineFromName(string, int);
+
         int getTrendLineMaxIndex(string);
         int getTrendLineMinIndex(string);
-        double getVolatility();
         string buildTrendLineName(int, int, int, Discriminator);
         string buildBadTrendLineName(int, int, int, Discriminator);
 
@@ -192,28 +192,7 @@ int TrendLine::getTrendLineMinIndex(string trendLineName) {
 double TrendLine::getMaxTrendLineSlope(double trendLineSlope) {
     const double maxVolatilityPercentage = trendLineSlope > 0 ?
         TRENDLINE_POSITIVE_SLOPE_VOLATILITY : TRENDLINE_NEGATIVE_SLOPE_VOLATILITY;
-    return MathAbs(maxVolatilityPercentage * getVolatility());
-}
-
-/**
- * Calculates the market volatility at the trendLines zoom.
- */
-double TrendLine::getVolatility() {
-    static double volatility;
-
-    if (VOLATILITY_TIMESTAMP != Time[0] || volatility == 0) {
-        double marketMax = -10000, marketMin = 10000;
-
-        for (int i = 0; i < CANDLES_VISIBLE_IN_GRAPH_3X; i++) {
-            marketMax = MathMax(marketMax, iExtreme(Max, i));
-            marketMin = MathMin(marketMin, iExtreme(Min, i));
-        }
-
-        volatility = MathAbs(marketMax - marketMin);
-        VOLATILITY_TIMESTAMP = Time[0];
-    }
-
-    return volatility;
+    return MathAbs(maxVolatilityPercentage * GetMarketVolatility());
 }
 
 /**

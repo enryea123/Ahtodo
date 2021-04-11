@@ -80,6 +80,45 @@ double iCandle(CandleSeriesType candleSeriesType, string symbol, int period, int
 }
 
 /**
+ * Returns true if a price gap of the given pips is detected in the given range.
+ */
+bool FindPriceGap(int candles, double maxGap) {
+    for (int i = 0; i < candles; i++) {
+        const double gap = MathAbs(iCandle(I_close, i + 1) - iCandle(I_open, i)) / Pip();
+
+        if (gap > maxGap) {
+            PRICE_GAP_TIMESTAMP = PrintTimer(PRICE_GAP_TIMESTAMP,
+                StringConcatenate("Found price gap of ", gap, " pips"));
+
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * Returns the market spread for the specified symbol.
+ * If a high spread is detected, it caches it for 5 minutes.
+ */
+double GetSpread(string symbol = NULL) {
+    const datetime thisTime = (datetime) iCandle(I_time, Symbol(), PERIOD_M5, 0);
+
+    static string cachedSymbol;
+    static datetime timeStamp;
+    static double spread;
+
+    if (spread > SPREAD_PIPS_CLOSE_MARKET && symbol == cachedSymbol && timeStamp == thisTime && UNIT_TESTS_COMPLETED) {
+        return spread;
+    }
+
+    cachedSymbol = symbol;
+    timeStamp = thisTime;
+    spread = MarketInfo(symbol, MODE_SPREAD) / 10;
+
+    return spread;
+}
+
+/**
  * Downloads history data for all the periods enabled on the bot.
  * It retries a few times if needed, and waits between attempts.
  */
@@ -126,4 +165,44 @@ bool DownloadHistory() {
 
     return ThrowException(false, __FUNCTION__, StringConcatenate(
         "Could not download history data, error:", GetLastError()));
+}
+
+/**
+ * Calculates the market volatility at the trendLines zoom.
+ */
+double GetMarketVolatility() {
+    static double volatility;
+
+    if (VOLATILITY_TIMESTAMP != Time[0] || volatility == 0) {
+        double marketMax = -10000, marketMin = 10000;
+
+        for (int i = 0; i < CANDLES_VISIBLE_IN_GRAPH_3X; i++) {
+            marketMax = MathMax(marketMax, iExtreme(Max, i));
+            marketMin = MathMin(marketMin, iExtreme(Min, i));
+        }
+
+        volatility = MathAbs(marketMax - marketMin);
+        VOLATILITY_TIMESTAMP = Time[0];
+    }
+
+    return volatility;
+}
+
+/**
+ * Calculates the Average True Range for this symbol and period.
+ */
+double AverageTrueRange() {
+    const datetime thisTime = (datetime) iCandle(I_time, Symbol(), PERIOD_D1, 0);
+
+    static datetime timeStamp;
+    static double averageTrueRange;
+
+    if (timeStamp == thisTime && UNIT_TESTS_COMPLETED) {
+        return averageTrueRange;
+    }
+
+    timeStamp = thisTime;
+    averageTrueRange = iATR(Symbol(), Period(), ATR_AVERAGE_CANDLES, 0) / Pip();
+
+    return averageTrueRange;
 }
