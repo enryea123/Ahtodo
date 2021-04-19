@@ -112,7 +112,7 @@ void OrderManage::deduplicateDiscriminatedOrders(Discriminator discriminator) {
     Order orders[];
     orderFind_.getFilteredOrdersList(orders, orderFilter);
 
-    if (ArraySize(orders) > 0) {
+    if (ArraySize(orders) > 1) {
         int bestOrderIndex = 0;
 
         for (int i = 0; i < ArraySize(orders); i++) {
@@ -122,6 +122,8 @@ void OrderManage::deduplicateDiscriminatedOrders(Discriminator discriminator) {
                 }
             }
         }
+
+        DEDUPLICATE_ORDER_TIMESTAMP = PrintTimer(DEDUPLICATE_ORDER_TIMESTAMP, "Deduplicating orders..");
 
         ArrayRemove(orders, bestOrderIndex);
         deleteOrdersFromList(orders);

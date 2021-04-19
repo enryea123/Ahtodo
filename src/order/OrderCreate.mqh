@@ -84,8 +84,12 @@ void OrderCreate::createNewOrder(int index) {
     const Discriminator discriminator = isBuy ? Max : Min;
     const Discriminator antiDiscriminator = !isBuy ? Max : Min;
 
-    order.openPrice = calculateEntryPoint(discriminator, index) + discriminator * Pip(order.symbol);
-    order.stopLoss = iExtreme(antiDiscriminator, index);
+    const double spread = GetSpread();
+    const double spreadAsk = isBuy ? spread : 0;
+    const double spreadBid = !isBuy ? spread : 0;
+
+    order.openPrice = calculateEntryPoint(discriminator, index) + discriminator * (1 + spreadAsk) * Pip(order.symbol);
+    order.stopLoss = iExtreme(antiDiscriminator, index) - discriminator * (1 + spreadBid) * Pip(order.symbol);
 
     if (order.getStopLossPips() > STOPLOSS_MAXIMUM_SIZE_PIPS) {
         return;
