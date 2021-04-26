@@ -26,7 +26,7 @@ class PatternsDraw {
  * Draws all the patterns.
  */
 void PatternsDraw::drawAllPatterns() {
-    const int maxCandles = IS_DEBUG ? CANDLES_VISIBLE_IN_GRAPH_2X : PATTERN_DRAW_MAX_CANDLES;
+    const int maxCandles = IS_DEBUG ? EXTREMES_MAX_CANDLES : PATTERN_DRAW_MAX_CANDLES;
 
     // Draw a rectangle for each pattern
     for (int i = 1; i < maxCandles; i++) {

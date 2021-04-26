@@ -32,17 +32,22 @@ class Order {
         bool operator != (const Order &);
 
         bool isBreakEven();
+        bool isBreakEvenByComment();
         int getPeriod();
         int getStopLossPips();
         string toString();
 
         void buildComment(double, double);
-        double getSizeFactorFromComment();
+        int getStopLossPipsFromComment();
+        double getPercentRiskFromComment();
 
         bool isOpen();
         bool isBuy();
         bool isSell();
         Discriminator getDiscriminator();
+
+    private:
+        double getAttributeFromComment(string);
 };
 
 Order::Order():
@@ -86,9 +91,27 @@ bool Order::operator != (const Order & v) {
 }
 
 /**
- * Returns true if the order has reached the breakEven point, based on the comment.
+ * Returns true if the order has reached the breakEven point, based on the price.
  */
 bool Order::isBreakEven() {
+    if (openPrice == -1 || stopLoss == -1 || symbol == NULL || type == -1) {
+        return ThrowException(false, __FUNCTION__, "Some order quantities not initialized");
+    }
+
+    const int breakEvenPointPips = SPLIT_POSITION ? BREAKEVEN_STEPS_SPLIT.getValues(0) : BREAKEVEN_STEPS.getValues(0);
+
+    if ((getDiscriminator() == Max && stopLoss >= openPrice + breakEvenPointPips * Pip(symbol)) ||
+        (getDiscriminator() == Min && stopLoss <= openPrice - breakEvenPointPips * Pip(symbol))) {
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * Returns true if the order has reached the breakEven point, based on the comment.
+ */
+bool Order::isBreakEvenByComment() {
     if (StringContains(comment, StringConcatenate(STRATEGY_PREFIX, COMMENT_SEPARATOR, PERIOD_COMMENT_IDENTIFIER))) {
         return false;
     }
@@ -156,11 +179,11 @@ string Order::toString() {
 /**
  * Creates the comment for a new pending order, and makes sure it doesn't exceed the maximum length.
  */
-void Order::buildComment(double sizeFactor, double takeProfitFactor) {
+void Order::buildComment(double percentRisk, double takeProfitFactor) {
     comment = StringConcatenate(
         STRATEGY_PREFIX,
         COMMENT_SEPARATOR, PERIOD_COMMENT_IDENTIFIER, getPeriod(),
-        COMMENT_SEPARATOR, SIZE_FACTOR_COMMENT_IDENTIFIER, NormalizeDouble(sizeFactor, 1),
+        COMMENT_SEPARATOR, PERCENT_RISK_COMMENT_IDENTIFIER, NormalizeDouble(percentRisk, 1),
         COMMENT_SEPARATOR, TAKEPROFIT_FACTOR_COMMENT_IDENTIFIER, NormalizeDouble(takeProfitFactor, 1),
         COMMENT_SEPARATOR, STOPLOSS_PIPS_COMMENT_IDENTIFIER, (int) MathRound(getStopLossPips())
     );
@@ -172,22 +195,36 @@ void Order::buildComment(double sizeFactor, double takeProfitFactor) {
 }
 
 /**
- * Estrapolates the sizeFactor from a well formatted order comment.
+ * Estrapolates the stopLossPips from a well formatted order comment.
  */
-double Order::getSizeFactorFromComment() {
+int Order::getStopLossPipsFromComment() {
+    return (int) getAttributeFromComment(STOPLOSS_PIPS_COMMENT_IDENTIFIER);
+}
+
+/**
+ * Estrapolates the percentRisk from a well formatted order comment.
+ */
+double Order::getPercentRiskFromComment() {
+    return getAttributeFromComment(PERCENT_RISK_COMMENT_IDENTIFIER);
+}
+
+/**
+ * Estrapolates an attribute from a well formatted order comment.
+ */
+double Order::getAttributeFromComment(string attribute) {
     if (comment == NULL) {
         return ThrowException(-1, __FUNCTION__, "Order comment not initialized");
     }
-    if (!StringContains(comment, StringConcatenate(SIZE_FACTOR_COMMENT_IDENTIFIER))) {
-        return ThrowException(-1, __FUNCTION__, "The order comment does not contain the sizeFactor");
+    if (!StringContains(comment, StringConcatenate(attribute))) {
+        return ThrowException(-1, __FUNCTION__, "The order comment does not contain the searched attribute");
     }
 
     string splittedComment[];
     StringSplit(comment, StringGetCharacter(COMMENT_SEPARATOR, 0), splittedComment);
 
     for (int i = 0; i < ArraySize(splittedComment); i++) {
-        if (StringContains(splittedComment[i], SIZE_FACTOR_COMMENT_IDENTIFIER)) {
-            StringSplit(splittedComment[i], StringGetCharacter(SIZE_FACTOR_COMMENT_IDENTIFIER, 0), splittedComment);
+        if (StringContains(splittedComment[i], attribute)) {
+            StringSplit(splittedComment[i], StringGetCharacter(attribute, 0), splittedComment);
             break;
         }
     }
@@ -196,7 +233,7 @@ double Order::getSizeFactorFromComment() {
         return (double) splittedComment[1];
     }
 
-    return ThrowException(-1, __FUNCTION__, "Could not get the sizeFactor from comment");
+    return ThrowException(-1, __FUNCTION__, "Could not get the searched attribute from comment");
 }
 
 /**

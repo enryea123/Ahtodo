@@ -113,7 +113,7 @@ void PivotsDraw::drawPivotRS(PivotPeriod pivotPeriod, PivotRS pivotRS) {
  * Returns the max index to use to draw pivot lines.
  */
 int PivotsDraw::getMaxTimeIndex(int pivotPeriodFactor) {
-    const int maxCandles = IS_DEBUG ? CANDLES_VISIBLE_IN_GRAPH_2X : PIVOT_LINES_DRAW_MAX_CANDLES;
+    const int maxCandles = IS_DEBUG ? EXTREMES_MAX_CANDLES : PIVOT_LINES_DRAW_MAX_CANDLES;
     return (int) MathRound(1 + maxCandles * Period() / PERIOD_D1 / pivotPeriodFactor) + 1;
 }
 

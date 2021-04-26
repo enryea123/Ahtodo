@@ -28,7 +28,8 @@ class OrderTrail {
         bool closeDrawningOrder(Order &, double);
         double calculateBreakEvenStopLoss(Order &);
         double calculateSufferingStopLoss(Order &);
-        double trailer(double, double, double);
+        double calculateTrailingStopLoss(Order &);
+        double getPreviousExtreme(Discriminator, int);
         void orderBelowZeroAlert(Order &);
 };
 
@@ -55,14 +56,14 @@ void OrderTrail::manageOpenOrders() {
  */
 void OrderTrail::manageOpenOrder(Order & order) {
     const double breakEvenStopLoss = calculateBreakEvenStopLoss(order);
-    const double sufferingStopLoss = calculateSufferingStopLoss(order);
+    const double trailingStopLoss = calculateTrailingStopLoss(order);
 
     double newStopLoss;
 
     if (order.getDiscriminator() == Max) {
-        newStopLoss = MathMax(breakEvenStopLoss, sufferingStopLoss);
+        newStopLoss = MathMax(breakEvenStopLoss, trailingStopLoss);
     } else {
-        newStopLoss = MathMin(breakEvenStopLoss, sufferingStopLoss);
+        newStopLoss = MathMin(breakEvenStopLoss, trailingStopLoss);
     }
 
     if (closeDrawningOrder(order, newStopLoss)) {
@@ -122,7 +123,7 @@ void OrderTrail::updateOrder(Order & order, double newStopLoss, double newTakePr
 }
 
 /**
- * Splits an order by closing half position, if the stopLoss lies exactly at the breakEven point.
+ * Splits an order by closing half position, if the stopLoss is beyond the breakEven point.
  */
 bool OrderTrail::splitPosition(Order & order) {
     if (!SPLIT_POSITION) {
@@ -143,7 +144,7 @@ bool OrderTrail::splitPosition(Order & order) {
         return false;
     }
 
-    if (!order.isBreakEven()) {
+    if (!order.isBreakEvenByComment()) {
         if (UNIT_TESTS_COMPLETED) {
             const bool splitOrder = OrderClose(order.ticket, order.lots / 2, order.closePrice, 3);
 
@@ -253,42 +254,68 @@ double OrderTrail::calculateSufferingStopLoss(Order & order) {
 /**
  * Trails the stopLoss and the takeProfit for and already existing order.
  */
-double OrderTrail::trailer(double openPrice, double stopLoss, double takeProfit) {
-    const Discriminator discriminator = (takeProfit > openPrice) ? Max : Min;
-    const double currentExtreme = iExtreme(discriminator, 0);
-    const double currentExtremeToOpenDistance = currentExtreme - openPrice;
-    const double profitToOpenDistance = takeProfit - openPrice;
+double OrderTrail::calculateTrailingStopLoss(Order & order) {
+    if (order.symbol != Symbol()) {
+        return ThrowException(0, __FUNCTION__, "Order trailing not supported for non current symbol");
+    }
 
-    const double trailerBaseDistance = 2.0;
-    const double trailerPercent = 0.0;
+    const Discriminator discriminator = order.getDiscriminator();
+    const Discriminator antiDiscriminator = (discriminator > 0) ? Min : Max;
 
-    const double trailer = trailerBaseDistance - trailerPercent * currentExtremeToOpenDistance / profitToOpenDistance;
+    const int stopLossPips = SPLIT_POSITION ? (int) AverageTrueRange() : order.getStopLossPipsFromComment();
 
-    // This trailing assumes a constant takeProfit factor
-    double initialStopLossDistance = profitToOpenDistance / MAX_TAKEPROFIT_FACTOR;
-    double trailerStopLoss = currentExtreme - initialStopLossDistance * trailer;
+    const double currentGain = MathAbs(GetPrice() - order.openPrice) / Pip() / stopLossPips;
 
-    // Trailing StopLoss
+    if (!order.isBreakEven()) {
+        return order.stopLoss;
+    }
+
+    double stopLoss = order.stopLoss;
+
+    const int trailingSteps = TRAILING_STEPS.size();
+
+    for (int i = 0; i < trailingSteps; i++) {
+        if (i < trailingSteps - 1) {
+            if (currentGain > TRAILING_STEPS.getKeys(i) && currentGain < TRAILING_STEPS.getKeys(i + 1)) {
+                stopLoss = getPreviousExtreme(antiDiscriminator, TRAILING_STEPS.getValues(i));
+            }
+        } else {
+            if (currentGain > TRAILING_STEPS.getKeys(i)) {
+                stopLoss = getPreviousExtreme(antiDiscriminator, TRAILING_STEPS.getValues(i));
+            }
+        }
+    }
+
+    stopLoss -= discriminator * TRAILING_BUFFER_PIPS * Pip();
+
     if (discriminator > 0) {
-        stopLoss = MathMax(stopLoss, trailerStopLoss);
+        stopLoss = MathMax(stopLoss, order.stopLoss);
     } else {
-        stopLoss = MathMin(stopLoss, trailerStopLoss);
+        stopLoss = MathMin(stopLoss, order.stopLoss);
     }
 
     return stopLoss;
+}
 
-    // In the future, implement a stopLoss trailing below the previous minimum
-
-    /*
-    // Trailing TakeProfit
-    const double takeProfitPercentUpdate = 0.95;
-
-    if ((discriminator > 0 && currentExtremeToOpenDistance > takeProfitPercentUpdate * profitToOpenDistance) ||
-        (discriminator < 0 && currentExtremeToOpenDistance < takeProfitPercentUpdate * profitToOpenDistance)) {
-        takeProfit += profitToOpenDistance * (1 - takeProfitPercentUpdate);
+/**
+ * Calculates the previous extreme out of numberOfCandles.
+ */
+double OrderTrail::getPreviousExtreme(Discriminator discriminator, int numberOfCandles) {
+    if (numberOfCandles < 0) {
+        return ThrowException(-1, __FUNCTION__, StringConcatenate("Unprocessable numberOfCandles: ", numberOfCandles));
     }
-    return takeProfit;
-    */
+
+    double previousExtreme = (discriminator > 0) ? -10000 : 10000;
+
+    for (int i = 0; i < numberOfCandles + 1; i++) {
+        if (discriminator > 0) {
+            previousExtreme = MathMax(previousExtreme, iExtreme(discriminator, i));
+        } else {
+            previousExtreme = MathMin(previousExtreme, iExtreme(discriminator, i));
+        }
+    }
+
+    return previousExtreme;
 }
 
 /**

@@ -214,12 +214,12 @@ void MarketTest::isAllowedSymbolPeriodComboTest() {
 
     accountTypeOverride();
 
-    unitTest.assertFalse(
-        isAllowedSymbolPeriodCombo("GBPJPY", PERIOD_M30)
+    unitTest.assertTrue(
+        isAllowedSymbolPeriodCombo("NOKSEK", PERIOD_H4)
     );
 
     unitTest.assertFalse(
-        isAllowedSymbolPeriodCombo("EURJPY", PERIOD_M30)
+        isAllowedSymbolPeriodCombo("NOKSEK", PERIOD_H1)
     );
 
     unitTest.assertTrue(

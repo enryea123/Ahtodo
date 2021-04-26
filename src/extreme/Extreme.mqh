@@ -20,11 +20,11 @@ class Extreme {
  */
 void Extreme::calculateAllExtremes(int & allExtremes[], Discriminator discriminator, int extremesMinDistance) {
     ArrayFree(allExtremes);
-    ArrayResize(allExtremes, CANDLES_VISIBLE_IN_GRAPH_2X);
+    ArrayResize(allExtremes, EXTREMES_MAX_CANDLES);
 
     int numberOfExtremes = 0;
 
-    for (int i = extremesMinDistance + 1; i < CANDLES_VISIBLE_IN_GRAPH_2X; i++) {
+    for (int i = extremesMinDistance + 1; i < EXTREMES_MAX_CANDLES; i++) {
         bool isBeatingNeighbours = true;
 
         for (int j = -extremesMinDistance; j < extremesMinDistance + 1; j++) {
@@ -50,7 +50,7 @@ void Extreme::calculateAllExtremes(int & allExtremes[], Discriminator discrimina
  */
 void Extreme::calculateValidExtremes(int & validExtremes[], Discriminator discriminator, int extremesMinDistance) {
     ArrayFree(validExtremes);
-    ArrayResize(validExtremes, CANDLES_VISIBLE_IN_GRAPH_2X);
+    ArrayResize(validExtremes, EXTREMES_MAX_CANDLES);
 
     int allExtremes[];
     calculateAllExtremes(allExtremes, discriminator, extremesMinDistance);

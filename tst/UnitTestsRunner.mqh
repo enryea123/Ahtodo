@@ -85,13 +85,16 @@ void UnitTestsRunner::runAllUnitTests() {
     orderCreateTest.calculateTakeProfitFactorTest();
     orderCreateTest.calculateSizeFactorTest();
     orderCreateTest.calculateOrderLotsTest();
+    orderCreateTest.calculatePercentRiskTest();
 
     OrderTest orderTest;
     orderTest.isBreakEvenTest();
+    orderTest.isBreakEvenByCommentTest();
     orderTest.getPeriodTest();
     orderTest.getStopLossPipsTest();
     orderTest.buildCommentTest();
-    orderTest.getSizeFactorFromCommentTest();
+    orderTest.getStopLossPipsFromCommentTest();
+    orderTest.getPercentRiskFromCommentTest();
     orderTest.isOpenTest();
     orderTest.isBuySellTest();
     orderTest.getDiscriminatorTest();
@@ -115,6 +118,8 @@ void UnitTestsRunner::runAllUnitTests() {
     orderTrailTest.splitPositionTest();
     orderTrailTest.closeDrawningOrderTest();
     orderTrailTest.calculateBreakEvenStopLossTest();
+    orderTrailTest.calculateTrailingStopLossTest();
+    orderTrailTest.getPreviousExtremeTest();
     orderTrailTest.calculateSufferingStopLossTest();
 
     PatternTest patternTest;

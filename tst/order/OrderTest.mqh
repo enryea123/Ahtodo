@@ -9,10 +9,12 @@
 class OrderTest {
     public:
         void isBreakEvenTest();
+        void isBreakEvenByCommentTest();
         void getPeriodTest();
         void getStopLossPipsTest();
         void buildCommentTest();
-        void getSizeFactorFromCommentTest();
+        void getStopLossPipsFromCommentTest();
+        void getPercentRiskFromCommentTest();
         void isOpenTest();
         void isBuySellTest();
         void getDiscriminatorTest();
@@ -21,34 +23,74 @@ class OrderTest {
 void OrderTest::isBreakEvenTest() {
     UnitTest unitTest("isBreakEvenTest");
 
+    const int breakEvenPointPips = SPLIT_POSITION ? BREAKEVEN_STEPS_SPLIT.getValues(0) : BREAKEVEN_STEPS.getValues(0);
+
     Order order;
-
-    unitTest.assertTrue(
-        order.isBreakEven()
-    );
-
-    order.comment = "from #123";
-
-    unitTest.assertTrue(
-        order.isBreakEven()
-    );
-
-    order.comment = "A P";
 
     unitTest.assertFalse(
         order.isBreakEven()
     );
 
-    order.comment = "AP";
+    order.symbol = Symbol();
+    order.type = OP_BUY;
+    order.openPrice = GetPrice();
+    order.stopLoss = order.openPrice - 17 * Pip();
+
+    unitTest.assertFalse(
+        order.isBreakEven()
+    );
+
+    order.stopLoss = order.openPrice;
 
     unitTest.assertTrue(
         order.isBreakEven()
     );
 
-    order.comment = "A p";
+    order.type = OP_SELL;
+    order.stopLoss = order.openPrice + BREAKEVEN_STEPS.getValues(0) * Pip();
 
     unitTest.assertTrue(
         order.isBreakEven()
+    );
+
+    order.stopLoss = order.openPrice + 17 * Pip(order.symbol);
+
+    unitTest.assertFalse(
+        order.isBreakEven()
+    );
+}
+
+void OrderTest::isBreakEvenByCommentTest() {
+    UnitTest unitTest("isBreakEvenByCommentTest");
+
+    Order order;
+
+    unitTest.assertTrue(
+        order.isBreakEvenByComment()
+    );
+
+    order.comment = "from #123";
+
+    unitTest.assertTrue(
+        order.isBreakEvenByComment()
+    );
+
+    order.comment = "A P";
+
+    unitTest.assertFalse(
+        order.isBreakEvenByComment()
+    );
+
+    order.comment = "AP";
+
+    unitTest.assertTrue(
+        order.isBreakEvenByComment()
+    );
+
+    order.comment = "A p";
+
+    unitTest.assertTrue(
+        order.isBreakEvenByComment()
     );
 }
 
@@ -161,57 +203,90 @@ void OrderTest::buildCommentTest() {
     );
 }
 
-void OrderTest::getSizeFactorFromCommentTest() {
-    UnitTest unitTest("getSizeFactorFromCommentTest");
+void OrderTest::getPercentRiskFromCommentTest() {
+    UnitTest unitTest("getPercentRiskFromCommentTest");
 
     Order order;
     order.comment = "A P30 M1.3 R3 S10";
 
     unitTest.assertEquals(
         1.3,
-        order.getSizeFactorFromComment()
+        order.getPercentRiskFromComment()
     );
 
     order.comment = "A P30 M1 R3 S10";
 
     unitTest.assertEquals(
         1.0,
-        order.getSizeFactorFromComment()
+        order.getPercentRiskFromComment()
     );
 
     order.comment = "M0.8";
 
     unitTest.assertEquals(
         0.8,
-        order.getSizeFactorFromComment()
+        order.getPercentRiskFromComment()
     );
 
     order.comment = "A P30 W1 R3 S10";
 
     unitTest.assertEquals(
         -1.0,
-        order.getSizeFactorFromComment()
+        order.getPercentRiskFromComment()
     );
 
     order.comment = "W1";
 
     unitTest.assertEquals(
         -1.0,
-        order.getSizeFactorFromComment()
+        order.getPercentRiskFromComment()
     );
 
     order.comment = "asdasdM123asdasd";
 
     unitTest.assertEquals(
         123.0,
-        order.getSizeFactorFromComment()
+        order.getPercentRiskFromComment()
     );
 
     order.comment = NULL;
 
     unitTest.assertEquals(
         -1.0,
-        order.getSizeFactorFromComment()
+        order.getPercentRiskFromComment()
+    );
+}
+
+void OrderTest::getStopLossPipsFromCommentTest() {
+    UnitTest unitTest("getStopLossPipsFromCommentTest");
+
+    Order order;
+    order.comment = "A P30 M1 R3 S10";
+
+    unitTest.assertEquals(
+        10,
+        order.getStopLossPipsFromComment()
+    );
+
+    order.comment = "A P30 M1 R3 S35";
+
+    unitTest.assertEquals(
+        35,
+        order.getStopLossPipsFromComment()
+    );
+
+    order.comment = "S15";
+
+    unitTest.assertEquals(
+        15,
+        order.getStopLossPipsFromComment()
+    );
+
+    order.comment = "A P30 M1 R3 W10";
+
+    unitTest.assertEquals(
+        -1,
+        order.getStopLossPipsFromComment()
     );
 }
 

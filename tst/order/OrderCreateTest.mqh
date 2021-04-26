@@ -16,6 +16,7 @@ class OrderCreateTest: public OrderCreate {
         void calculateTakeProfitFactorTest();
         void calculateSizeFactorTest();
         void calculateOrderLotsTest();
+        void calculatePercentRiskTest();
 };
 
 void OrderCreateTest::areThereRecentOrdersTest() {
@@ -530,5 +531,44 @@ void OrderCreateTest::calculateOrderLotsTest() {
 
     unitTest.assertTrue(
         calculateOrderLots(stopLossPips, 1, symbol) < 30 // max lots allowed per operation
+    );
+}
+
+void OrderCreateTest::calculatePercentRiskTest() {
+    UnitTest unitTest("calculatePercentRiskTest");
+
+    string symbol = Symbol();
+
+    double thisAccountPercentRisk = PERCENT_RISK_ACCOUNT.get(AccountNumber());
+    thisAccountPercentRisk = (thisAccountPercentRisk != 0) ? thisAccountPercentRisk : 1;
+
+    double thisSymbolPercentRisk = PERCENT_RISK_SYMBOL.get(symbol);
+    thisSymbolPercentRisk = (thisSymbolPercentRisk != 0) ? thisSymbolPercentRisk : 1;
+
+    unitTest.assertEquals(
+        PERCENT_RISK * thisAccountPercentRisk * thisSymbolPercentRisk,
+        calculatePercentRisk(symbol)
+    );
+
+    if (thisAccountPercentRisk == 0) {
+        unitTest.assertEquals(
+            PERCENT_RISK * thisSymbolPercentRisk,
+            calculatePercentRisk(symbol)
+        );
+    } else {
+        unitTest.assertEquals(
+            PERCENT_RISK * thisAccountPercentRisk * thisSymbolPercentRisk,
+            calculatePercentRisk(symbol)
+        );
+    }
+
+    unitTest.assertEquals(
+        PERCENT_RISK * thisAccountPercentRisk,
+        calculatePercentRisk("NOKSEK")
+    );
+
+    unitTest.assertEquals(
+        0.0,
+        calculatePercentRisk("CIAO")
     );
 }

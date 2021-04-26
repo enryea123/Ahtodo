@@ -26,7 +26,7 @@ class OrderCreate {
         double calculateTakeProfitFactor(int, double, Discriminator);
         double calculateSizeFactor(int, double, string);
         double calculateOrderLots(int, double, string);
-        double getPercentRisk();
+        double calculatePercentRisk(string);
 
     protected:
         OrderFind orderFind_;
@@ -100,12 +100,12 @@ void OrderCreate::createNewOrder(int index) {
     order.takeProfit = order.openPrice + discriminator * takeProfitFactor * order.getStopLossPips() * Pip(order.symbol);
 
     // const double sizeFactor = calculateSizeFactor(order.type, order.openPrice, order.symbol);
-    // Keeping a constant size
     const double sizeFactor = 1;
+    const double percentRisk = calculatePercentRisk(order.symbol) * sizeFactor;
 
-    order.lots = calculateOrderLots(order.getStopLossPips(), sizeFactor, order.symbol);
+    order.lots = calculateOrderLots(order.getStopLossPips(), percentRisk, order.symbol);
 
-    if (sizeFactor == 0) {
+    if (percentRisk == 0) {
         return;
     }
     if (areThereBetterOrders(order.symbol, order.type, order.openPrice, order.stopLoss)) {
@@ -113,7 +113,7 @@ void OrderCreate::createNewOrder(int index) {
     }
 
     order.expiration = Time[0] + (ORDER_CANDLES_DURATION + 1 - index) * order.getPeriod() * 60;
-    order.buildComment(sizeFactor, takeProfitFactor);
+    order.buildComment(percentRisk, takeProfitFactor);
 
     sendOrder(order);
 }
@@ -452,12 +452,12 @@ double OrderCreate::calculateSizeFactor(int type, double openPrice, string symbo
  * Calculates the size for a new order, and makes sure that it's divisible by 2,
  * so that the position can be later split.
  */
-double OrderCreate::calculateOrderLots(int stopLossPips, double sizeFactor, string symbol) {
-    if (sizeFactor == 0) {
+double OrderCreate::calculateOrderLots(int stopLossPips, double percentRisk, string symbol) {
+    if (percentRisk == 0) {
         return 0;
     }
 
-    const double absoluteRisk = getPercentRisk() * AccountEquity() / MarketInfo(symbol, MODE_TICKVALUE);
+    const double absoluteRisk = (percentRisk / 100) * AccountEquity() / MarketInfo(symbol, MODE_TICKVALUE);
     const int stopLossTicks = stopLossPips * 10;
 
     const double rawOrderLots = absoluteRisk / stopLossTicks;
@@ -465,10 +465,10 @@ double OrderCreate::calculateOrderLots(int stopLossPips, double sizeFactor, stri
     double lots;
 
     if (SPLIT_POSITION) {
-        lots = 2 * NormalizeDouble(rawOrderLots * sizeFactor / 2, 2);
+        lots = 2 * NormalizeDouble(rawOrderLots / 2, 2);
         lots = MathMax(lots, 0.02);
     } else {
-        lots = NormalizeDouble(rawOrderLots * sizeFactor, 2);
+        lots = NormalizeDouble(rawOrderLots, 2);
         lots = MathMax(lots, 0.01);
     }
 
@@ -478,9 +478,18 @@ double OrderCreate::calculateOrderLots(int stopLossPips, double sizeFactor, stri
 /**
  * Returns the percent risk for a position, depending on the account.
  */
-double OrderCreate::getPercentRisk() {
-    const double exceptionPercentRisk = PERCENT_RISK_ACCOUNT_EXCEPTIONS.get(AccountNumber());
-    const double percentRisk = (exceptionPercentRisk != NULL) ? exceptionPercentRisk : PERCENT_RISK;
+double OrderCreate::calculatePercentRisk(string symbol) {
+    if (!SymbolExists(symbol)) {
+        return ThrowException(0, __FUNCTION__, "Unknown symbol");
+    }
 
-    return percentRisk / 100;
+    double accountPercentRisk = PERCENT_RISK_ACCOUNT.get(AccountNumber());
+    accountPercentRisk = (accountPercentRisk != 0) ? accountPercentRisk : 1;
+
+    double symbolPercentRisk = PERCENT_RISK_SYMBOL.get(symbol);
+    symbolPercentRisk = (symbolPercentRisk != 0) ? symbolPercentRisk : 1;
+
+    const double percentRisk = PERCENT_RISK * accountPercentRisk * symbolPercentRisk;
+
+    return percentRisk;
 }
