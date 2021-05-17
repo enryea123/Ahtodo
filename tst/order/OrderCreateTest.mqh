@@ -52,20 +52,6 @@ void OrderCreateTest::areThereRecentOrdersTest() {
     );
 
     if (period == PERIOD_M30) {
-        order.closeTime = (datetime) "2020-09-01 14:50";
-        orderFind_.setMockedOrders(order);
-
-        unitTest.assertFalse(
-            areThereRecentOrders(filterDate)
-        );
-
-        order.closeTime = (datetime) "2020-09-01 15:10";
-        orderFind_.setMockedOrders(order);
-
-        unitTest.assertTrue(
-            areThereRecentOrders(filterDate)
-        );
-    } else if (period == PERIOD_H1) {
         order.closeTime = (datetime) "2020-09-01 11:50";
         orderFind_.setMockedOrders(order);
 
@@ -79,7 +65,7 @@ void OrderCreateTest::areThereRecentOrdersTest() {
         unitTest.assertTrue(
             areThereRecentOrders(filterDate)
         );
-    } else if (period == PERIOD_H4) {
+    } else if (period == PERIOD_H1) {
         order.closeTime = (datetime) "2020-09-01 05:50";
         orderFind_.setMockedOrders(order);
 
@@ -88,6 +74,20 @@ void OrderCreateTest::areThereRecentOrdersTest() {
         );
 
         order.closeTime = (datetime) "2020-09-01 06:10";
+        orderFind_.setMockedOrders(order);
+
+        unitTest.assertTrue(
+            areThereRecentOrders(filterDate)
+        );
+    } else if (period == PERIOD_H4) {
+        order.closeTime = (datetime) "2020-08-31 17:50";
+        orderFind_.setMockedOrders(order);
+
+        unitTest.assertFalse(
+            areThereRecentOrders(filterDate)
+        );
+
+        order.closeTime = (datetime) "2020-08-31 18:10";
         orderFind_.setMockedOrders(order);
 
         unitTest.assertTrue(

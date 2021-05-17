@@ -3,7 +3,7 @@
 #property strict
 
 #property description "Enrico Albano's automated bot for Ahtodo"
-#property version "210.426"
+#property version "210.517"
 
 #include "src/drawer/Drawer.mqh"
 #include "src/market/Market.mqh"
